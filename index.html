@@ -276,6 +276,39 @@ aside .lg{width:78px}
 }
 @media print{.menu,.stamp,.pill.clock{display:none!important}}
 </style>
+<style id="tsfull-css">
+/* Trip Sheet: whole entry form fits one screen, no page scrolling (desktop / large tablets) */
+@media (min-width:821px) and (min-height:620px){
+body.tsfull{overflow:hidden}
+body.tsfull #app{height:100vh;height:100dvh;min-height:0;display:flex!important;flex-direction:column;padding-bottom:10px}
+body.tsfull aside{flex:none;margin-bottom:10px}
+body.tsfull main{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 4px}
+body.tsfull main>.top{margin-bottom:8px;flex:none}
+body.tsfull main>.top h2{font-size:20px}
+body.tsfull #sub{display:none}
+body.tsfull #llb{display:none}
+body.tsfull #view{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column}
+body.tsfull #view>.card{margin-bottom:8px;padding:12px 16px;border-radius:18px}
+body.tsfull #tsrec{display:none}
+body.tsfull #view .card>.note[style*="margin-bottom:14px"]{display:none}
+body.tsfull #view>.card:has(#fb){flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-between}
+body.tsfull #view h3{font-size:14px}
+body.tsfull #view label{font-size:10.5px;margin-bottom:3px}
+body.tsfull #view input,body.tsfull #view select{padding:6px 9px;font-size:13px;border-radius:10px}
+body.tsfull #view .row{grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-bottom:8px}
+body.tsfull #view .sec{margin:0 0 6px}
+body.tsfull #view .row+.sec,body.tsfull #view .two+.sec{margin-top:6px}
+body.tsfull #view .two{gap:10px;margin:2px 0 8px}
+body.tsfull #view .pn{padding:10px 12px;border-radius:14px}
+body.tsfull #view .pn h4{font-size:11.5px;margin-bottom:6px}
+body.tsfull #view .pn p{display:none}
+body.tsfull #view .pn .row{grid-template-columns:repeat(auto-fit,minmax(90px,1fr));margin-bottom:4px}
+body.tsfull #view .pt{margin-top:4px;padding-top:6px;font-size:13px}
+body.tsfull #view .sum{padding:10px 16px;gap:22px;border-radius:14px}
+body.tsfull #view .sum b{font-size:17px}
+body.tsfull #view .sum .btn{padding:9px 16px}
+}
+</style>
 </head><body>
 <div class="aurora"><i></i><i></i><i></i><i></i></div><div class="grid"></div>
 <div id="login"><div class="hero"><div class="orbit"><div class="r r2"></div><div class="r"></div><img class="mark" data-logo alt="Saif Navas Transport"></div><h1>Fleet operations, accounts and payroll in one place.</h1><p>Trip sheets, invoicing, statements, cash and bank, expenses and driver salary for Saif Navas Transport.</p><div class="chips"><div class="chip">Admin &amp; accountant workspaces</div><div class="chip">Company / own expense separation</div><div class="chip">Vehicle-wise records</div><div class="chip">One-way and round-trip routes</div></div></div>
@@ -797,8 +830,8 @@ function sheet(){rtEdited=false;$('#view').innerHTML=`${setupNote()}<div class="
 <div class="row hide" id="rt2"><div><label>Return route · From</label>${optc(PL,'ff2','rtEdited=true')}</div><div><label>Return route · To</label>${optc(PL,'ft2','rtEdited=true')}</div><div style="align-self:end"><span class="note">Starts as the reverse of the first route. Change either place if the return trip goes somewhere else.</span></div></div>
 <div class="two"><div class="pn co"><h4>COMPANY EXPENSES</h4><p>Collected from the customer / company — billed on invoice</p><div class="row"><div><label>Charge</label><input id="c1" type="number" value="0" oninput="calc()"></div><div><label>Parking</label><input id="c2" type="number" value="0" oninput="calc()"></div><div><label>Salik &amp; Other</label><input id="c3" type="number" value="0" oninput="calc()"></div></div><div class="pt"><span>Total billed</span><span id="ta">0</span></div></div>
 <div class="pn us"><h4>OUR EXPENSES</h4><p>Borne by Saif Navas — not billed to the customer</p><div class="row"><div><label>Fuel</label><input id="e1" type="number" value="0" oninput="calc()"></div><div><label>FA</label><input id="e2" type="number" value="0" oninput="calc()"></div><div><label>Batha</label><input id="e3" type="number" value="0" oninput="calc()"></div><div><label>Other Exp</label><input id="e4" type="number" value="0" oninput="calc()"></div></div><div class="pt"><span>Total our cost</span><span id="te">0</span></div></div></div>
-<div class="row"><div><label>Driver waiting / extra bonus (AED)</label><input id="wb" type="number" min="0" value="0"></div><div><label>Bonus note</label><input id="wbn" placeholder="e.g. waited 2 hours"></div><div style="align-self:end"><span class="note">Added to this driver's salary for the month.</span></div></div><div class="sum"><span><small>Billed to company</small><b id="s1">0</b></span><span><small>Our expense</small><b id="s2">0</b></span><span><small>Net margin</small><b id="s3">0</b></span><span><small>Credit (due)</small><b id="tc">0</b></span><span style="margin-left:auto"><button id="svb" class="btn au" onclick="saveTrip()">Save Trip</button> <button class="btn g" onclick="pdfDoc('trip')">Download PDF</button></span></div></div>
-<div class="card"><h3 style="margin-bottom:12px">Recent Entries</h3>${tb(['Bill','Date','Company','Driver','Vehicle','Route','Billed','Our cost','Status','Payment',''],T.slice(-8).reverse().map(t=>`<tr><td>${esc(t.bill)}${ebyS(t)}</td><td>${esc(t.date)}${t.tm?'<div class="note">'+esc(t.tm)+'</div>':''}</td><td>${esc(t.company)}</td><td>${esc(t.driver)}</td><td>${esc(t.vehicle)}</td><td>${route(t)}</td><td class="num">${amt(t)}</td><td class="num">${exp(t)}</td><td class="num"><span class="tag ${t.paid?'paid':'unp'}">${t.paid?'Paid':'Not Paid'}</span></td><td>${pmTag(t)}</td><td><a style="cursor:pointer;color:var(--bad)" onclick="flag(${esc(t.bill)})">⚑ Flag</a></td></tr>`),[6,7])}</div>`}
+<div class="row"><div><label>Driver waiting / extra bonus (AED)</label><input id="wb" type="number" min="0" value="0"></div><div><label>Bonus note</label><input id="wbn" placeholder="e.g. waited 2 hours"></div><div style="align-self:end"><span class="note">Added to this driver's salary for the month.</span></div></div><div class="sum"><span><small>Billed to company</small><b id="s1">0</b></span><span><small>Our expense</small><b id="s2">0</b></span><span><small>Net margin</small><b id="s3">0</b></span><span><small>Credit (due)</small><b id="tc">0</b></span><span style="margin-left:auto"><button id="svb" class="btn au" onclick="saveTrip()">Save Trip</button> <button class="btn g" onclick="pdfDoc('trip')">Download PDF</button> <button class="btn g" onclick="tsRecent()">Recent entries</button></span></div></div>
+<div class="card" id="tsrec"><h3 style="margin-bottom:12px">Recent Entries</h3>${tb(['Bill','Date','Company','Driver','Vehicle','Route','Billed','Our cost','Status','Payment',''],T.slice(-8).reverse().map(t=>`<tr><td>${esc(t.bill)}${ebyS(t)}</td><td>${esc(t.date)}${t.tm?'<div class="note">'+esc(t.tm)+'</div>':''}</td><td>${esc(t.company)}</td><td>${esc(t.driver)}</td><td>${esc(t.vehicle)}</td><td>${route(t)}</td><td class="num">${amt(t)}</td><td class="num">${exp(t)}</td><td class="num"><span class="tag ${t.paid?'paid':'unp'}">${t.paid?'Paid':'Not Paid'}</span></td><td>${pmTag(t)}</td><td><a style="cursor:pointer;color:var(--bad)" onclick="flag(${esc(t.bill)})">⚑ Flag</a></td></tr>`),[6,7])}</div>`}
 function fpSet(){const v=+g('fp')||0;$('#c1').value=Math.max(0,v-(+g('c2')||0)-(+g('c3')||0));calc(1)}
 function calc(keep){const a=+g('c1')+ +g('c2')+ +g('c3'),e=+g('e1')+ +g('e2')+ +g('e3')+ +g('e4');$('#ta').textContent=a;$('#te').textContent=e;$('#s1').textContent=a;$('#s2').textContent=e;$('#s3').textContent=a-e;if(!keep)$('#fp').value=a;$('#tc').textContent=g('fpm')=='credit'?a:0}
 let rtEdited=false;
@@ -1426,6 +1459,10 @@ window.forgotPw=function(){E('lerr').classList.add('hide');E('lok').classList.ad
  if(!FBOK)return bad('Cannot reach Firebase. Check your internet connection and reload.');
  fbAuth.sendPasswordResetEmail(em).then(()=>{E('lok').textContent='If an account exists for '+em+', a password reset email is on its way. Check spam too.';E('lok').classList.remove('hide')})
  .catch(e=>bad(({'auth/invalid-email':'Enter a valid email address','auth/too-many-requests':'Too many requests. Try again in a few minutes.','auth/network-request-failed':'No signal. Check your internet and try again.'})[e.code]||e.message))};
+
+window.tsRecent=()=>{const c=document.getElementById('tsrec');if(!c)return;modal('<div style="width:min(1050px,84vw)"><div class="top" style="margin-bottom:12px"><h3>Recent Entries</h3><button class="btn g" onclick="cm()">Close</button></div>'+c.querySelector('.tw').outerHTML+'</div>')};
+const _go2=window.go;
+window.go=function(i){try{document.body.classList.toggle('tsfull',NAV[role][i]=='Trip Sheet')}catch(e){}return _go2.apply(this,arguments)};
 })();
 </script>
 </body></html>
