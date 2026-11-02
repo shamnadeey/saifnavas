@@ -1451,37 +1451,48 @@ window.finishLink=function(em){clr();if(!em)return bad('Enter the email address 
  fbAuth.signInWithEmailLink(em,location.href).then(()=>{try{localStorage.removeItem(EK)}catch(e){}try{history.replaceState(null,'',location.pathname)}catch(e){}})
  .catch(e=>{b.classList.remove('ld');window.__fresh=false;bad(ERRS[e.code]||e.message);if(e.code=='auth/invalid-action-code'||e.code=='auth/expired-action-code'){try{history.replaceState(null,'',location.pathname)}catch(x){}setMode('link')}})};
 
-/* ---- admin approval by emailed link (replaces the admin password) ---- */
+/* ---- admin approval by emailed link (works across devices through Firestore) ---- */
 const qs=new URLSearchParams(location.search),RN=qs.get('rn');
 if(RN)window.__rnTab=true;
 const _begin=window.begin;window.begin=function(u){if(window.__rnTab)return;return _begin.apply(this,arguments)};
+let rnUnsub=null;
+const rnStop=()=>{if(rnUnsub){try{rnUnsub()}catch(e){}rnUnsub=null}};
+const modalOpen=()=>{const m=document.getElementById('m');return !!(m&&m.style.display!='none'&&E('rbtn'))};
 window.need=function(cb){
  if(role!='corp')return alert('Only the admin can do this.');
  if(UNL)return cb();
  const u=fbAuth.currentUser,em=(u&&u.email)||'';
- window._cb=cb;
- modal(`<h3>Admin approval</h3><p class="note" style="margin:6px 0 12px">For safety, this action must be approved by email. We will send a one-time approval link to <b>${esc(em)}</b>. Open that link in this same browser, then come back to this tab. It stays approved for this session.</p><div class="lok hide" id="rok"></div><div class="lerr hide" id="rerr"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn au" id="rbtn" onclick="sendReauth()">Email me the approval link</button><button class="btn g" onclick="cm()">Cancel</button></div>`)};
-window.sendReauth=function(){const u=fbAuth.currentUser;if(!u||!u.email)return;const b=E('rbtn'),rn=Math.random().toString(36).slice(2)+Date.now().toString(36);
- if(!urlOk()){E('rerr').textContent='Email approval only works from the hosted website address.';E('rerr').classList.remove('hide');return}
- b.classList.add('ld');
- fbAuth.sendSignInLinkToEmail(u.email,{url:location.origin+location.pathname+'?rn='+rn,handleCodeInApp:true}).then(()=>{
-  try{localStorage.setItem(RK,rn);localStorage.setItem(EK,u.email);localStorage.removeItem(RO)}catch(e){}
-  b.classList.remove('ld');b.textContent='Resend link';E('rerr').classList.add('hide');E('rok').textContent='Approval link sent to '+u.email+'. Open it on this device. This window will unlock by itself.';E('rok').classList.remove('hide')
- }).catch(e=>{b.classList.remove('ld');E('rerr').textContent=ERRS[e.code]||e.message;E('rerr').classList.remove('hide')})};
-function reauthDone(){let rn='',ok2='';try{rn=localStorage.getItem(RK)||'';ok2=localStorage.getItem(RO)||''}catch(e){}
- if(!rn||ok2.split(':')[0]!==rn)return;
- try{localStorage.removeItem(RK);localStorage.removeItem(RO)}catch(e){}
- if(!window._cb)return;UNL=true;const cb=window._cb;window._cb=null;try{cm()}catch(e){}toast('Approved by email');cb()}
-window.addEventListener('storage',e=>{if(e.key==RO)reauthDone()});
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)reauthDone()});
-/* this tab was opened from an approval link */
-function rnPage(msg,good){document.body.innerHTML='<div style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:Inter,system-ui,sans-serif;background:#eef2ff;color:#141b45;text-align:center"><div style="max-width:380px"><div style="font-size:54px">'+(good?'\u2705':'\u26a0\ufe0f')+'</div><h2 style="margin:10px 0 8px">'+(good?'Approved':'Could not approve')+'</h2><p style="color:#5d6896;line-height:1.6">'+msg+'</p></div></div>'}
-/* opened from the emailed link? */
+ window._cb=cb;rnStop();
+ modal(`<h3>Admin approval</h3><p class="note" style="margin:6px 0 12px">For safety, this action must be approved by email. We will send a one-time approval link to <b>${esc(em)}</b>. Open the link on <b>any device</b> (phone or laptop) and confirm your email there. This window unlocks by itself once it is approved.</p><div class="lok hide" id="rok"></div><div class="lerr hide" id="rerr"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn au" id="rbtn" onclick="sendReauth()">Email me the approval link</button><button class="btn g" onclick="rnStop();cm()">Cancel</button></div>`)};
+window.rnStop=rnStop;
+window.sendReauth=async function(){const u=fbAuth.currentUser;if(!u||!u.email)return;const b=E('rbtn'),re=E('rerr'),rk=E('rok');
+ const fail=m=>{b.classList.remove('ld');re.textContent=m;re.classList.remove('hide')};
+ if(!urlOk())return fail('Email approval only works from the hosted website address.');
+ re.classList.add('hide');b.classList.add('ld');rnStop();
+ const rn=Math.random().toString(36).slice(2)+Math.random().toString(36).slice(2)+Date.now().toString(36);
+ try{await db.collection('reauth').doc(rn).set({uid:u.uid,status:'pending',t:firebase.firestore.FieldValue.serverTimestamp()})}
+ catch(e){return fail(e&&e.code=='permission-denied'?'Approval is not enabled yet: the new "reauth" rule must be published in Firestore rules.':'Could not start the approval. Check your internet and try again.')}
+ try{await fbAuth.sendSignInLinkToEmail(u.email,{url:location.origin+location.pathname+'?rn='+rn,handleCodeInApp:true});try{localStorage.setItem(EK,u.email)}catch(e){}}
+ catch(e){try{db.collection('reauth').doc(rn).delete()}catch(x){}return fail(ERRS[e.code]||e.message)}
+ b.classList.remove('ld');b.textContent='Resend link';rk.textContent='Approval link sent to '+u.email+'. Open it on any device and confirm. Waiting for approval\u2026';rk.classList.remove('hide');
+ rnUnsub=db.collection('reauth').doc(rn).onSnapshot(sn=>{const d=sn.exists&&sn.data();if(!d||d.status!='approved')return;
+  rnStop();try{db.collection('reauth').doc(rn).delete()}catch(e){}
+  if(!modalOpen())return;
+  UNL=true;const cb=window._cb;window._cb=null;try{cm()}catch(e){}toast('Approved by email'+(d.dev?' \u00b7 '+d.dev:''));if(cb)cb()},()=>{})};
+/* this page was opened from an approval link (any device) */
+function rnPage(msg,good,form){document.body.innerHTML='<div style="min-height:100vh;display:grid;place-items:center;padding:24px;font-family:Inter,system-ui,sans-serif;background:#eef2ff;color:#141b45;text-align:center"><div style="max-width:380px;width:100%"><div style="font-size:54px">'+(good?'\u2705':form?'\u2709\ufe0f':'\u26a0\ufe0f')+'</div><h2 style="margin:10px 0 8px">'+(good?'Approved':form?'Confirm your email':'Could not approve')+'</h2><p style="color:#5d6896;line-height:1.6">'+msg+'</p>'+(form?'<input id="rne" type="email" placeholder="you@company.com" style="width:100%;margin-top:16px;padding:13px;border:1px solid #c9d2ff;border-radius:13px;font-size:16px"><button id="rng" style="width:100%;margin-top:12px;padding:14px;border:0;border-radius:13px;font-size:16px;font-weight:600;background:linear-gradient(135deg,#ffb347,#ff7e2e);color:#2b1400">Approve</button>':'')+'</div></div>';
+ if(form){document.getElementById('rng').onclick=()=>rnGo(document.getElementById('rne').value.trim());document.getElementById('rne').onkeydown=e=>{if(e.key=='Enter')rnGo(e.target.value.trim())}}}
+async function rnGo(em){if(!em)return;const btn=document.getElementById('rng');if(btn){btn.disabled=true;btn.textContent='Approving\u2026'}
+ try{await fbAuth.signInWithEmailLink(em,location.href)}catch(e){return rnPage((ERRS[e.code]||e.message)+' Request a new approval link from the other screen.',false)}
+ let dev='';try{dev=String(devLabel()||'').slice(0,60)}catch(e){}
+ try{await db.collection('reauth').doc(RN).update({status:'approved',at:Date.now(),dev:dev})}
+ catch(e){return rnPage(e&&e.code=='permission-denied'?'This approval request has expired or was already used. Request a new link from the other screen.':'Could not reach the server. Check your internet and open the link again.',false)}
+ try{history.replaceState(null,'',location.pathname)}catch(e){}
+ rnPage('Your action is approved. You can close this page and return to the screen where you started.',true)}
+/* opened from an emailed link? */
 if(FBOK&&fbAuth.isSignInWithEmailLink(location.href)){let em='';try{em=localStorage.getItem(EK)||''}catch(e){}
- if(RN){
-  if(!em){rnPage('Open this link in the same browser where you pressed "Email me the approval link", or request a new one.',false)}
-  else fbAuth.signInWithEmailLink(em,location.href).then(()=>{try{localStorage.setItem(RO,RN+':'+Date.now())}catch(e){}rnPage('Your action is approved. You can close this tab and go back to the previous one.',true);try{history.replaceState(null,'',location.pathname)}catch(e){}}).catch(e=>rnPage(ERRS[e.code]||e.message,false))
- }else if(em){E('lem').value=em;window.__fresh=true;finishLink(em)}
+ if(RN){if(em)rnGo(em);else rnPage('Type the email address this approval link was sent to.',false,true)}
+ else if(em){E('lem').value=em;window.__fresh=true;finishLink(em)}
  else{setMode('confirm');ok('For your security, type the email address this link was sent to.')}}
 })();
 </script>
