@@ -284,7 +284,7 @@ body.tsfull #app{height:100vh;height:100dvh;min-height:0;display:flex!important;
 body.tsfull aside{flex:none;margin-bottom:10px}
 body.tsfull main{flex:1;min-height:0;display:flex;flex-direction:column;padding:0 4px}
 body.tsfull main>.top{margin-bottom:8px;flex:none}
-body.tsfull main>.top h2{font-size:20px}
+body.tsfull main>.top h2{font-size:clamp(20px,3vh,26px)}
 body.tsfull #sub{display:none}
 body.tsfull #llb{display:none}
 body.tsfull #view{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column}
@@ -292,21 +292,23 @@ body.tsfull #view>.card{margin-bottom:8px;padding:12px 16px;border-radius:18px}
 body.tsfull #tsrec{display:none}
 body.tsfull #view .card>.note[style*="margin-bottom:14px"]{display:none}
 body.tsfull #view>.card:has(#fb){flex:1;min-height:0;display:flex;flex-direction:column;justify-content:space-between}
-body.tsfull #view h3{font-size:14px}
-body.tsfull #view label{font-size:10.5px;margin-bottom:3px}
-body.tsfull #view input,body.tsfull #view select{padding:6px 9px;font-size:13px;border-radius:10px}
+body.tsfull #view h3{font-size:clamp(15px,2.3vh,19px);font-weight:700}
+body.tsfull #view label{font-size:clamp(11.5px,1.65vh,14px);font-weight:700;color:var(--ink);margin-bottom:3px}
+body.tsfull #view input,body.tsfull #view select{padding:clamp(5px,.9vh,9px) 10px;font-size:clamp(14px,2vh,17px);font-weight:700;border-radius:10px}
+body.tsfull #view input[type=checkbox]{width:auto}
 body.tsfull #view .row{grid-template-columns:repeat(auto-fit,minmax(118px,1fr));gap:8px;margin-bottom:8px}
-body.tsfull #view .sec{margin:0 0 6px}
+body.tsfull #view .sec{margin:0 0 6px;font-size:clamp(11px,1.5vh,13px);font-weight:800}
 body.tsfull #view .row+.sec,body.tsfull #view .two+.sec{margin-top:6px}
 body.tsfull #view .two{gap:10px;margin:2px 0 8px}
 body.tsfull #view .pn{padding:10px 12px;border-radius:14px}
-body.tsfull #view .pn h4{font-size:11.5px;margin-bottom:6px}
+body.tsfull #view .pn h4{font-size:clamp(12.5px,1.8vh,15px);font-weight:800;margin-bottom:6px}
 body.tsfull #view .pn p{display:none}
 body.tsfull #view .pn .row{grid-template-columns:repeat(auto-fit,minmax(90px,1fr));margin-bottom:4px}
-body.tsfull #view .pt{margin-top:4px;padding-top:6px;font-size:13px}
+body.tsfull #view .pt{margin-top:4px;padding-top:6px;font-size:clamp(14px,2vh,17px)}
 body.tsfull #view .sum{padding:10px 16px;gap:22px;border-radius:14px}
-body.tsfull #view .sum b{font-size:17px}
-body.tsfull #view .sum .btn{padding:9px 16px}
+body.tsfull #view .sum b{font-size:clamp(18px,2.8vh,24px);font-weight:800}
+body.tsfull #view .sum small{font-size:clamp(11px,1.6vh,13px);font-weight:600}
+body.tsfull #view .sum .btn{padding:clamp(8px,1.2vh,12px) 18px;font-size:clamp(13px,1.9vh,16px);font-weight:700}
 }
 </style>
 </head><body>
