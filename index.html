@@ -216,13 +216,32 @@ input:hover,select:hover{background:rgba(255,255,255,.75)}
 .bars i,.col:nth-child(n) i,.bars i:last-child{animation:grow .4s cubic-bezier(.2,.8,.2,1) backwards}
 .btn,.k,input,select,.role,.chip,.tabs span{transition-duration:.12s}
 .tp.run{animation-duration:.3s}
+/* ===== safety pass: sessions + safe data entry ===== */
+.llb{display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;padding:10px 40px 10px 14px;margin:0 0 14px;border:1px solid var(--line);border-radius:14px;background:rgba(79,212,236,.10);font-size:12.5px;position:relative}
+.llb a{color:var(--gold2);cursor:pointer;text-decoration:underline;font-weight:600}
+.llx{position:absolute;right:8px;top:6px;background:none;border:0;color:var(--mut);font-size:20px;line-height:1;cursor:pointer;padding:2px 8px}
+.rq{color:var(--bad);font-weight:700}
+.bad-f{border-color:var(--bad)!important;box-shadow:0 0 0 3px rgba(255,111,131,.22)!important}
+.draftb{display:flex;gap:12px;align-items:center;flex-wrap:wrap;padding:10px 14px;margin-bottom:14px;border:1px solid var(--line);border-radius:14px;background:rgba(255,200,107,.12);font-size:12.5px}
+.draftb .btn{padding:6px 12px;margin:0!important}
+.cfl{font-family:Sora,Inter,system-ui,sans-serif;font-size:20px;font-weight:600;margin:10px 0 6px;letter-spacing:-.3px}
+.cfs{color:var(--mut);font-size:13px;line-height:1.6;margin-bottom:10px}
+.cfw{list-style:none;padding:0;margin:12px 0;display:grid;gap:8px}
+.cfw li{padding:10px 12px;border-radius:12px;border:1px solid rgba(255,159,46,.5);background:rgba(255,159,46,.12);font-size:13px;line-height:1.45}
+.cfw li.bd2{border-color:rgba(255,111,131,.6);background:rgba(255,111,131,.14)}
+.cfbig{padding:9px 12px;border-radius:12px;background:rgba(255,111,131,.14);border:1px solid rgba(255,111,131,.5);font-size:13px;font-weight:600;margin:10px 0}
+.cfb{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.cfb .btn{margin:0!important}
+#undo{position:fixed;left:50%;transform:translateX(-50%);top:calc(14px + env(safe-area-inset-top));z-index:600;display:flex;gap:14px;align-items:center;padding:10px 40px 10px 16px;border-radius:16px;background:#1a2260;color:#fff;border:1px solid #4453d6;font-weight:600;font-size:13px;box-shadow:0 20px 50px -10px #000c;max-width:94vw}
+#undo .btn{padding:7px 14px;margin:0!important}
+#undo .llx{color:#fff}
 </style></head><body>
 <div class="aurora"><i></i><i></i><i></i><i></i></div><div class="grid"></div>
 <div id="login"><div class="hero"><div class="orbit"><div class="r r2"></div><div class="r"></div><img class="mark" data-logo alt="Saif Navas Transport"></div><h1>Fleet operations, accounts and payroll in one place.</h1><p>Trip sheets, invoicing, statements, cash and bank, expenses and driver salary for Saif Navas Transport.</p><div class="chips"><div class="chip">Admin &amp; accountant workspaces</div><div class="chip">Company / own expense separation</div><div class="chip">Vehicle-wise records</div><div class="chip">One-way and round-trip routes</div></div></div>
 <div class="lside"><div class="lbox"><h2>Welcome back</h2><p class="sub">Sign in to your workspace</p>
 <div class="f" style="margin-top:22px"><label>Email</label><input id="lem" type="email" autocomplete="username" placeholder="you@company.com"></div><div class="f"><label>Password</label><input id="lpw" type="password" autocomplete="current-password" onkeydown="if(event.key=='Enter')signin()"></div><div class="lerr hide" id="lerr"></div>
 <button class="btn w" id="lbtn" onclick="signin()">Sign in</button><p class="note" style="margin-top:14px;text-align:center">Secure sign-in · data is stored in Firebase</p></div></div></div>
-<div id="app" class="hide"><aside><div class="lg"><img data-logo alt="Saif Navas Transport"></div><div class="nav" id="nav"></div><button class="btn g" onclick="logout()">Log out</button></aside><main><div class="top"><div><h2 id="ttl"></h2><div class="sub" id="sub"></div></div><div class="top-r"><span class="pill cloud" id="cloud"></span><span class="pill" id="who"></span></div></div><div id="view"></div></main></div>
+<div id="app" class="hide"><aside><div class="lg"><img data-logo alt="Saif Navas Transport"></div><div class="nav" id="nav"></div><button class="btn g" style="margin-bottom:8px" onclick="helpOpen()">Help · How to</button><button class="btn g" onclick="logout()">Log out</button><button class="btn g" style="margin-top:8px" onclick="logoutAll()">Sign out all devices</button><div class="note" id="verft" style="margin-top:12px;font-size:11px;opacity:.7"></div></aside><main><div class="top"><div><h2 id="ttl"></h2><div class="sub" id="sub"></div></div><div class="top-r"><span class="pill cloud" id="cloud"></span><span class="pill" id="who"></span></div></div><div id="llb" class="llb hide"></div><div id="view"></div></main></div>
 <div id="tp" class="tp"></div><div id="splash"><img id="splogo" data-logo alt=""><div class="cl-scene" id="spscene"></div><small id="spt">Connecting to cloud…</small><div class="bar"><i></i></div></div>
 
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
@@ -616,7 +635,7 @@ const CL_SVG='<svg viewBox="0 0 24 24" class="cl-c"><path d="M7 18a4.5 4.5 0 0 1
 function cloudScene(){return CL_SVG+'<div class="cl-line"><i></i><i></i><i></i><i></i><i></i></div>'+DEV_SVG}
 function cloudSkel(){const set=(ms,m)=>setTimeout(()=>{const t=document.getElementById('cltxt');if(t)t.textContent=m},ms);set(400,'Collecting data from cloud…');set(850,'Almost ready…');
 return '<div class="card cloudload"><div class="cl-scene">'+cloudScene()+'</div><div class="cl-txt"><h3 id="cltxt">Connecting to cloud…</h3><p class="note" style="margin-top:4px">Fetching your latest records securely</p><div class="cl-bar"><i></i></div></div></div><div class="kp">'+'<div class="sk skk"></div>'.repeat(4)+'</div><div class="card"><div class="sk skl" style="width:35%"></div><div class="sk skl"></div><div class="sk skl" style="width:88%"></div><div class="sk skl" style="width:70%"></div></div>'}
-function cloudState(s){const e=document.getElementById('cloud');if(!e)return;if(s=='err'){e.className='pill cloud off';e.innerHTML=CLOUDIC+'Sync problem · will retry';return}if(!navigator.onLine){e.className='pill cloud off';e.innerHTML=CLOUDIC+'Offline · saved on this device'}else if(s=='sync'){e.className='pill cloud sync';e.innerHTML=CLOUDIC+'Syncing with cloud…'}else{e.className='pill cloud';e.innerHTML=CLOUDIC+'Connected to cloud · synced '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}}
+function cloudState(s){try{window.sbar&&window.sbar()}catch(x){}const e=document.getElementById('cloud');if(!e)return;if(s=='err'){e.className='pill cloud off';e.innerHTML=CLOUDIC+'Sync problem · saved, will retry';return}if(!navigator.onLine){e.className='pill cloud off';e.innerHTML=CLOUDIC+'No signal · saved on this device'}else if(s=='sync'){e.className='pill cloud sync';e.innerHTML=CLOUDIC+'Syncing with cloud…'}else{e.className='pill cloud';e.innerHTML=CLOUDIC+'Connected to cloud · synced '+new Date().toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'})}}
 function splashSteps(){const t=document.getElementById('spt');if(!t)return;['Connecting to secure cloud server…','Authenticating workspace…','Collecting your data from cloud…','Connected'].forEach((m,i)=>setTimeout(()=>{t.textContent=m},i*650))}
 /* ===== letterhead + automatic PDF ===== */
 const CO_K='sn_co';let CO_P=Object.assign({name:'SAIF NAVAS TRANSPORT',addr:'Dubai, United Arab Emirates',phone:'',email:'',web:'',trn:'',bank:'',acct:'',iban:'',sign:'Authorised Signatory',mode:'dig',stamp:'',sig:''},(()=>{try{return JSON.parse(localStorage.getItem(CO_K)||'{}')}catch(e){return{}}})());
@@ -660,30 +679,35 @@ const FB_CFG={apiKey:"AIzaSyDjIdRU9ZheXDQYmE-8onjE3Vow_cX7t44",authDomain:"saifn
 let fbAuth=null,db=null;if(FBOK){firebase.initializeApp(FB_CFG);fbAuth=firebase.auth();db=firebase.firestore();try{db.enablePersistence({synchronizeTabs:true}).catch(()=>{})}catch(e){}}
 const OWNER_UID='jbpMG80Yh7bjUzS5SxAp9Le47q93';let BOTH=false,USERN='',SYNC={},unsubs=[],pushT=null,LOADED=false,STARTED=false,rfT=null;
 const sj=o=>JSON.stringify(o,(k,v)=>v&&typeof v=='object'&&!Array.isArray(v)?Object.keys(v).sort().reduce((a,x)=>(a[x]=v[x],a),{}):v);
-const COLS=()=>({trips:T,cash:CL,bank:BL,expenses:EXP,payments:PAY,loans:LN,loanpay:LP,advances:ADV,fines:FIN,errors:ERR,logs:LOG}),NEWF={expenses:1,loanpay:1,errors:1,logs:1};
-const keyOf=(c,x)=>{if(!x._k){x._k=(c!='trips'&&x.id!=null)?String(x.id):'k'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);x._ts=x._ts||Date.now()}return x._k};
+const APR=[],CCK=[];let CLOSEDTO='',CFG_CT=false,PEND=0,LASTSYNC=0;const COLS=()=>({trips:T,cash:CL,bank:BL,expenses:EXP,payments:PAY,loans:LN,loanpay:LP,advances:ADV,fines:FIN,errors:ERR,logs:LOG,approvals:APR,cashchecks:CCK}),NEWF={expenses:1,loanpay:1,errors:1,logs:1,approvals:1,cashchecks:1};
+const keyOf=(c,x)=>{if(!x._k){x._k=(c!='trips'&&x.id!=null)?String(x.id):'k'+Date.now().toString(36)+Math.random().toString(36).slice(2,6);x._ts=x._ts||Date.now()}if(c!='logs'){if(!x._by)x._by=BY();if(!x._at)x._at=x._ts}return x._k};
 const sortC=c=>COLS()[c].sort((a,b)=>NEWF[c]?(b._ts||0)-(a._ts||0):(a._ts||0)-(b._ts||0));
+const cfgObj=()=>{const o={DR,CO,VE,PL,DI,SAL,BR,bill,invN};if(CFG_CT||role=='corp')o.closedTo=CLOSEDTO;return o};
+function mkBatch(part){const b=db.batch();part.forEach(([o,c,k,v,old])=>{const r=db.collection(c).doc(k);if(o=='d'){b.delete(r);if(c!='logs')b.set(db.collection('trash').doc(c+'__'+k+'__'+Date.now().toString(36)+Math.random().toString(36).slice(2,5)),{col:c,key:k,data:String(old||''),by:BY(),at:Date.now()})}else b.set(r,v)});return b}
+function pushFail(op,e){console.error(e);const[o,c,k,v,old]=op;if(e&&e.code=='permission-denied'){toast('Not saved: you are not allowed to make this change. The month may be closed, or the amount needs admin approval.');return false}const S=SYNC[c]=SYNC[c]||{};if(o=='d')S[k]=old;else if(c=='meta')SYNC._cfg='';else delete S[k];setTimeout(cloudPush,15000);return true}
 function cloudPush(){if(!LOADED)return;clearTimeout(pushT);pushT=setTimeout(async()=>{cloudState('sync');const ops=[],C=COLS();
-for(const c in C){const seen=new Set(),S=SYNC[c]=SYNC[c]||{};C[c].forEach(x=>{const k=keyOf(c,x),j=sj(x);seen.add(k);if(S[k]!==j){ops.push(['s',c,k,JSON.parse(JSON.stringify(x))]);S[k]=j}});Object.keys(S).forEach(k=>{if(!seen.has(k)){ops.push(['d',c,k]);delete S[k]}})}
-const cfg={DR,CO,VE,PL,DI,SAL,BR,bill,invN},cj=sj(cfg);if(SYNC._cfg!==cj){ops.push(['s','meta','config',JSON.parse(JSON.stringify(cfg))]);SYNC._cfg=cj}
-try{for(let i=0;i<ops.length;i+=400){const b=db.batch();ops.slice(i,i+400).forEach(([o,c,k,v])=>{const r=db.collection(c).doc(k);o=='d'?b.delete(r):b.set(r,v)});await b.commit()}cloudState('ok')}catch(e){console.error(e);cloudState('err')}},150)}
-function applyCfg(d){[['DR',DR],['CO',CO],['VE',VE],['PL',PL]].forEach(([k,a])=>{if(d[k])a.splice(0,a.length,...d[k])});if(d.DI){Object.keys(DI).forEach(k=>delete DI[k]);Object.assign(DI,d.DI)}if(d.SAL){Object.keys(SAL).forEach(k=>delete SAL[k]);Object.assign(SAL,d.SAL)}if(d.BR)Object.assign(BR,d.BR);if(d.bill)bill=Math.max(bill,+d.bill);if(d.invN)invN=Math.max(invN,+d.invN);SYNC._cfg=sj({DR,CO,VE,PL,DI,SAL,BR,bill,invN})}
-const SOFT=['Dashboard','Statements','Companies & Drivers','Audit Log','Cash Ledger'];
+for(const c in C){const seen=new Set(),S=SYNC[c]=SYNC[c]||{};C[c].forEach(x=>{const k=keyOf(c,x),j=sj(x);seen.add(k);if(S[k]!==j){ops.push(['s',c,k,JSON.parse(JSON.stringify(x))]);S[k]=j}});Object.keys(S).forEach(k=>{if(!seen.has(k)){ops.push(['d',c,k,null,S[k]]);delete S[k]}})}
+const cfg=cfgObj(),cj=sj(cfg);if(SYNC._cfg!==cj){ops.push(['s','meta','config',JSON.parse(JSON.stringify(cfg))]);SYNC._cfg=cj}
+let net=0;PEND+=ops.length;try{window.sbar&&window.sbar()}catch(x){}
+for(let i=0;i<ops.length;i+=200){const part=ops.slice(i,i+200);try{await mkBatch(part).commit()}catch(e){if(part.length==1){if(pushFail(part[0],e))net++}else for(const op of part){try{await mkBatch([op]).commit()}catch(e2){if(pushFail(op,e2))net++}}}PEND-=part.length;try{window.sbar&&window.sbar()}catch(x){}}
+if(net)cloudState('err');else{LASTSYNC=Date.now();cloudState('ok')}},150)}
+function applyCfg(d){[['DR',DR],['CO',CO],['VE',VE],['PL',PL]].forEach(([k,a])=>{if(d[k])a.splice(0,a.length,...d[k])});if(d.DI){Object.keys(DI).forEach(k=>delete DI[k]);Object.assign(DI,d.DI)}if(d.SAL){Object.keys(SAL).forEach(k=>delete SAL[k]);Object.assign(SAL,d.SAL)}if(d.BR)Object.assign(BR,d.BR);if(d.bill)bill=Math.max(bill,+d.bill);if(d.invN)invN=Math.max(invN,+d.invN);CFG_CT=d.closedTo!==undefined;if(CFG_CT)CLOSEDTO=d.closedTo||'';SYNC._cfg=sj(cfgObj())}
+const SOFT=['Dashboard','Statements','Companies & Drivers','Audit Log','Cash Ledger','Approvals'];
 function afterRemote(){T.forEach(t=>{if(+t.bill>=bill)bill=+t.bill+1});try{updBadges()}catch(e){}if(!LOADED)return;clearTimeout(rfT);rfT=setTimeout(()=>{const t=$('#ttl')&&$('#ttl').textContent;if(!$('#app').classList.contains('hide')&&SOFT.includes(t)&&!($('#m')&&$('#m').style.display=='grid'))refresh()},400)}
-function listen(){const C=COLS(),ps=[];Object.keys(C).forEach(c=>ps.push(new Promise(res=>{let first=true;unsubs.push(db.collection(c).onSnapshot(sn=>{let ch=0;const S=SYNC[c]=SYNC[c]||{};sn.docChanges().forEach(dc=>{const k=dc.doc.id,arr=C[c];if(dc.type=='removed'){const i=arr.findIndex(x=>x._k==k);if(i>=0){arr.splice(i,1);ch=1}delete S[k];return}const v=dc.doc.data(),j=sj(v);if(S[k]===j)return;S[k]=j;const i=arr.findIndex(x=>x._k==k);i>=0?arr[i]=v:arr.push(v);ch=1});if(ch){sortC(c);afterRemote()}if(first){first=false;res()}},e=>{console.error(e);cloudState('err');if(first){first=false;res()}}))})));
+function listen(){const C=COLS(),ps=[];Object.keys(C).forEach(c=>ps.push(new Promise(res=>{let first=true;unsubs.push(db.collection(c).onSnapshot(sn=>{if(!sn.metadata.fromCache)LASTSYNC=Date.now();let ch=0;const S=SYNC[c]=SYNC[c]||{};sn.docChanges().forEach(dc=>{const k=dc.doc.id,arr=C[c];if(dc.type=='removed'){const i=arr.findIndex(x=>x._k==k);if(i>=0){arr.splice(i,1);ch=1}delete S[k];return}const v=dc.doc.data(),j=sj(v);if(S[k]===j)return;S[k]=j;const i=arr.findIndex(x=>x._k==k);i>=0?arr[i]=v:arr.push(v);ch=1});if(ch){sortC(c);afterRemote()}if(first){first=false;res()}},e=>{console.error(e);if(!e||e.code!='permission-denied')cloudState('err');if(first){first=false;res()}}))})));
 ps.push(new Promise(res=>{let first=true;unsubs.push(db.collection('meta').doc('config').onSnapshot(s=>{if(s.exists){applyCfg(s.data());afterRemote()}if(first){first=false;res()}},()=>{if(first){first=false;res()}}))}));
 return Promise.race([Promise.all(ps),new Promise(r=>setTimeout(r,9000))])}
 function lbad(m){const e=$('#lerr');e.textContent=m;e.classList.remove('hide')}
-function signin(){const em=g('lem').trim(),pw=g('lpw');$('#lerr').classList.add('hide');if(!FBOK)return lbad('Cannot reach Firebase. Check your internet connection and reload.');if(!em||!pw)return lbad('Enter your email and password');const b=$('#lbtn');b.classList.add('ld');
-fbAuth.signInWithEmailAndPassword(em,pw).catch(e=>{b.classList.remove('ld');lbad(({'auth/invalid-credential':'Incorrect email or password','auth/wrong-password':'Incorrect email or password','auth/user-not-found':'Incorrect email or password','auth/invalid-email':'Enter a valid email address','auth/too-many-requests':'Too many attempts. Try again in a few minutes','auth/network-request-failed':'No connection. Check your internet'})[e.code]||e.message)})}
+function signin(){const em=g('lem').trim(),pw=g('lpw');$('#lerr').classList.add('hide');if(!FBOK)return lbad('Cannot reach Firebase. Check your internet connection and reload.');if(!em||!pw)return lbad('Enter your email and password');if(lockLeft(em)>0)return showLock(em);const b=$('#lbtn');b.classList.add('ld');
+fbAuth.signInWithEmailAndPassword(em,pw).catch(e=>{b.classList.remove('ld');lbad(({'auth/invalid-credential':'Incorrect email or password','auth/wrong-password':'Incorrect email or password','auth/user-not-found':'Incorrect email or password','auth/invalid-email':'Enter a valid email address','auth/too-many-requests':'Too many attempts. Try again in a few minutes','auth/network-request-failed':'No signal. Check your internet and try again.'})[e.code]||e.message);loginFail(em,e.code)})}
 async function begin(u){if(STARTED)return;STARTED=true;const t0=Date.now(),b=$('#lbtn'),back=m=>{STARTED=false;$('#splash').classList.remove('on');b.classList.remove('ld');lbad(m)};$('#splash').classList.add('on');splashSteps();
 try{let ud=null,r=null;try{ud=await db.collection('users').doc(u.uid).get();r=ud.exists&&ud.data().role}catch(e){if(u.uid!==OWNER_UID)throw e}if(u.uid===OWNER_UID){BOTH=true;if(r!='admin'&&r!='accountant')r='admin'}if(r!='admin'&&r!='accountant'){await fbAuth.signOut();return back('No role is assigned to this account yet. Ask the admin to add it. Your user ID: '+u.uid)}
-role=r=='admin'?'corp':'acc';USERN=((ud&&ud.exists&&ud.data().name)||u.email||'').trim();await listen();LOADED=true;afterRemote();const w=2000-(Date.now()-t0);if(w>0)await new Promise(r=>setTimeout(r,w));b.classList.remove('ld');$('#login').classList.add('hide');$('#splash').classList.remove('on');enter()}
+const _sg=await sessGate(u,ud);if(_sg){try{await fbAuth.signOut()}catch(x){}return back(_sg)}role=r=='admin'?'corp':'acc';USERN=((ud&&ud.exists&&ud.data().name)||u.email||'').trim();await listen();LOADED=true;afterRemote();const w=2000-(Date.now()-t0);if(w>0)await new Promise(r=>setTimeout(r,w));b.classList.remove('ld');$('#login').classList.add('hide');$('#splash').classList.remove('on');enter();try{postLogin(u,ud)}catch(e){console.error(e)}}
 catch(e){console.error(e);try{await fbAuth.signOut()}catch(x){}back('Could not load your workspace: '+(e.code=='permission-denied'?'permission denied by Firestore rules':e.message))}}
 
 /* ===== Hardening ===== */
 (function(){if(window.top!==window.self){try{window.top.location=window.self.location}catch(e){document.documentElement.innerHTML=''}}
-const IDLE=15*60*1000;let it=null;const rst=()=>{clearTimeout(it);it=setTimeout(()=>{if(typeof fbAuth!=='undefined'&&fbAuth&&fbAuth.currentUser){alert('Signed out after 15 minutes of inactivity.');logout()}},IDLE)};
+const rst=()=>{if(window.__idleWarn)return;window.__act=Date.now()};
 ['click','keydown','touchstart','mousemove'].forEach(e=>document.addEventListener(e,rst,{passive:true}));rst();
 document.addEventListener('contextmenu',e=>{if(e.target.tagName==='IMG')e.preventDefault()});
 if(!/localhost|127\.0\.0\.1/.test(location.hostname)){['log','debug','info'].forEach(k=>console[k]=()=>{})}
@@ -710,8 +734,8 @@ let role='corp',user='',GT;
 
 
 $('#splogo').src=LOGO;
-const NAV={corp:['Dashboard','Statements','Companies & Drivers','Salary','Deductions','Collections','Cash Ledger','Bank Balance','Expenses','EMI','Error Corrections','Masters','Letterhead','Audit Log'],acc:['Trip Sheet','Invoice','Filter Bills','Collections','Cash Ledger','Expenses','EMI','Bank']};
-const VIEWS=()=>({'Dashboard':dash,'Statements':stmt,'Companies & Drivers':comp,'Trip Sheet':sheet,'Invoice':inv,'Filter Bills':fbV,'Collections':duesV,'Cash Ledger':cashV,'Bank':bankV,'Bank Balance':bankV,'Expenses':expV,'EMI':emiV,'Salary':salaryV,'Deductions':finV,'Error Corrections':errV,'Masters':mastV,'Audit Log':auditV,'Letterhead':lhV});
+const NAV={corp:['Dashboard','Statements','Companies & Drivers','Salary','Deductions','Collections','Cash Ledger','Bank Balance','Expenses','EMI','Error Corrections','Masters','Letterhead','Team Access','Audit Log'],acc:['Trip Sheet','Invoice','Filter Bills','Collections','Cash Ledger','Expenses','EMI','Bank']};
+const VIEWS=()=>({'Dashboard':dash,'Statements':stmt,'Companies & Drivers':comp,'Trip Sheet':sheet,'Invoice':inv,'Filter Bills':fbV,'Collections':duesV,'Cash Ledger':cashV,'Bank':bankV,'Bank Balance':bankV,'Expenses':expV,'EMI':emiV,'Salary':salaryV,'Deductions':finV,'Error Corrections':errV,'Masters':mastV,'Audit Log':auditV,'Letterhead':lhV,'Team Access':teamV,'Approvals':window.aprV,'Daily Summary':window.sumV,'Deleted Items':window.trashV});
 function swView(){role=role=='corp'?'acc':'corp';UNL=false;enter()}
 function enter(){
 $('#app').classList.remove('hide');user=USERN||(role=='corp'?'Management':'Accounts');$('#who').textContent=({corp:'Admin',acc:'Accountant'})[role]+' · '+user;
@@ -721,7 +745,7 @@ topbar=()=>{const t=$('#tp');t.classList.remove('run');void t.offsetWidth;t.clas
 function countUp(){document.querySelectorAll('[data-n]').forEach(e=>{const to=+e.dataset.n,t0=performance.now(),f=t=>{const p=Math.min(1,(t-t0)/450);e.textContent=fmt(Math.round(to*(1-Math.pow(1-p,3))));if(p<1)requestAnimationFrame(f)};requestAnimationFrame(f)})}
 function go(i,el,instant){document.querySelectorAll('.nav a').forEach((a,k)=>a.classList.toggle('on',k==i));const n=NAV[role][i];$('#ttl').textContent=n;$('#sub').textContent='Saif Navas Transport'+' · '+new Date().toDateString();const run=()=>{VIEWS()[n]();countUp()};clearTimeout(GT);if(instant){run();return}window.scrollTo(0,0);skel();topbar();GT=setTimeout(()=>{run();cloudState('ok')},1200)}
 
-function updBadges(){try{if(role!='corp'&&role!='acc')return;document.querySelectorAll('.nav a').forEach((a,i)=>{const n=NAV[role][i];let c=0;if(n=='Cash Ledger')c=T.filter(t=>t.pm=='Cash'&&t.cs=='Pending').length;if(n=='Error Corrections')c=ERR.filter(e=>e.st=='Open').length;let b=a.querySelector('.bd');if(c){if(!b){b=document.createElement('span');b.className='bd';a.appendChild(b)}b.textContent=c}else if(b)b.remove()})}catch(e){}}
+function updBadges(){try{if(role!='corp'&&role!='acc')return;document.querySelectorAll('.nav a').forEach((a,i)=>{const n=NAV[role][i];let c=0;if(n=='Cash Ledger')c=T.filter(t=>t.pm=='Cash'&&t.cs=='Pending').length;if(n=='Error Corrections')c=ERR.filter(e=>e.st=='Open').length;if(n=='Approvals')c=APR.filter(a=>a.status=='pending').length;let b=a.querySelector('.bd');if(c){if(!b){b=document.createElement('span');b.className='bd';a.appendChild(b)}b.textContent=c}else if(b)b.remove()})}catch(e){}}
 function toast(m){let t=$('#toast');if(!t){t=document.createElement('div');t.id='toast';t.className='toast';document.body.appendChild(t)}t.textContent=m;t.classList.add('on');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('on'),2800)}
 const tb=(h,r,nums=[])=>`<div class="tw"><table><tr>${h.map((x,i)=>`<th class="${nums.includes(i)?'num':''}">${x}</th>`).join('')}</tr>${r.join('')||`<tr><td colspan="${esc(h.length)}" class="note" style="padding:24px;text-align:center">Nothing to show yet</td></tr>`}</table></div>`;
 const BY=()=>({corp:'Admin',acc:'Accountant'}[role]||'')+(USERN?' · '+USERN:'');
@@ -733,7 +757,7 @@ function sheet(){rtEdited=false;$('#view').innerHTML=`${setupNote()}<div class="
 <div class="two"><div class="pn co"><h4>COMPANY EXPENSES</h4><p>Collected from the customer / company — billed on invoice</p><div class="row"><div><label>Charge</label><input id="c1" type="number" value="0" oninput="calc()"></div><div><label>Parking</label><input id="c2" type="number" value="0" oninput="calc()"></div><div><label>Salik &amp; Other</label><input id="c3" type="number" value="0" oninput="calc()"></div></div><div class="pt"><span>Total billed</span><span id="ta">0</span></div></div>
 <div class="pn us"><h4>OUR EXPENSES</h4><p>Borne by Saif Navas — not billed to the customer</p><div class="row"><div><label>Fuel</label><input id="e1" type="number" value="0" oninput="calc()"></div><div><label>FA</label><input id="e2" type="number" value="0" oninput="calc()"></div><div><label>Batha</label><input id="e3" type="number" value="0" oninput="calc()"></div><div><label>Other Exp</label><input id="e4" type="number" value="0" oninput="calc()"></div></div><div class="pt"><span>Total our cost</span><span id="te">0</span></div></div></div>
 <div class="row"><div><label>Driver waiting / extra bonus (AED)</label><input id="wb" type="number" min="0" value="0"></div><div><label>Bonus note</label><input id="wbn" placeholder="e.g. waited 2 hours"></div><div style="align-self:end"><span class="note">Added to this driver's salary for the month.</span></div></div><div class="sum"><span><small>Billed to company</small><b id="s1">0</b></span><span><small>Our expense</small><b id="s2">0</b></span><span><small>Net margin</small><b id="s3">0</b></span><span><small>Credit (due)</small><b id="tc">0</b></span><span style="margin-left:auto"><button id="svb" class="btn au" onclick="saveTrip()">Save Trip</button> <button class="btn g" onclick="pdfDoc('trip')">Download PDF</button></span></div></div>
-<div class="card"><h3 style="margin-bottom:12px">Recent Entries</h3>${tb(['Bill','Date','Company','Driver','Vehicle','Route','Billed','Our cost','Status','Payment',''],T.slice(-8).reverse().map(t=>`<tr><td>${esc(t.bill)}</td><td>${esc(t.date)}</td><td>${esc(t.company)}</td><td>${esc(t.driver)}</td><td>${esc(t.vehicle)}</td><td>${route(t)}</td><td class="num">${amt(t)}</td><td class="num">${exp(t)}</td><td class="num"><span class="tag ${t.paid?'paid':'unp'}">${t.paid?'Paid':'Not Paid'}</span></td><td>${pmTag(t)}</td><td><a style="cursor:pointer;color:var(--bad)" onclick="flag(${esc(t.bill)})">⚑ Flag</a></td></tr>`),[6,7])}</div>`}
+<div class="card"><h3 style="margin-bottom:12px">Recent Entries</h3>${tb(['Bill','Date','Company','Driver','Vehicle','Route','Billed','Our cost','Status','Payment',''],T.slice(-8).reverse().map(t=>`<tr><td>${esc(t.bill)}${ebyS(t)}</td><td>${esc(t.date)}</td><td>${esc(t.company)}</td><td>${esc(t.driver)}</td><td>${esc(t.vehicle)}</td><td>${route(t)}</td><td class="num">${amt(t)}</td><td class="num">${exp(t)}</td><td class="num"><span class="tag ${t.paid?'paid':'unp'}">${t.paid?'Paid':'Not Paid'}</span></td><td>${pmTag(t)}</td><td><a style="cursor:pointer;color:var(--bad)" onclick="flag(${esc(t.bill)})">⚑ Flag</a></td></tr>`),[6,7])}</div>`}
 function fpSet(){const v=+g('fp')||0;$('#c1').value=Math.max(0,v-(+g('c2')||0)-(+g('c3')||0));calc(1)}
 function calc(keep){const a=+g('c1')+ +g('c2')+ +g('c3'),e=+g('e1')+ +g('e2')+ +g('e3')+ +g('e4');$('#ta').textContent=a;$('#te').textContent=e;$('#s1').textContent=a;$('#s2').textContent=e;$('#s3').textContent=a-e;if(!keep)$('#fp').value=a;$('#tc').textContent=g('fpm')=='credit'?a:0}
 let rtEdited=false;
@@ -745,7 +769,7 @@ function rtSync(){if(!rtEdited&&g('fty')=='Round'){$('#ff2').value=g('ft');$('#f
 function saveTrip(){if(!CO.length||!DR.length||!VE.length||!PL.length)return alert('Ask the admin to add companies, drivers, vehicles and locations in Masters first');const a=+g('c1')+ +g('c2')+ +g('c3');if(!a)return alert('Enter charge amount');if(persOn()&&!g('fcu').trim())return alert('Personal trip: enter the customer name');const pay=g('fpm');if(!pay)return alert('Select how this trip is paid: cash received, cash pending from driver, or company account');const rd=g('fty')=='Round';if(rd&&g('ff2')==g('ft2'))return alert('Return route: From and To must be different');const nt={bill:+g('fb'),date:g('fd'),company:persOn()?'PERSONAL':g('fc'),customer:g('fcu').trim()||'-',driver:g('fdr'),from:g('ff'),to:g('ft'),from2:rd?g('ff2'):'',to2:rd?g('ft2'):'',vehicle:g('fv'),type:g('fty'),charge:+g('c1'),parking:+g('c2'),salik:+g('c3'),fuel:+g('e1'),fa:+g('e2'),batha:+g('e3'),other:+g('e4'),wb:+g('wb')||0,wbn:g('wbn').trim(),paid:pay=='credit'?0:1};if(pay!='credit'){nt.pm='Cash';nt.cs=pay=='cash'?'Received':'Pending';if(pay=='cash')nt.cdt=today()}T.push(nt);if(pay=='cash')ent(CL,{k:'in',amt:amt(nt),src:'Trip cash received',ref:'Bill '+nt.bill,note:`${esc(nt.driver)} · ${esc(nt.customer)} · ${route(nt)}`,lk:'T'+nt.bill});lg('Trip added',`Bill ${esc(nt.bill)} · ${esc(nt.company)} · AED ${amt(nt)} · ${pay=='cash'?'cash received → cash ledger':pay=='pend'?'cash pending deposit':'company outstanding'}`);bill=nt.bill+1;save();toast(pay=='cash'?'Trip saved · cash credited to ledger':pay=='pend'?'Trip saved · added to cash pending deposit':'Trip saved · added to company outstanding');sheet()}
 function inv(){$('#view').innerHTML=`<div class="card"><div class="row"><div><label>Company</label>${opt(['ALL',...COX()],'ic')}</div><div><label>From</label><input id="if" type="date" value="${today().slice(0,8)}01"></div><div><label>To</label><input id="it" type="date" value="${today()}"></div><div><label>Customer name</label><input id="icu" placeholder="Any" oninput="invR()"></div><div><label>Status</label>${opt(['Not Paid','Paid','All'],'is')}</div><div><label>VAT %</label><input id="iv" type="number" value="0"></div><div style="align-self:end"><button class="btn" onclick="invR()">Search</button></div></div><div id="ir"></div></div>`;invR()}
 function invR(){const r=T.filter(t=>(g('ic')=='ALL'||t.company==g('ic'))&&(!g('icu').trim()||String(t.customer).toLowerCase().includes(g('icu').trim().toLowerCase()))&&t.date>=g('if')&&t.date<=g('it')&&(g('is')=='All'||(g('is')=='Paid')==!!t.paid)),s=sum(r,amt),v=s*g('iv')/100;
-$('#ir').innerHTML=tbl(['Bill','Date','Company','Customer','Driver','Vehicle','Route','Amount',''],r.map(t=>`<tr><td>${esc(t.bill)}</td><td>${esc(t.date)}</td><td>${esc(t.company)}</td><td>${esc(t.customer)}</td><td>${esc(t.driver)}</td><td>${esc(t.vehicle)}</td><td>${route(t)}</td><td class="num">${amt(t)}</td><td><a style="cursor:pointer;color:var(--bad)" onclick="flag(${esc(t.bill)})">⚑ Flag</a></td></tr>`))+`<div class="sum" style="margin-top:14px"><span><small>Trip amount</small><b>${fmt(s)}</b></span><span><small>VAT</small><b>${fmt(v)}</b></span><span><small>Total</small><b>${fmt(s+v)}</b></span><span style="margin-left:auto"><button class="btn au" onclick="pdfDoc('inv')">Download invoice PDF</button></span></div>`}
+$('#ir').innerHTML=tbl(['Bill','Date','Company','Customer','Driver','Vehicle','Route','Amount',''],r.map(t=>`<tr><td>${esc(t.bill)}${ebyS(t)}</td><td>${esc(t.date)}</td><td>${esc(t.company)}</td><td>${esc(t.customer)}</td><td>${esc(t.driver)}</td><td>${esc(t.vehicle)}</td><td>${route(t)}</td><td class="num">${amt(t)}</td><td><a style="cursor:pointer;color:var(--bad)" onclick="flag(${esc(t.bill)})">⚑ Flag</a></td></tr>`))+`<div class="sum" style="margin-top:14px"><span><small>Trip amount</small><b>${fmt(s)}</b></span><span><small>VAT</small><b>${fmt(v)}</b></span><span><small>Total</small><b>${fmt(s+v)}</b></span><span style="margin-left:auto"><button class="btn au" onclick="pdfDoc('inv')">Download invoice PDF</button></span></div>`}
 /* ADMIN */
 let mode='Monthly';
 function dash(){const a=T,s=stats(a),ms=M.map((_,i)=>stats(a.filter(t=>t.date.slice(0,4)==YR&&+t.date.slice(5,7)==i+1))),mx=Math.max(...ms.map(x=>x.rev),1);
@@ -779,7 +803,7 @@ function save(){updBadges();cloudPush()}
 
 function modal(h){let m=$('#m');if(!m){m=document.createElement('div');m.id='m';m.className='ov';document.body.appendChild(m)}m.innerHTML=`<div class="md">${h}</div>`;m.style.display='grid'}
 const cm=()=>{$('#m').style.display='none'},refresh=()=>go(NAV[role].indexOf($('#ttl').textContent),null,true);
-const lg=(a,d,r)=>{LOG.unshift({t:new Date().toLocaleString(),by:BY(),a,d,r:r||'-'});save()};
+const lg=(a,d,r)=>{LOG.unshift({t:new Date().toLocaleString(),ts:Date.now(),by:BY(),a,d,r:r||'-'});save();if(window.onLg)try{window.onLg(a)}catch(e){console.error(e)}};
 const BR={after:30,per:30};
 function salary(d,m){const a=T.filter(t=>t.driver==d&&t.date.slice(0,4)==YR&&+t.date.slice(5,7)==m),basic=+(DI[d]||{}).basic||0,allow=+(DI[d]||{}).allow||0,units=sum(a,t=>t.type=='Round'?2:1),extra=Math.max(0,units-BR.after),bonus=extra*BR.per,tb=sum(a,t=>+t.wb||0),fines=FIN.filter(f=>f.driver==d&&+f.month==m),fs=sum(fines,f=>+f.amt),fa=sum(a,t=>+t.fa),advs=ADV.filter(x=>x.driver==d&&+x.month==m),adv=sum(advs,x=>+x.amt),ded=fs+fa+adv,gross=basic+allow+bonus+tb;return{advs,a,units,tb,basic,allow,extra,bonus,gross,fines,fs,fa,adv,ded,net:gross-ded}}
 function setBR(k,v){need(()=>{BR[k]=Math.max(0,+v||0);lg('Bonus rule changed',`${k=='after'?'Bonus starts after':'Bonus per extra trip'} = ${BR[k]}`);salaryV()})}
@@ -787,7 +811,7 @@ function salaryV(){let tot=0;$('#view').innerHTML=`<div class="card"><div class=
 function setMode(i,v){const k=DR[i]+'|'+sm;SAL[k]=SAL[k]||{};SAL[k].mode=v;save()}
 function payOne(i){const d=DR[i],w=salary(d,sm),k=d+'|'+sm,s=SAL[k]=SAL[k]||{mode:MODES[0]};if(s.status)return;if(w.net<=0)return alert(d+': nothing payable');s.status='Initiated';s.amt=w.net;const mo=M[sm-1],am=fmt(w.net);lg('Salary initiated',`${d} · ${mo} · AED ${am} via ${esc(s.mode)}`);save();salaryV();setTimeout(()=>{s.status='Paid';lg('Salary paid',`${d} · ${mo} · AED ${am}`);if($('#ttl').textContent=='Salary')salaryV()},3000)}
 /* advances */
-function advV(){return`<div class="card"><h3 style="margin-bottom:4px">Advance payments</h3><div class="note" style="margin-bottom:12px">Given to a driver before salary day and deducted automatically when that month's salary is released. <b>Cash</b> is deducted from the cash ledger (available AED ${fmt(bal(CL))}); <b>Bank</b> needs the bank transaction ID and reduces the bank balance (available AED ${fmt(bal(BL))}).</div><div class="row"><div><label>Driver</label><select id="y1">${DR.map(d=>`<option>${d}</option>`).join('')}</select></div><div><label>Amount (AED)</label><input id="y2" type="number"></div><div><label>Date given</label><input id="y3" type="date" value="${today()}"></div><div><label>Deduct from salary</label><select id="y4">${M.map((m,i)=>`<option value="${i+1}" ${i+1==sm?'selected':''}>${m} ${YR}</option>`).join('')}</select></div><div><label>Paid via</label><select id="y6" onchange="$('#y7').disabled=this.value=='Cash'"><option>Cash</option><option>Bank</option></select></div><div><label>Bank txn ID / UTR</label><input id="y7" disabled placeholder="Required for Bank"></div><div><label>Note</label><input id="y5" placeholder="e.g. family emergency"></div><div style="align-self:end"><button class="btn au" onclick="addAdv()">Record advance</button></div></div>`+tbl(['Driver','Date','Amount','Deduct from','Paid via','Status','Note',''],ADV.map((x,i)=>{const p=(SAL[x.driver+'|'+x.month]||{}).status=='Paid';return`<tr><td><b>${esc(x.driver)}</b></td><td>${esc(x.date)}</td><td class="num">${esc(x.amt)}</td><td class="num">${M[x.month-1]}</td><td class="num">${x.mode||'Cash'}${x.tx?' · '+esc(x.tx):''}</td><td class="num"><span class="tag ${p?'paid':'unp'}">${p?'Deducted':'Pending'}</span></td><td class="num">${x.note||''}</td><td><button class="btn g" onclick="delAdv(${i})">Delete</button></td></tr>`}))+`</div>`}
+function advV(){return`<div class="card"><h3 style="margin-bottom:4px">Advance payments</h3><div class="note" style="margin-bottom:12px">Given to a driver before salary day and deducted automatically when that month's salary is released. <b>Cash</b> is deducted from the cash ledger (available AED ${fmt(bal(CL))}); <b>Bank</b> needs the bank transaction ID and reduces the bank balance (available AED ${fmt(bal(BL))}).</div><div class="row"><div><label>Driver</label><select id="y1">${DR.map(d=>`<option>${d}</option>`).join('')}</select></div><div><label>Amount (AED)</label><input id="y2" type="number"></div><div><label>Date given</label><input id="y3" type="date" value="${today()}"></div><div><label>Deduct from salary</label><select id="y4">${M.map((m,i)=>`<option value="${i+1}" ${i+1==sm?'selected':''}>${m} ${YR}</option>`).join('')}</select></div><div><label>Paid via</label><select id="y6" onchange="$('#y7').disabled=this.value=='Cash'"><option>Cash</option><option>Bank</option></select></div><div><label>Bank txn ID / UTR</label><input id="y7" disabled placeholder="Required for Bank"></div><div><label>Note</label><input id="y5" placeholder="e.g. family emergency"></div><div style="align-self:end"><button class="btn au" onclick="addAdv()">Record advance</button></div></div>`+tbl(['Driver','Date','Amount','Deduct from','Paid via','Status','Note',''],ADV.map((x,i)=>{const p=(SAL[x.driver+'|'+x.month]||{}).status=='Paid';return`<tr><td><b>${esc(x.driver)}</b></td><td>${esc(x.date)}${ebyS(x)}</td><td class="num">${esc(x.amt)}</td><td class="num">${M[x.month-1]}</td><td class="num">${x.mode||'Cash'}${x.tx?' · '+esc(x.tx):''}</td><td class="num"><span class="tag ${p?'paid':'unp'}">${p?'Deducted':'Pending'}</span></td><td class="num">${x.note||''}</td><td><button class="btn g" onclick="delAdv(${i})">Delete</button></td></tr>`}))+`</div>`}
 function addAdv(){const d=g('y1'),a=+g('y2'),dt=g('y3'),m=+g('y4'),n=g('y5'),md=g('y6'),tx=g('y7');if(!a||a<=0)return alert('Enter amount');const er=chkOut(md,a,tx);if(er)return alert(er);need(()=>{const id=eid++;ADV.push({id,driver:d,amt:a,date:dt,month:m,note:n,mode:md,tx:md=='Bank'?tx.trim():''});payOut({m:md,a,tx,src:'Driver advance',ref:'Advance · '+d,note:n,date:dt,lk:'A'+id});lg('Advance paid',`${d} · AED ${a} on ${dt} via ${md}${md=='Bank'?' ('+tx.trim()+')':''} → ${M[m-1]} salary`,n);salaryV()})}
 function delAdv(i){need(()=>{const x=ADV.splice(i,1)[0];unlink('A'+x.id);lg('Advance removed',`${esc(x.driver)} · AED ${esc(x.amt)} · ${x.mode||'Cash'} entry reversed`);salaryV()})}
 /* deductions */
@@ -799,7 +823,7 @@ function delFine(i){need(()=>{const f=FIN.splice(i,1)[0];lg('Fine removed',`${es
 const TF=[['date','date'],['company','S',()=>CO],['customer','text'],['driver','S',()=>DR],['from','S',()=>PL],['to','S',()=>PL],['vehicle','S',()=>VE],['type','S',()=>['One Way','Round']],['from2','S',()=>['',...PL]],['to2','S',()=>['',...PL]],['charge','number'],['parking','number'],['salik','number'],['fuel','number'],['fa','number'],['batha','number'],['other','number'],['wb','number'],['wbn','text'],['paid','S',()=>['Not Paid','Paid']]];
 function flag(b){const n=prompt('Describe the error on bill '+b);if(!n)return;ERR.unshift({id:eid++,bill:b,note:n,by:BY(),t:new Date().toLocaleString(),st:'Open'});lg('Error flagged',`Bill ${b}: ${n}`);alert('Error ticket raised. Admin will rectify it.')}
 function errV(){$('#view').innerHTML=`<div class="card"><h3 style="margin-bottom:10px">Error tickets</h3>`+tbl(['#','Bill','Issue','Raised by','Time','Status',''],ERR.map(e=>`<tr><td>${esc(e.id)}</td><td>${esc(e.bill)}</td><td style="white-space:normal;min-width:180px">${esc(e.note)}${e.reply?`<div class="note">Reply: ${esc(e.reply)}</div>`:''}</td><td>${esc(e.by)}</td><td>${esc(e.t)}</td><td><span class="tag ${e.st=='Open'?'unp':'paid'}">${esc(e.st)}</span></td><td>${e.st=='Open'?`${T.find(t=>t.bill==e.bill)?`<button class="btn au" onclick="editTrip(${esc(e.bill)})">Fix</button> `:''}<button class="btn g" onclick="resolveErr(${esc(e.id)})">Resolve</button>`:''}</td></tr>`))+`<p class="note" style="margin-top:8px">Accountants raise tickets with “⚑ Flag”.</p></div><div class="card"><div class="top" style="margin-bottom:12px"><div><h3>Trip register</h3><div class="note">Edit any field of any trip — password + reason, fully logged</div></div><input id="q" style="width:260px" placeholder="Search bill / company / driver" oninput="tl()"></div><div id="tl"></div></div>`;tl()}
-function tl(){const q=g('q').toLowerCase();$('#tl').innerHTML=tbl(['Bill','Date','Company','Driver','Billed','Our cost','',''],T.filter(t=>!q||(t.bill+t.company+t.driver+t.customer).toLowerCase().includes(q)).slice(-40).reverse().map(t=>`<tr><td>${esc(t.bill)}</td><td>${esc(t.date)}</td><td>${esc(t.company)}</td><td>${esc(t.driver)}</td><td class="num">${amt(t)}</td><td class="num">${exp(t)}</td><td><button class="btn g" onclick="editTrip(${esc(t.bill)})">Edit</button></td><td><a style="cursor:pointer" onclick="flag(${esc(t.bill)})">⚑</a></td></tr>`))}
+function tl(){const q=g('q').toLowerCase();$('#tl').innerHTML=tbl(['Bill','Date','Company','Driver','Billed','Our cost','',''],T.filter(t=>!q||(t.bill+t.company+t.driver+t.customer).toLowerCase().includes(q)).slice(-40).reverse().map(t=>`<tr><td>${esc(t.bill)}${ebyS(t)}</td><td>${esc(t.date)}</td><td>${esc(t.company)}</td><td>${esc(t.driver)}</td><td class="num">${amt(t)}</td><td class="num">${exp(t)}</td><td><button class="btn g" onclick="editTrip(${esc(t.bill)})">Edit</button></td><td><a style="cursor:pointer" onclick="flag(${esc(t.bill)})">⚑</a></td></tr>`))}
 function editTrip(b){const t=T.find(x=>x.bill==b);if(!t)return alert('Bill not found');need(()=>modal(`<h3>Edit Bill ${b}</h3><p class="note" style="margin:4px 0 14px">Changes are logged with your reason. For round trips you can change the return route too.</p><div class="fg">${TF.map(([k,ty,l])=>{const v=k=='paid'?(t.paid?'Paid':'Not Paid'):(t[k]==null?'':t[k]);return`<div><label>${({from2:'RETURN FROM',to2:'RETURN TO',vehicle:'VEHICLE (NO. + NAME)',wb:'WAITING BONUS',wbn:'BONUS NOTE'})[k]||k.toUpperCase()}</label>`+(ty=='S'?`<select id="m_${k}">${[...new Set([v,...l()])].map(o=>`<option ${o==v?'selected':''}>${o}</option>`).join('')}</select>`:`<input id="m_${k}" type="${ty}" value="${v}">`)+`</div>`}).join('')}</div><div class="f"><label>Reason for correction *</label><input id="m_why" placeholder="e.g. wrong charge entered"></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn au" onclick="saveEdit(${b})">Save correction</button><button class="btn g" onclick="cm()">Cancel</button></div>`))}
 function saveEdit(b){const t=T.find(x=>x.bill==b),why=g('m_why').trim();if(!why)return alert('Reason is required');const ch=[],od=t.driver,oc=t.company,P=v=>v?'Paid':'Not Paid';
 TF.forEach(([k,ty])=>{let v=g('m_'+k),o=t[k]==null?'':t[k];if(k=='paid')v=v=='Paid'?1:0;else if(ty=='number')v=+v;if(v!=o){ch.push(`${k}: ${k=='paid'?P(o):o} → ${k=='paid'?P(v):v}`);t[k]=v}});
@@ -833,13 +857,13 @@ const hay=t=>[t.company=='PERSONAL'?'personal':'',t.bill,t.date,t.company,t.cust
 function fbMatch(t){const s=FBS,a=amt(t);if(s.f&&t.date<s.f||s.to&&t.date>s.to)return 0;if(s.cu&&!String(t.customer).toLowerCase().includes(s.cu.trim().toLowerCase()))return 0;if(s.co!='ALL'&&t.company!=s.co||s.dr!='ALL'&&t.driver!=s.dr||s.ve!='ALL'&&t.vehicle!=s.ve)return 0;if(s.st!='All'&&(s.st=='Paid')!=!!t.paid)return 0;if(s.pm!='All'&&(t.pm||'None')!=s.pm)return 0;if(s.min!==''&&a<+s.min||s.max!==''&&a>+s.max)return 0;const h=hay(t);return s.q.toLowerCase().split(/\s+/).filter(Boolean).every(k=>{const m=k.match(/^(>=|<=|>|<)(\d+(?:\.\d+)?)$/);if(m){const v=+m[2];return m[1]=='>'?a>v:m[1]=='<'?a<v:m[1]=='>='?a>=v:a<=v}if(k=='paid')return!!t.paid;if(['unpaid','due','outstanding'].includes(k))return!t.paid;return h.includes(k)})?1:0}
 const fsel=(k,L,lab)=>`<div><label>${lab}</label><select onchange="FBS.${k}=this.value;fbDraw()">${L.map(x=>{const[v,t]=Array.isArray(x)?x:[x,x];return`<option value="${esc(v)}" ${v==FBS[k]?'selected':''}>${esc(t)}</option>`}).join('')}</select></div>`;
 function fbV(){$('#view').innerHTML=`<div class="card"><div class="top" style="margin-bottom:12px"><div><h3>Filter bills</h3><div class="note">Type anything — bill no, customer, company, driver, route, vehicle, date, amount, “paid”, “unpaid”, “cash”. Combine words (<b>shajahan fuj unpaid</b>) or use amount operators (<b>&gt;300</b>, <b>&lt;=150</b>).</div></div><button class="btn g" onclick="FBS={q:'',cu:'',f:'',to:'',co:'ALL',dr:'ALL',ve:'ALL',st:'All',pm:'All',min:'',max:''};fbV()">Clear all</button></div><div class="f" style="margin:0 0 12px"><input id="fbq" style="font-size:15px;padding:13px 14px" placeholder="Search any detail…" value="${esc(FBS.q)}" oninput="FBS.q=this.value;fbDraw()"></div><div class="row">${fsel('co',['ALL',...COX()],'Company')}${fsel('dr',['ALL',...DR],'Driver')}${fsel('ve',['ALL',...VE],'Vehicle')}${fsel('st',['All','Paid','Not Paid'],'Status')}${fsel('pm',[['All','All'],['Cash','Cash'],['Online','Online'],['Bank','Bank transfer'],['None','Not marked']],'Payment mode')}</div><div class="row"><div><label>Customer name</label><input value="${esc(FBS.cu)}" placeholder="Personal customer name…" oninput="FBS.cu=this.value;fbDraw()"></div><div style="align-self:end"><button class="btn g w" style="margin:0;padding:10px" onclick="FBS.co='PERSONAL';fbV()">Personal trips only</button></div><div><label>From date</label><input type="date" value="${esc(FBS.f)}" onchange="FBS.f=this.value;fbDraw()"></div><div><label>To date</label><input type="date" value="${esc(FBS.to)}" onchange="FBS.to=this.value;fbDraw()"></div><div><label>Min amount</label><input type="number" value="${esc(FBS.min)}" oninput="FBS.min=this.value;fbDraw()"></div><div><label>Max amount</label><input type="number" value="${esc(FBS.max)}" oninput="FBS.max=this.value;fbDraw()"></div></div></div><div class="card"><div id="fbr"></div></div>`;fbDraw()}
-function fbDraw(){const r=T.filter(fbMatch).sort((x,y)=>x.date<y.date?1:x.date>y.date?-1:y.bill-x.bill);$('#fbr').innerHTML=tb(['Bill','Date','Company','Customer','Driver','Vehicle','Route','Amount','Our cost','Status','Payment',''],r.slice(0,100).map(t=>`<tr><td><b>${esc(t.bill)}</b></td><td>${esc(t.date)}</td><td>${esc(t.company)}</td><td>${esc(t.customer)}</td><td>${esc(t.driver)}</td><td>${esc(t.vehicle)}</td><td>${route(t)}</td><td class="num">${fmt(amt(t))}</td><td class="num">${fmt(exp(t))}</td><td><span class="tag ${t.paid?'paid':'unp'}">${t.paid?'Paid':'Not Paid'}</span></td><td>${pmTag(t)}</td><td><a style="cursor:pointer;color:var(--bad)" onclick="flag(${esc(t.bill)})">⚑ Flag</a></td></tr>`),[7,8])+`<div class="sum" style="margin-top:14px"><span><small>Bills found</small><b>${esc(r.length)}</b></span><span><small>Total amount</small><b>AED ${fmt(sum(r,amt))}</b></span><span><small>Paid</small><b>AED ${fmt(sum(r.filter(t=>t.paid),amt))}</b></span><span><small>Unpaid</small><b>AED ${fmt(out(r))}</b></span><span style="margin-left:auto"><button class="btn au" onclick="pdfDoc('bills')">Download PDF</button></span></div>${r.length>100?'<p class="note" style="margin-top:8px">Showing the latest 100 of '+r.length+' — narrow the search to see the rest.</p>':''}`}
+function fbDraw(){const r=T.filter(fbMatch).sort((x,y)=>x.date<y.date?1:x.date>y.date?-1:y.bill-x.bill);$('#fbr').innerHTML=tb(['Bill','Date','Company','Customer','Driver','Vehicle','Route','Amount','Our cost','Status','Payment',''],r.slice(0,100).map(t=>`<tr><td><b>${esc(t.bill)}</b>${ebyS(t)}</td><td>${esc(t.date)}</td><td>${esc(t.company)}</td><td>${esc(t.customer)}</td><td>${esc(t.driver)}</td><td>${esc(t.vehicle)}</td><td>${route(t)}</td><td class="num">${fmt(amt(t))}</td><td class="num">${fmt(exp(t))}</td><td><span class="tag ${t.paid?'paid':'unp'}">${t.paid?'Paid':'Not Paid'}</span></td><td>${pmTag(t)}</td><td><a style="cursor:pointer;color:var(--bad)" onclick="flag(${esc(t.bill)})">⚑ Flag</a></td></tr>`),[7,8])+`<div class="sum" style="margin-top:14px"><span><small>Bills found</small><b>${esc(r.length)}</b></span><span><small>Total amount</small><b>AED ${fmt(sum(r,amt))}</b></span><span><small>Paid</small><b>AED ${fmt(sum(r.filter(t=>t.paid),amt))}</b></span><span><small>Unpaid</small><b>AED ${fmt(out(r))}</b></span><span style="margin-left:auto"><button class="btn au" onclick="pdfDoc('bills')">Download PDF</button></span></div>${r.length>100?'<p class="note" style="margin-top:8px">Showing the latest 100 of '+r.length+' — narrow the search to see the rest.</p>':''}`}
 
 /* --- shared ledger table --- */
 let CLF={t:'All',f:'',to:'',q:''},BLF={t:'All',f:'',to:'',q:''};
 function ledRows(L,F){let b=0;const q=F.q.toLowerCase();return L.slice().sort((x,y)=>x.ts-y.ts).map(x=>{b+=x.k=='in'?x.amt:-x.amt;return Object.assign({},x,{b})}).filter(x=>(F.t=='All'||(F.t=='In')==(x.k=='in'))&&(!F.f||x.date>=F.f)&&(!F.to||x.date<=F.to)&&(!q||[x.src,x.ref,x.note,x.by,x.amt,x.date].join(' ').toLowerCase().includes(q))).reverse()}
 const ledF=w=>{const F=w=='cash'?CLF:BLF,n=w=='cash'?'CLF':'BLF';return`<div class="row"><div><label>Search</label><input value="${esc(F.q)}" placeholder="${w=='cash'?'Bill, driver, note…':'Txn ID, description…'}" oninput="${n}.q=this.value;drawLed('${w}')"></div><div><label>Type</label><select onchange="${n}.t=this.value;drawLed('${w}')">${['All','In','Out'].map(x=>`<option ${x==F.t?'selected':''}>${x}</option>`).join('')}</select></div><div><label>From</label><input type="date" value="${esc(F.f)}" onchange="${n}.f=this.value;drawLed('${w}')"></div><div><label>To</label><input type="date" value="${esc(F.to)}" onchange="${n}.to=this.value;drawLed('${w}')"></div></div><div id="led"></div>`};
-function drawLed(w){const bk=w=='bank',L=bk?BL:CL,r=ledRows(L,bk?BLF:CLF);$('#led').innerHTML=tb(['Date','Particulars',bk?'Txn ID':'Reference','Details','By',bk?'Credit':'Received',bk?'Debit':'Paid out','Balance'],r.slice(0,150).map(x=>`<tr><td>${esc(x.date)}</td><td><b>${esc(x.src)}</b></td><td>${esc(x.ref)}</td><td style="white-space:normal;min-width:160px">${esc(x.note)}</td><td>${esc(x.by)}</td><td class="num in">${x.k=='in'?fmt(x.amt):''}</td><td class="num outc">${x.k=='out'?fmt(x.amt):''}</td><td class="num"><b>${fmt(x.b)}</b></td></tr>`),[5,6,7])+`<div class="sum" style="margin-top:14px"><span><small>Entries shown</small><b>${esc(r.length)}</b></span><span><small>${bk?'Credits':'Received'}</small><b>${fmt(sum(r.filter(x=>x.k=='in'),x=>x.amt))}</b></span><span><small>${bk?'Debits':'Paid out'}</small><b>${fmt(sum(r.filter(x=>x.k=='out'),x=>x.amt))}</b></span><span style="margin-left:auto"><small>Closing balance</small><b>AED ${fmt(bal(L))}</b></span></div>`}
+function drawLed(w){const bk=w=='bank',L=bk?BL:CL,r=ledRows(L,bk?BLF:CLF);$('#led').innerHTML=tb(['Date','Particulars',bk?'Txn ID':'Reference','Details','By',bk?'Credit':'Received',bk?'Debit':'Paid out','Balance'],r.slice(0,150).map(x=>`<tr><td>${esc(x.date)}</td><td><b>${esc(x.src)}</b></td><td>${esc(x.ref)}</td><td style="white-space:normal;min-width:160px">${esc(x.note)}</td><td>${eby(x)}</td><td class="num in">${x.k=='in'?fmt(x.amt):''}</td><td class="num outc">${x.k=='out'?fmt(x.amt):''}</td><td class="num"><b>${fmt(x.b)}</b></td></tr>`),[5,6,7])+`<div class="sum" style="margin-top:14px"><span><small>Entries shown</small><b>${esc(r.length)}</b></span><span><small>${bk?'Credits':'Received'}</small><b>${fmt(sum(r.filter(x=>x.k=='in'),x=>x.amt))}</b></span><span><small>${bk?'Debits':'Paid out'}</small><b>${fmt(sum(r.filter(x=>x.k=='out'),x=>x.amt))}</b></span><span style="margin-left:auto"><small>Closing balance</small><b>AED ${fmt(bal(L))}</b></span></div>`}
 
 /* --- cash ledger --- */
 function cashV(){const pend=T.filter(t=>t.pm=='Cash'&&t.cs=='Pending').sort((a,b)=>a.date<b.date?-1:1),drv=DR.map(d=>[d,pend.filter(t=>t.driver==d)]).filter(x=>x[1].length);
@@ -869,7 +893,7 @@ $('#view').innerHTML=`<div class="kp">${K('This month',sum(tm,x=>x.amt),'var(--g
 <div class="card"><div class="row"><div><label>Category</label><select onchange="EXF.c=this.value;drawExp()">${['All',...EXC].map(x=>`<option ${x==EXF.c?'selected':''}>${x}</option>`).join('')}</select></div><div><label>Month</label><select onchange="EXF.m=this.value;drawExp()"><option value="ALL">All months</option>${M.map((m,i)=>`<option value="${pad2(i+1)}" ${EXF.m==pad2(i+1)?'selected':''}>${m} ${YR}</option>`).join('')}</select></div><div><label>Search</label><input value="${esc(EXF.q)}" placeholder="Vehicle, details, txn ID…" oninput="EXF.q=this.value;drawExp()"></div></div><div id="exl"></div></div>`;drawExp()}
 function drawExp(){const q=EXF.q.toLowerCase(),r=EXP.filter(x=>(EXF.c=='All'||x.cat==EXF.c)&&(EXF.m=='ALL'||x.date.slice(5,7)==EXF.m)&&(!q||[x.cat,x.veh,x.note,x.tx,x.mode,x.amt,x.date].join(' ').toLowerCase().includes(q))).sort((a,b)=>a.date<b.date?1:-1);
 const cats=EXC.map(c=>[c,sum(r.filter(x=>x.cat==c),x=>x.amt)]).filter(x=>x[1]);
-$('#exl').innerHTML=tb(['Date','Category','Vehicle','Details','Paid via','Txn ID','Amount',''],r.map(x=>`<tr><td>${esc(x.date)}</td><td><b>${esc(x.cat)}</b></td><td>${esc(x.veh)}</td><td style="white-space:normal;min-width:160px">${esc(x.note)}</td><td><span class="tag ${x.mode=='Cash'?'cashp':'onl'}">${esc(x.mode)}</span></td><td>${esc(x.tx||'—')}</td><td class="num">${fmt(x.amt)}</td><td><button class="btn g" onclick="delExp('${esc(x.id)}')">Delete</button></td></tr>`),[6])+`<div class="sum" style="margin-top:14px"><span><small>Entries</small><b>${esc(r.length)}</b></span><span><small>Total</small><b>AED ${fmt(sum(r,x=>x.amt))}</b></span>${cats.map(c=>`<span><small>${c[0]}</small><b>${fmt(c[1])}</b></span>`).join('')}</div>`}
+$('#exl').innerHTML=tb(['Date','Category','Vehicle','Details','Paid via','Txn ID','Amount',''],r.map(x=>`<tr><td>${esc(x.date)}${ebyS(x)}</td><td><b>${esc(x.cat)}</b></td><td>${esc(x.veh)}</td><td style="white-space:normal;min-width:160px">${esc(x.note)}</td><td><span class="tag ${x.mode=='Cash'?'cashp':'onl'}">${esc(x.mode)}</span></td><td>${esc(x.tx||'—')}</td><td class="num">${fmt(x.amt)}</td><td><button class="btn g" onclick="delExp('${esc(x.id)}')">Delete</button></td></tr>`),[6])+`<div class="sum" style="margin-top:14px"><span><small>Entries</small><b>${esc(r.length)}</b></span><span><small>Total</small><b>AED ${fmt(sum(r,x=>x.amt))}</b></span>${cats.map(c=>`<span><small>${c[0]}</small><b>${fmt(c[1])}</b></span>`).join('')}</div>`}
 function addExp(){const a=+g('xe_a'),m=g('xe_m'),tx=g('xe_t'),c=g('xe_c'),v=g('xe_v'),dt=g('xe_d'),n=g('xe_n').trim();if(!a||a<=0)return alert('Enter amount');if(!dt)return alert('Select date');const er=chkOut(m,a,tx);if(er)return alert(er);const id=eid++;EXP.unshift({id,date:dt,cat:c,veh:v,amt:a,mode:m,tx:m=='Bank'?tx.trim():'',note:n,by:BY()});payOut({m,a,tx,src:'Expense · '+c,ref:'EXP-'+id,note:(v!='General'?v+' · ':'')+n,date:dt,lk:'E'+id});lg('Expense logged',`${c} · ${v} · AED ${a} via ${m}${m=='Bank'?' ('+tx.trim()+')':''}`,n);save();toast(`Expense saved · ${m=='Cash'?'debited from cash ledger':'debited from bank'}`);expV()}
 function delExp(id){need(()=>{const i=EXP.findIndex(x=>x.id==id);if(i<0)return;const x=EXP.splice(i,1)[0];unlink('E'+x.id);lg('Expense deleted',`${esc(x.cat)} · AED ${esc(x.amt)} · ${esc(x.mode)} entry reversed`);save();expV()})}
 
@@ -878,7 +902,7 @@ function emiV(){const mn=today().slice(0,7),paidM=l=>LP.some(p=>p.loan==l.id&&p.
 $('#view').innerHTML=`<div class="kp">${K('Monthly EMI total',sum(LN.filter(l=>l.paid<l.n),l=>l.emi),'var(--gold)','AED ')}${K('Pending loan amount',sum(LN,l=>(l.n-l.paid)*l.emi),'var(--bad)','AED ')}${K('EMIs paid this month',sum(LP.filter(p=>p.date.slice(0,7)==mn),p=>p.amt),'var(--ok)','AED ')}${K('Active loans',LN.filter(l=>l.paid<l.n).length,'#6941c6')}</div>
 <div class="card"><h3 style="margin-bottom:4px">Car loans</h3><div class="note" style="margin-bottom:12px">Pay an EMI in <b>Cash</b> (debited from the cash ledger) or by <b>Bank</b> (UTR required, debited from the available bank balance).</div>`+tb(['Vehicle','Lender','Loan A/c','EMI','Paid','Pending','Pending amount','This month',''],LN.map(l=>{const done=l.paid>=l.n;return`<tr><td><b>${esc(l.veh)}</b></td><td>${esc(l.bank)}</td><td>${esc(l.acc||'—')}</td><td class="num">${fmt(l.emi)}</td><td class="num">${esc(l.paid)} / ${esc(l.n)}</td><td class="num">${l.n-l.paid}</td><td class="num"><b>${fmt((l.n-l.paid)*l.emi)}</b></td><td>${done?'<span class="tag paid">Closed</span>':paidM(l)?'<span class="tag paid">Paid</span>':`<span class="tag unp">Due · ${esc(l.due)}${[,'st','nd','rd'][l.due%10]&&Math.floor(l.due/10)!=1?[,'st','nd','rd'][l.due%10]:'th'}</span>`}</td><td>${done?'':`<button class="btn au" onclick="emiPay('${esc(l.id)}')">Pay EMI</button> `}<button class="btn g" onclick="delLoan('${esc(l.id)}')">Delete</button></td></tr>`}),[3,4,5,6])+`</div>
 <div class="card"><h3 style="margin-bottom:10px">Add a loan</h3><div class="row"><div><label>Vehicle</label><select id="ln_v">${VE.map(x=>`<option>${x}</option>`).join('')}</select></div><div><label>Bank / lender</label><input id="ln_b"></div><div><label>Loan A/c no.</label><input id="ln_c"></div><div><label>EMI (AED)</label><input id="ln_e" type="number"></div><div><label>Total EMIs</label><input id="ln_n" type="number"></div><div><label>EMIs already paid</label><input id="ln_p" type="number" value="0"></div><div><label>Due day of month</label><input id="ln_d" type="number" min="1" max="31" value="5"></div><div style="align-self:end"><button class="btn au" onclick="addLoan()">Add loan</button></div></div></div>
-<div class="card"><h3 style="margin-bottom:10px">EMI payment history</h3>`+tb(['Date','Vehicle','Lender','EMI no.','Paid via','Txn ID','Amount'],LP.map(p=>{const l=LN.find(x=>x.id==p.loan)||{veh:'—',bank:'—'};return`<tr><td>${esc(p.date)}</td><td><b>${esc(l.veh)}</b></td><td>${esc(l.bank)}</td><td class="num">${esc(p.inst)}</td><td><span class="tag ${p.mode=='Cash'?'cashp':'onl'}">${esc(p.mode)}</span></td><td>${esc(p.tx||'—')}</td><td class="num">${fmt(p.amt)}</td></tr>`}),[3,6])+`</div>`}
+<div class="card"><h3 style="margin-bottom:10px">EMI payment history</h3>`+tb(['Date','Vehicle','Lender','EMI no.','Paid via','Txn ID','Amount'],LP.map(p=>{const l=LN.find(x=>x.id==p.loan)||{veh:'—',bank:'—'};return`<tr><td>${esc(p.date)}${ebyS(p)}</td><td><b>${esc(l.veh)}</b></td><td>${esc(l.bank)}</td><td class="num">${esc(p.inst)}</td><td><span class="tag ${p.mode=='Cash'?'cashp':'onl'}">${esc(p.mode)}</span></td><td>${esc(p.tx||'—')}</td><td class="num">${fmt(p.amt)}</td></tr>`}),[3,6])+`</div>`}
 function addLoan(){const e=+g('ln_e'),n=+g('ln_n'),p=+g('ln_p')||0,d=+g('ln_d')||1,b=g('ln_b').trim();if(!b)return alert('Enter bank / lender');if(!e||!n)return alert('Enter EMI amount and total EMIs');if(p<0||p>n)return alert('EMIs paid cannot exceed total EMIs');LN.push({id:eid++,veh:g('ln_v'),bank:b,acc:g('ln_c').trim(),emi:e,n,paid:p,due:Math.min(31,Math.max(1,d))});lg('Loan added',`${g('ln_v')} · ${b} · EMI AED ${e} × ${n}`);save();emiV()}
 function delLoan(id){if(LP.some(p=>p.loan==id))return alert('This loan has payment history and cannot be deleted.');need(()=>{const i=LN.findIndex(l=>l.id==id);if(i<0)return;const l=LN.splice(i,1)[0];lg('Loan deleted',`${esc(l.veh)} · ${esc(l.bank)}`);save();emiV()})}
 function emiPay(id){const l=LN.find(x=>x.id==id);modal(`<h3>Pay EMI · ${esc(l.veh)}</h3><p class="note" style="margin:4px 0 14px">${esc(l.bank)} · EMI ${l.paid+1} of ${esc(l.n)} · cash available AED ${fmt(bal(CL))} · bank available AED ${fmt(bal(BL))}</p><div class="row"><div><label>Date</label><input id="em_d" type="date" value="${today()}"></div><div><label>Amount (AED)</label><input id="em_a" type="number" value="${esc(l.emi)}"></div><div><label>Paid via</label><select id="em_m" onchange="$('#em_t').disabled=this.value=='Cash'"><option>Cash</option><option>Bank</option></select></div><div><label>Bank UTR / txn ID</label><input id="em_t" disabled placeholder="Required for Bank"></div></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn au" onclick="doEmi('${id}')">Confirm payment</button><button class="btn g" onclick="cm()">Cancel</button></div>`)}
@@ -914,7 +938,7 @@ return`<div class="card"><div class="top" style="margin-bottom:12px"><div><h3>${
 <div class="row"><div><label>Amount received (AED)</label><input id="pa_a" type="number" min="0" value="${due}"></div><div><label>Date</label><input id="pa_d" type="date" value="${today()}"></div><div><label>Paid via</label><select id="pa_m" onchange="$('#pa_t').disabled=this.value=='Cash'"><option>Cash</option><option>Bank</option></select></div><div><label>Bank UTR / txn ID *</label><input id="pa_t" disabled placeholder="Required for Bank"></div><div><label>Note</label><input id="pa_n"></div><div style="align-self:end"><button class="btn au" onclick="payRec()">Record payment</button></div></div>
 ${tb(['Bill','Date','Customer','Route','Amount','Received','Balance'],L.map(t=>`<tr><td><b>${esc(t.bill)}</b></td><td>${esc(t.date)}</td><td>${esc(t.customer)}</td><td>${route(t)}</td><td class="num">${fmt(amt(t))}</td><td class="num">${fmt(+t.rp||0)}</td><td class="num">${fmt(bdue(t))}</td></tr>`),[4,5,6])}
 <h3 style="margin:18px 0 6px">Print for this party</h3><div class="row"><div><label>VAT % (invoice)</label><input id="pv" type="number" value="0"></div><div><label>Statement month</label><select onchange="psMonth(this.value)">${M.map((m,i)=>`<option value="${i+1}" ${i==new Date().getMonth()?'selected':''}>${m} ${YR}</option>`).join('')}</select></div><div><label>From</label><input id="ps_f" type="date" value="${m0}"></div><div><label>To</label><input id="ps_t" type="date" value="${today()}"></div><div style="align-self:end;display:flex;gap:8px;flex-wrap:wrap"><button class="btn au" onclick="pdfDue()">Dues invoice PDF</button><button class="btn g" onclick="pdfPStmt()">Statement PDF</button></div></div>
-${pays.length?`<h3 style="margin:18px 0 6px">Payments received</h3>`+tb(['Date','Amount','Mode','UTR / ref','Bills','By',''],pays.map(p=>`<tr><td>${esc(p.date)}</td><td class="num">${fmt(p.amt)}</td><td>${esc(p.mode)}</td><td>${esc(p.tx||'RCPT-'+p.id)}</td><td>${esc(p.al.map(x=>x.bill).join(', '))}</td><td>${esc(p.by)}</td><td><button class="btn g" onclick="delPay(${p.id})">Reverse</button></td></tr>`),[1]):''}</div>`}
+${pays.length?`<h3 style="margin:18px 0 6px">Payments received</h3>`+tb(['Date','Amount','Mode','UTR / ref','Bills','By',''],pays.map(p=>`<tr><td>${esc(p.date)}</td><td class="num">${fmt(p.amt)}</td><td>${esc(p.mode)}</td><td>${esc(p.tx||'RCPT-'+p.id)}</td><td>${esc(p.al.map(x=>x.bill).join(', '))}</td><td>${eby(p)}</td><td><button class="btn g" onclick="delPay(${p.id})">Reverse</button></td></tr>`),[1]):''}</div>`}
 function psMonth(m){const mm=pad2(m),last=new Date(YR,+m,0).getDate();$('#ps_f').value=YR+'-'+mm+'-01';$('#ps_t').value=YR+'-'+mm+'-'+pad2(last)}
 function payRec(){const k=DQ.k,L=dueL(k),due=sum(L,bdue),a=+g('pa_a'),m=g('pa_m'),tx=g('pa_t').trim(),dt=g('pa_d');if(!L.length)return alert('Nothing outstanding');if(!(a>0))return alert('Enter the amount received');if(a>due+1e-9)return alert('More than the outstanding AED '+fmt(due));if(!dt)return alert('Select the date');if(m=='Bank'){if(!tx)return alert('Bank transaction ID / UTR is required for bank payments');if(txnUsed(tx))return alert('This bank transaction ID is already recorded')}
 let left=a;const al=[],nm=pn(L[0]);L.forEach(t=>{if(left<=0)return;const p=Math.min(left,bdue(t));if(!(p>0))return;t.rp=(+t.rp||0)+p;if(t.rp>=amt(t)-1e-9)t.paid=1;al.push({bill:t.bill,amt:p});left-=p});
@@ -947,4 +971,385 @@ window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dp=e;show()
 document.getElementById('ibx').onclick=()=>{hid=true;hide()};
 document.getElementById('ibi').onclick=async()=>{if(dp){dp.prompt();try{await dp.userChoice}catch(e){}dp=null;hide()}else{document.getElementById('ibt').textContent=ios?'Tap the Share button, then "Add to Home Screen".':'Open the browser menu and choose "Install app" or "Add to Home Screen".';document.getElementById('ibi').style.display='none'}};
 setTimeout(()=>{if(!standalone()&&(ios||!dp))show()},2500)})();
+</script><script id="safety">
+(function(){
+const E=id=>document.getElementById(id);
+const IDLE_MIN=30,WARN_S=120,BIG=5000;
+const U=s=>String(s==null?'':s);
+const fdt=t=>new Date(t).toLocaleString(undefined,{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+function devLabel(){const u=navigator.userAgent;const os=/iPhone/.test(u)?'iPhone':/iPad/.test(u)?'iPad':/Android/.test(u)?'Android':/Windows/.test(u)?'Windows':/Mac OS X|Macintosh/.test(u)?(navigator.maxTouchPoints>1?'iPad':'Mac'):/Linux/.test(u)?'Linux':'unknown device';const br=/Edg\//.test(u)?'Edge':/OPR\/|Opera/.test(u)?'Opera':/Firefox|FxiOS/.test(u)?'Firefox':/CriOS|Chrome/.test(u)?'Chrome':/Safari/.test(u)?'Safari':'Browser';return br+' on '+os}
+const lsGet=k=>{try{return localStorage.getItem(k)}catch(e){return null}},lsSet=(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},lsDel=k=>{try{localStorage.removeItem(k)}catch(e){}};
+const findLast=(a,f)=>{for(let i=a.length-1;i>=0;i--)if(f(a[i]))return a[i]};
+
+/* ---------- wrong-password lock ---------- */
+const LK='sn_lock',MAXF=5,LOCKMS=5*60*1000;
+const lkGet=()=>{try{return JSON.parse(lsGet(LK))||{}}catch(e){return{}}},lkSet=o=>lsSet(LK,JSON.stringify(o));
+window.lockLeft=em=>{const o=lkGet()[U(em).toLowerCase()];return o&&o.until>Date.now()?o.until-Date.now():0};
+window.showLock=em=>{clearInterval(window._lki);const tick=()=>{const l=lockLeft(em),b=E('lbtn');if(l<=0){clearInterval(window._lki);b.disabled=false;E('lerr').classList.add('hide');return}const m=Math.floor(l/60000),s=Math.floor(l%60000/1000);lbad('Too many wrong passwords. This account is locked for '+m+':'+String(s).padStart(2,'0')+' more.');b.disabled=true};tick();window._lki=setInterval(tick,1000)};
+window.loginFail=(em,code)=>{if(!['auth/invalid-credential','auth/wrong-password','auth/user-not-found'].includes(code))return;try{window.reportFail(em)}catch(x){}const a=lkGet(),k=U(em).toLowerCase(),o=a[k]||{n:0};if(o.last&&Date.now()-o.last>15*60*1000)o.n=0;o.n++;o.last=Date.now();delete o.until;if(o.n>=MAXF){o.until=Date.now()+LOCKMS;o.n=0}a[k]=o;lkSet(a);if(o.until)return showLock(em);const left=MAXF-o.n;if(left<=2){const e=E('lerr');e.textContent+=' ('+left+' attempt'+(left>1?'s':'')+' left before a 5-minute lock)'}};
+window.loginOk=em=>{const a=lkGet();delete a[U(em).toLowerCase()];lkSet(a)};
+const _signin=window.signin;window.signin=function(){window.__fresh=true;return _signin.apply(this,arguments)};
+
+/* ---------- session gate, last sign-in, sign out everywhere, access off ---------- */
+let SESSEP=0;
+window.sessGate=async function(u,ud){const d=(ud&&ud.exists&&ud.data())||{};if(d.disabled&&u.uid!==OWNER_UID)return 'Your access has been turned off. Please contact the admin.';const ep=+d.epoch||0,k='sn_ep_'+u.uid;if(window.__fresh){SESSEP=ep;lsSet(k,String(ep))}else{SESSEP=+lsGet(k)||0;if(ep>SESSEP)return 'You were signed out from all devices. Please sign in again.'}return null};
+function forceOut(msg){try{draftFlush()}catch(e){}try{alert(msg)}catch(e){}logout()}
+function watchUser(u){if(window._uw)return;window._uw=db.collection('users').doc(u.uid).onSnapshot(s=>{if(!s.exists)return;const x=s.data();if(x.disabled&&u.uid!==OWNER_UID)return forceOut('Your access has been turned off by the admin.');if((+x.epoch||0)>SESSEP)forceOut('You were signed out from all devices.')},()=>{})}
+function showLLB(p,local){const b=E('llb');if(!b)return;b.innerHTML=(p&&p.t?'<span><b>Last sign-in:</b> '+esc(fdt(p.t))+' \u00b7 '+esc(p.device||'unknown device')+(local?' <span class="note">(this device)</span>':'')+'</span>':'<span><b>Last sign-in:</b> none recorded before this one</span>')+'<span>Not you? <a onclick="logoutAll()">Sign out from all devices</a></span><button class="llx" aria-label="Dismiss" onclick="this.parentNode.classList.add(\'hide\')">&times;</button>';b.classList.remove('hide')}
+window.postLogin=function(u,ud){const d=(ud&&ud.exists&&ud.data())||{};let prev=d.lastLogin,local=false;if(!prev){try{prev=JSON.parse(lsGet('sn_ll_'+u.uid));local=!!prev}catch(e){}}showLLB(prev,local);const now={t:Date.now(),device:devLabel()};lsSet('sn_ll_'+u.uid,JSON.stringify(now));db.collection('users').doc(u.uid).set({lastLogin:now},{merge:true}).catch(()=>{});loginOk(u.email||'');watchUser(u)};
+window.logoutAll=function(){if(!confirm('Sign out from ALL devices, including this one?\n\nUse this if a phone was lost or someone else may have used your account.'))return;const u=fbAuth.currentUser;if(!u)return;db.collection('users').doc(u.uid).set({epoch:firebase.firestore.FieldValue.increment(1),epochAt:Date.now()},{merge:true}).then(()=>{alert('Signed out from all devices. Please sign in again. If a phone was lost, also ask the admin to reset your password.');logout()}).catch(()=>alert('Could not reach the server, so your other devices were NOT signed out. Check your connection and try again.'))};
+
+/* ---------- Team access (admin) ---------- */
+window.teamV=async function(){$('#view').innerHTML='<div class="card"><h3>Team access</h3><p class="note" style="margin-top:6px">Loading\u2026</p></div>';try{const sn=await db.collection('users').get(),me=fbAuth.currentUser.uid;const rows=sn.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>U(a.name||a.email).localeCompare(U(b.name||b.email)));
+$('#view').innerHTML='<div class="card"><h3 style="margin-bottom:4px">Team access</h3><div class="note" style="margin-bottom:12px">Turn access off the moment someone leaves. They are signed out immediately and cannot sign in again until you turn it back on. Your admin password is asked each time.</div>'+tb(['Name','Role','Last sign-in','Status',''],rows.map(x=>{const own=x.id===me||x.id===OWNER_UID,off=!!x.disabled;return '<tr><td><b>'+esc(x.name||x.email||x.id.slice(0,8))+'</b>'+(x.email&&x.name?'<br><span class="note">'+esc(x.email)+'</span>':'')+'</td><td>'+esc(x.role||'-')+'</td><td>'+(x.lastLogin&&x.lastLogin.t?esc(fdt(x.lastLogin.t))+'<br><span class="note">'+esc(x.lastLogin.device||'')+'</span>':'<span class="note">\u2014</span>')+'</td><td>'+(off?'<span class="tag" style="background:#ff6f8333;color:var(--bad)">Access off</span>':'<span class="tag" style="background:#3ee6a833;color:var(--ok)">Active</span>')+'</td><td>'+(x.id===OWNER_UID?'<span class="note">Owner</span>':x.id===me?'<span class="note">You</span>':(off?'<button class="btn g" onclick="teamSet(\''+esc(x.id)+'\',false)">Turn on</button>':'<button class="btn au" onclick="teamSet(\''+esc(x.id)+'\',true)">Turn off access</button> <button class="btn g" onclick="teamKick(\''+esc(x.id)+'\')">Sign out now</button>'))+'</td></tr>'}))+'</div>'}catch(e){$('#view').innerHTML='<div class="card"><h3>Team access</h3><p class="note" style="margin-top:6px">Could not load the team list ('+esc(e.code||e.message)+'). Your Firestore rules must let admins read the users collection.</p></div>'}};
+const uName=async id=>{try{const s=await db.collection('users').doc(id).get();const x=s.data()||{};return x.name||x.email||id.slice(0,8)}catch(e){return id.slice(0,8)}};
+window.teamSet=function(id,off){need(async()=>{const nm=await uName(id);if(off&&!confirm('Turn off access for '+nm+'?\n\nThey will be signed out at once and cannot sign in until you turn it back on.'))return;try{const o={disabled:off,disabledAt:Date.now(),disabledBy:BY()};if(off)o.epoch=firebase.firestore.FieldValue.increment(1);await db.collection('users').doc(id).set(o,{merge:true});lg(off?'Access turned off':'Access turned on',nm);toast(off?nm+' can no longer use the app':nm+' can sign in again')}catch(e){alert('Could not change access. '+(e&&e.code=='permission-denied'?'Only an admin can do this.':'No signal? Check your connection and try again.'))}teamV()})};
+window.teamKick=function(id){need(async()=>{const nm=await uName(id);try{await db.collection('users').doc(id).set({epoch:firebase.firestore.FieldValue.increment(1)},{merge:true});lg('User signed out everywhere',nm);toast(nm+' was signed out of all devices')}catch(e){alert('Could not sign them out. '+(e&&e.code=='permission-denied'?'Only an admin can do this.':'No signal? Check your connection and try again.'))}})};
+try{IC['Team Access']='<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M17 5.5a3 3 0 0 1 0 5.5M18 14.3c2 .6 3.5 2.4 3.5 5.7"/>'}catch(e){}
+
+/* ---------- idle sign-out with warning ---------- */
+window.__act=Date.now();
+function idleWarn(sec){let w=E('idw');if(!w){w=document.createElement('div');w.id='idw';w.className='ov';w.style.zIndex=700;w.innerHTML='<div class="md" role="alertdialog" aria-modal="true"><h3>Still there?</h3><p class="note" style="margin:8px 0 14px;font-size:13px">For your safety you will be signed out in <b id="idws" style="color:var(--gold2)"></b> because of inactivity. Anything you are typing in a trip entry is saved as a draft on this device.</p><div class="cfb"><button class="btn au" id="idwb">Stay signed in</button></div></div>';document.body.appendChild(w);E('idwb').onclick=()=>{window.__idleWarn=false;window.__act=Date.now();w.style.display='none'}}window.__idleWarn=true;w.style.display='grid';E('idws').textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');if(document.activeElement&&document.activeElement.id!=='idwb')E('idwb').focus()}
+setInterval(()=>{if(typeof fbAuth==='undefined'||!fbAuth||!fbAuth.currentUser||E('app').classList.contains('hide'))return;const left=IDLE_MIN*60-(Date.now()-window.__act)/1000;if(left<=0){try{draftFlush()}catch(e){}try{sessionStorage.setItem('sn_idle','1')}catch(e){}logout();return}if(left<=WARN_S)idleWarn(Math.ceil(left));else if(window.__idleWarn){window.__idleWarn=false;E('idw').style.display='none'}},1000);
+setTimeout(()=>{try{if(sessionStorage.getItem('sn_idle')){sessionStorage.removeItem('sn_idle');lbad('You were signed out after '+IDLE_MIN+' minutes of inactivity. Any trip draft is saved on this device.')}}catch(e){}},50);
+
+/* ---------- draft of the trip entry ---------- */
+const DF=['fb','fd','fc','fpers','fcu','fdr','ff','ft','fv','fty','ff2','ft2','fp','fpm','c1','c2','c3','e1','e2','e3','e4','wb','wbn'];
+const dKey=()=>{const u=typeof fbAuth!=='undefined'&&fbAuth&&fbAuth.currentUser;return u?'sn_draft_'+u.uid:null};
+let dT=null;
+const dirty=v=>(v.fcu&&v.fcu.trim())||+v.c1>0||+v.c2>0||+v.c3>0||+v.fp>0||+v.e1>0||+v.e2>0||+v.e3>0||+v.e4>0||+v.wb>0||v.wbn||v.fpm;
+window.draftFlush=function(){clearTimeout(dT);dT=null;const k=dKey();if(!k||!E('svb'))return;const o={};DF.forEach(id=>{const e=E(id);if(e)o[id]=e.type=='checkbox'?e.checked:e.value});lsSet(k,JSON.stringify({t:Date.now(),v:o}))};
+window.draftClear=function(){clearTimeout(dT);dT=null;const k=dKey();if(k)lsDel(k)};
+window.draftDiscard=function(){draftClear();sheet()};
+window.draftRestore=function(){const k=dKey();if(!k||!E('svb'))return;let d;try{d=JSON.parse(lsGet(k))}catch(e){}if(!d||!d.v||Date.now()-d.t>7*864e5||!dirty(d.v))return;const v=d.v;
+DF.forEach(id=>{const e=E(id);if(!e||!(id in v))return;if(id=='fb'){if(!T.some(t=>t.bill==+v.fb)&&+v.fb>=bill)e.value=v.fb;return}if(e.type=='checkbox'){e.checked=!!v[id];return}if(e.tagName=='SELECT'){if([...e.options].some(o=>o.value==v[id]))e.value=v[id]}else e.value=v[id]});
+if(v.fty=='Round')rtEdited=true;rtShow();custReq();calc(1);
+const n=document.createElement('div');n.className='draftb';n.innerHTML='<span>Draft restored from '+esc(fdt(d.t))+'. Check it, then save.</span><button class="btn g" onclick="draftDiscard()">Discard draft</button>';E('view').insertBefore(n,E('view').firstChild)};
+['input','change'].forEach(ev=>document.addEventListener(ev,e=>{const t=e.target;if(t&&t.classList)t.classList.remove('bad-f');if(t&&DF.includes(t.id)&&t.closest&&t.closest('#view')){clearTimeout(dT);dT=setTimeout(draftFlush,300)}}));
+addEventListener('pagehide',()=>{try{draftFlush()}catch(e){}});
+const _sheet=window.sheet;window.sheet=function(){const r=_sheet.apply(this,arguments);try{draftRestore();applyReq()}catch(e){console.error(e)}return r};
+
+/* ---------- required-field markers ---------- */
+const RQ=['fb','fd','fc','fdr','ff','ft','fv','fty','fp','ff2','ft2','pa_a','pa_d','y2','y3','xe_a','xe_d','em_a','em_d','bt_a','bt_d','bt_r'];
+function applyReq(){const v=E('view');if(!v)return;RQ.forEach(id=>{const el=E(id);if(!el||el.dataset.rq)return;let n=el,lab=null;while(n&&n!==v){const p=n.previousElementSibling;if(p&&p.tagName=='LABEL'){lab=p;break}n=n.parentElement}el.dataset.rq=1;if(lab&&lab.textContent.indexOf('*')<0)lab.insertAdjacentHTML('beforeend',' <span class="rq" title="Required">*</span>')});if(E('svb')&&!E('rqn')){const c=E('svb').closest('.card'),r=c&&c.querySelector('.row');if(r)r.insertAdjacentHTML('beforebegin','<div id="rqn" class="note" style="margin-bottom:10px"><span class="rq">*</span> = required. Anything missing is highlighted when you press Save. Return route is required for round trips; customer name for personal trips.</div>')}}
+new MutationObserver(()=>requestAnimationFrame(applyReq)).observe(E('view'),{childList:true,subtree:true});
+
+/* ---------- confirm summary + warnings ---------- */
+const cfmOpen=()=>{const m=E('cfm');return !!m&&m.style.display=='grid'};
+function cfm(o){let m=E('cfm');if(!m){m=document.createElement('div');m.id='cfm';m.className='ov';m.style.zIndex=650;document.body.appendChild(m)}
+const w=(o.warns||[]).map(x=>'<li class="'+(x.hard?'bd2':'')+'">\u26a0 '+esc(x.t)+'</li>').join('');
+m.innerHTML='<div class="md" role="dialog" aria-modal="true"><h3>'+esc(o.title)+'</h3><div class="cfl">'+esc(o.line)+'</div>'+(o.sub&&o.sub.length?'<div class="cfs">'+o.sub.map(esc).join('<br>')+'</div>':'')+(o.big?'<div class="cfbig">Large amount \u2014 please double-check the figures before confirming.</div>':'')+(w?'<ul class="cfw">'+w+'</ul>':'')+'<div class="cfb"><button class="btn g" id="cfn">Go back</button><button class="btn au" id="cfy">'+(w?'Save anyway':'Confirm &amp; save')+'</button></div></div>';
+m.style.display='grid';const close=()=>{m.style.display='none'};E('cfn').onclick=close;E('cfy').onclick=()=>{close();o.go()};E('cfy').focus()}
+document.addEventListener('keydown',e=>{if(e.key=='Escape'&&cfmOpen())E('cfm').style.display='none'});
+const PM={cash:'cash received',pend:'cash pending with driver',credit:'on company account (due)'};
+const median=a=>{const s=a.slice().sort((x,y)=>x-y),m=s.length>>1;return s.length%2?s[m]:(s[m-1]+s[m])/2};
+const _saveTrip=window.saveTrip;
+window.saveTrip=function(){if(cfmOpen())return;if(!CO.length||!DR.length||!VE.length||!PL.length)return _saveTrip();
+const pers=persOn(),rd=g('fty')=='Round',a=(+g('c1'))+(+g('c2'))+(+g('c3')),pay=g('fpm'),miss=[];
+const need1=(id,lab,bad)=>{const e=E(id);if(bad===undefined?!U(e&&e.value).trim():bad){miss.push(lab);e&&e.classList.add('bad-f')}};
+need1('fb','Bill no',!(+g('fb')>0));need1('fd','Date');if(!pers)need1('fc','Company');if(pers)need1('fcu','Customer name (personal trip)');need1('fdr','Driver');need1('ff','From');need1('ft','To');need1('fv','Vehicle');need1('fty','Trip type');if(rd){need1('ff2','Return From');need1('ft2','Return To')}need1('c1','Charge amount',!(a>0));need1('fpm','Payment');
+['c1','c2','c3','e1','e2','e3','e4','wb'].forEach(id=>{if(+g(id)<0){miss.push('A negative amount ('+id+')');E(id).classList.add('bad-f')}});
+if(rd&&g('ff2')&&g('ff2')==g('ft2')){miss.push('Return route: From and To must be different');E('ff2').classList.add('bad-f');E('ft2').classList.add('bad-f')}
+if(miss.length){const f=document.querySelector('#view .bad-f');if(f&&f.scrollIntoView)f.scrollIntoView({block:'center',behavior:'smooth'});if(f)f.focus();return alert('Please fix before saving:\n\n\u2022 '+miss.join('\n\u2022 '))}
+const bn=+g('fb'),dt=g('fd'),dr=g('fdr'),ve=g('fv'),ff=g('ff'),ft=g('ft'),ty=g('fty'),warns=[];
+const dup=findLast(T,t=>t.bill==bn);if(dup)warns.push({hard:1,t:'Bill '+bn+' already exists ('+dup.date+' \u00b7 '+dup.company+' \u00b7 AED '+fmt(amt(dup))+'). A duplicate bill number will confuse invoices and the cash ledger.'});
+const same=T.filter(t=>t.from==ff&&t.to==ft&&t.type==ty&&amt(t)>0).map(amt);if(same.length>=3){const md=median(same);if(a>md*1.5&&a-md>=50)warns.push({t:'AED '+fmt(a)+' is much higher than the usual AED '+fmt(md)+' for '+ff+' \u2192 '+ft+' ('+ty+', based on '+same.length+' earlier trips).'})}
+const clash=findLast(T,t=>t.date==dt&&t.from==ff&&t.to==ft&&(t.driver==dr||t.vehicle==ve));if(clash)warns.push({t:(clash.driver==dr?dr:ve)+' already has a trip on '+dt+' on the same route (Bill '+clash.bill+'). Is this a double entry?'});
+const cust=pers?'Personal':g('fc'),cu=g('fcu').trim()||'-';
+cfm({title:'Confirm trip',line:'Bill '+bn+' \u00b7 AED '+fmt(a)+' \u00b7 '+PM[pay],sub:[cust+' \u00b7 '+cu,dr+' \u00b7 '+ve,ff+' \u2192 '+ft+(rd?'  (return: '+g('ff2')+' \u2192 '+g('ft2')+')':'')+' \u00b7 '+dt],warns,big:a>=BIG,go:()=>_saveTrip()})};
+
+const _payRec=window.payRec;
+window.payRec=function(){if(cfmOpen())return;const k=DQ.k,L=dueL(k),due=sum(L,bdue),a=+g('pa_a'),m=g('pa_m'),tx=g('pa_t').trim(),dt=g('pa_d');if(!L.length||!(a>0)||a>due+1e-9||!dt||(m=='Bank'&&(!tx||txnUsed(tx))))return _payRec();
+const left=due-a;cfm({title:'Confirm payment received',line:pn(L[0])+' \u00b7 AED '+fmt(a)+' \u00b7 '+m+(m=='Bank'?' ('+tx+')':''),sub:['Received on '+dt+', applied to the oldest bills first.',left>1e-9?'Part payment: AED '+fmt(left)+' stays outstanding.':'This clears everything outstanding for this party.'],big:a>=BIG,go:()=>_payRec()})};
+
+const _addAdv=window.addAdv;
+window.addAdv=function(){if(cfmOpen())return;const d=g('y1'),a=+g('y2'),dt=g('y3'),m=+g('y4'),md=g('y6'),tx=g('y7');if(!(a>0))return _addAdv();if(chkOut(md,a,tx))return _addAdv();
+const warns=[],di=DI[d]||{},cap=(+di.basic||0)+(+di.allow||0),already=sum(ADV.filter(x=>x.driver==d&&x.month==m),x=>+x.amt||0);if(cap>0&&already+a>cap)warns.push({t:'Advances for '+d+' in '+M[m-1]+' would total AED '+fmt(already+a)+', above basic + allowance (AED '+fmt(cap)+').'});
+cfm({title:'Confirm advance',line:'Advance \u00b7 '+d+' \u00b7 AED '+fmt(a)+' \u00b7 '+md+(md=='Bank'?' ('+tx.trim()+')':''),sub:['Given on '+dt+', deducted from '+M[m-1]+' salary.'],warns,big:a>=BIG,go:()=>_addAdv()})};
+
+const _addExp=window.addExp;
+window.addExp=function(){if(cfmOpen())return;const a=+g('xe_a'),m=g('xe_m'),tx=g('xe_t'),dt=g('xe_d');if(!(a>0)||!dt||chkOut(m,a,tx))return _addExp();
+cfm({title:'Confirm expense',line:g('xe_c')+' \u00b7 AED '+fmt(a)+' \u00b7 '+m+(m=='Bank'?' ('+tx.trim()+')':''),sub:[(g('xe_v')?g('xe_v')+' \u00b7 ':'')+dt],big:a>=BIG,go:()=>_addExp()})};
+
+const _doEmi=window.doEmi;
+window.doEmi=function(id){if(cfmOpen())return;const l=LN.find(x=>x.id==id),a=+g('em_a'),m=g('em_m'),tx=g('em_t'),dt=g('em_d');if(!l||!(a>0)||!dt||chkOut(m,a,tx))return _doEmi(id);
+cfm({title:'Confirm EMI payment',line:'EMI '+(l.paid+1)+'/'+l.n+' \u00b7 '+l.veh+' \u00b7 AED '+fmt(a)+' \u00b7 '+m+(m=='Bank'?' ('+tx.trim()+')':''),sub:[l.bank+' \u00b7 '+dt],big:a>=BIG,go:()=>_doEmi(id)})};
+
+/* ---------- undo within 30 seconds ---------- */
+let UI=null;
+function clearUndo(){clearInterval(UI);UI=null;const b=E('undo');if(b)b.remove()}
+function showUndo(label,fn){clearUndo();const b=document.createElement('div');b.id='undo';b.innerHTML='<span>'+esc(label)+'</span><button class="btn au" id="undob">Undo (<span id="undot">30</span>s)</button><button class="llx" aria-label="Dismiss">&times;</button>';document.body.appendChild(b);let s=30;UI=setInterval(()=>{s--;if(s<=0)return clearUndo();const t=E('undot');if(t)t.textContent=s},1000);E('undob').onclick=()=>{clearUndo();fn()};b.querySelector('.llx').onclick=clearUndo}
+function undoTrip(bn){const nt=findLast(T,t=>t.bill==bn);if(!nt)return toast('That trip was already changed \u2014 use Flag error instead');if((+nt.rp||0)>0||(+nt.rcv||0)>0)return alert('Payments are already recorded on Bill '+bn+', so it cannot be undone here. Use Flag error instead.');
+T.splice(T.lastIndexOf(nt),1);unlink('T'+bn);if(bill==bn+1)bill=bn;lg('Trip undone','Bill '+bn+' removed within 30 seconds and reopened for correction','Undo after save');
+const pay=nt.paid?(nt.cs=='Received'?'cash':'pend'):'credit',pers=nt.company=='PERSONAL';
+lsSet(dKey(),JSON.stringify({t:Date.now(),v:{fb:String(bn),fd:nt.date,fc:pers?'':nt.company,fpers:pers,fcu:nt.customer=='-'?'':nt.customer,fdr:nt.driver,ff:nt.from,ft:nt.to,fv:nt.vehicle,fty:nt.type,ff2:nt.from2||'',ft2:nt.to2||'',fp:String(amt(nt)),fpm:pay,c1:String(nt.charge),c2:String(nt.parking),c3:String(nt.salik),e1:String(nt.fuel),e2:String(nt.fa),e3:String(nt.batha),e4:String(nt.other),wb:String(nt.wb||0),wbn:nt.wbn||''}}));
+save();toast('Trip undone \u2014 the entry is reopened in Trip Sheet so you can correct it');try{refresh()}catch(e){}}
+function undoAdv(id){const i=ADV.findIndex(x=>x.id==id);if(i<0)return toast('That advance was already removed');const x=ADV[i];if(SAL[x.driver+'|'+x.month]&&SAL[x.driver+'|'+x.month].status)return alert('Salary for that month is already released, so this advance cannot be undone here.');ADV.splice(i,1);unlink('A'+x.id);lg('Advance undone',x.driver+' \u00b7 AED '+x.amt+' \u00b7 '+(x.mode||'Cash')+' entry reversed','Undo after save');save();toast('Advance undone');try{refresh()}catch(e){}}
+function undoPay(id){const i=PAY.findIndex(x=>x.id==id);if(i<0)return toast('That payment was already reversed');const p=PAY.splice(i,1)[0];p.al.forEach(x=>{const t=T.find(b=>b.bill==x.bill);if(t){t.rp=Math.max(0,(+t.rp||0)-x.amt);if(t.rp<amt(t)-1e-9)t.paid=0}});unlink('P'+id);lg('Payment undone',p.party+' \u00b7 AED '+p.amt+' \u00b7 '+p.mode,'Undo after save');save();toast('Payment undone');try{refresh()}catch(e){}}
+window.onLg=function(a){if(a=='Trip added'){draftClear();const t=T[T.length-1];if(t)showUndo('Trip saved \u00b7 Bill '+t.bill,()=>undoTrip(t.bill))}else if(a=='Advance paid'){const x=ADV[ADV.length-1];if(x)showUndo('Advance saved \u00b7 '+x.driver+' \u00b7 AED '+fmt(x.amt),()=>undoAdv(x.id))}else if(a=='Payment collected'){const p=PAY[PAY.length-1];if(p)showUndo('Payment saved \u00b7 '+p.party+' \u00b7 AED '+fmt(p.amt),()=>undoPay(p.id))}};
+/* ===================== v2: accountability, money safety, clarity ===================== */
+(function(){
+const APP_VER='2.0 · 2 Nov 2026',APL=5000;
+let PREV=false;
+const pad=n=>String(n).padStart(2,'0');
+const ldate=t=>{const d=new Date(t);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
+const tmF=t=>t?new Date(+t).toLocaleString([],{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'';
+const wrap=(n,f)=>{const o=window[n];if(typeof o!='function')return;window[n]=function(){return f.call(this,o,arguments)}};
+
+/* ---------- styles ---------- */
+(function(){const st=document.createElement('style');st.textContent=
+'body{padding-bottom:46px}'+
+'#sbar{position:fixed;left:0;right:0;bottom:0;z-index:420;display:flex;flex-wrap:wrap;align-items:center;gap:4px 10px;padding:7px 14px calc(7px + env(safe-area-inset-bottom));font-size:12px;background:var(--bg);color:var(--mut);border-top:1px solid var(--line)}'+
+'#sbar b{color:var(--ink)}#sbar .sd{width:9px;height:9px;border-radius:50%;display:inline-block;background:#3ee6a8}#sbar .sd.w{background:#ffc86b}#sbar .sd.r{background:#ff6f83}'+
+'#sbar .pw{color:#ffc86b}#sbar .sv{margin-left:auto;opacity:.85}.toast{bottom:64px!important}'+
+'.eby{font-size:11px;opacity:.75;font-weight:400;margin-top:2px;white-space:normal}'+
+'.flagrow{background:rgba(255,111,131,.12)}.vtag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:700}'+
+'.vtag.p{background:#ffc86b33;color:#ffc86b}.vtag.a{background:#3ee6a833;color:#3ee6a8}.vtag.r{background:#ff6f8333;color:#ff6f83}';
+document.head.appendChild(st)})();
+
+/* ---------- 1. Entered by / at ---------- */
+window.eby=x=>{const b=x&&(x._by||x.by);if(!b)return '—';const t=x._at||x.ts||x._ts;return esc(b)+(t?'<br><small class="note">'+esc(tmF(t))+'</small>':'')+(x.appr?'<br><small class="note">approved by '+esc(x.appr)+'</small>':'')};
+window.ebyS=x=>{const b=x&&(x._by||x.by);if(!b)return '';const t=x._at||x.ts||x._ts;return '<div class="note eby">Entered by '+esc(b)+(t?' at '+esc(tmF(t)):'')+(x.appr?' · approved by '+esc(x.appr):'')+'</div>'};
+
+/* ---------- 2. Status bar + version ---------- */
+window.sbar=function(){
+  let b=E('sbar');if(!b){b=document.createElement('div');b.id='sbar';b.setAttribute('role','status');document.body.appendChild(b)}
+  const on=navigator.onLine,ap=E('app'),appOn=!!ap&&!ap.classList.contains('hide');
+  let h='';
+  if(appOn){
+    h='<span class="sd '+(on?(PEND>0||PREV?'w':'g'):'r')+'"></span><b>'+(on?'Online':'No signal')+'</b>';
+    h+=' · '+(LASTSYNC?'Last sync '+new Date(LASTSYNC).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'Not synced yet');
+    if(PEND>0)h+=' · <b class="pw">'+PEND+' change'+(PEND>1?'s':'')+' waiting to upload</b>';
+    else if(PREV)h+=' · <b class="pw">Earlier changes are waiting to upload</b>';
+    if(!on)h+=' · <span>No signal. Your entry is saved and will upload automatically.</span>';
+    if(!window._wpw&&typeof db!='undefined'&&db&&db.waitForPendingWrites){window._wpw=1;let done=false;db.waitForPendingWrites().then(()=>{done=true;PREV=false;window.sbar()}).catch(()=>{});setTimeout(()=>{if(!done){PREV=true;window.sbar()}},2500)}
+  }else h='<span>Saif Navas Transport</span>';
+  h+='<span class="sv">Version '+APP_VER+'</span>';
+  b.innerHTML=h;
+  const v=E('verft');if(v)v.textContent='Version '+APP_VER;
+};
+window.addEventListener('online',()=>window.sbar());window.addEventListener('offline',()=>window.sbar());
+setInterval(()=>window.sbar(),15000);window.sbar();
+
+/* ---------- 3. Help panel + shortcuts ---------- */
+window.helpOpen=function(){
+  const adm=role=='corp';
+  const sec=(t,l)=>'<h4 style="margin:14px 0 6px">'+t+'</h4><ul style="margin:0 0 0 18px;line-height:1.7">'+l.map(x=>'<li>'+x+'</li>').join('')+'</ul>';
+  const acc=sec('Daily work',[
+    '<b>Add a trip:</b> Trip Sheet → fill the form → Save. You have 30 seconds to press Undo.',
+    '<b>Record a payment:</b> Collections → open the party → enter the amount. Payments above AED '+fmt(APL)+' are sent to the admin for approval first.',
+    '<b>Count the cash:</b> Cash Ledger → “Daily cash-in-hand check”. Count the drawer, enter the amount and save. Explain any difference.',
+    '<b>Mistake after 30 seconds:</b> use ⚑ Flag next to the bill. The admin will correct it.',
+    '<b>Weak signal:</b> keep working. The bar at the bottom shows how many changes are waiting; they upload by themselves.']);
+  const ad=sec('Admin work',[
+    '<b>Approvals:</b> payments, advances and cash corrections above AED '+fmt(APL)+' wait here. Check the details, then Approve or Reject. You cannot approve your own request (the owner can).',
+    '<b>Close month:</b> Salary → “Close month” once salary is paid. Closed months are locked for the accountant.',
+    '<b>Deleted Items:</b> every removed record is kept for 90 days with who removed it.',
+    '<b>Daily Summary:</b> edits, reversals, cash corrections and failed logins per day. Unusual days are marked ⚠.',
+    '<b>Team Access:</b> turn a person off or sign them out of all devices.']);
+  const keys=sec('Keyboard shortcuts (Trip Sheet)',[
+    '<b>Ctrl/⌘ + Enter</b>, <b>Ctrl/⌘ + S</b> or <b>Alt + S</b>: save the trip',
+    '<b>Alt + P</b>: personal customer · <b>Alt + R</b>: round trip / one way',
+    '<b>Alt + 1 / 2 / 3</b>: cash received / cash pending with driver / on company account',
+    '<b>Alt + D</b> driver · <b>C</b> company · <b>F</b> from · <b>T</b> to · <b>V</b> vehicle · <b>A</b> amount · <b>M</b> payment · <b>B</b> waiting bonus · <b>N</b> customer',
+    '<b>Esc</b>: close a confirmation box · <b>?</b>: open this help']);
+  modal('<h3>How to use this app</h3><div style="max-height:62vh;overflow:auto;padding-right:6px">'+(adm?ad+acc:acc)+keys+'</div><div class="note" style="margin-top:12px">Version '+APP_VER+'. Please tell us this number when you report a problem.</div><div style="margin-top:12px"><button class="btn g" onclick="cm()">Close</button></div>');
+};
+document.addEventListener('keydown',e=>{if(e.key!='?')return;const t=document.activeElement&&document.activeElement.tagName;if(/INPUT|SELECT|TEXTAREA/.test(t||''))return;const a=E('app');if(!a||a.classList.contains('hide'))return;e.preventDefault();window.helpOpen()});
+
+/* ---------- 4. Month closing ---------- */
+const monthEnd=m=>YR+'-'+pad(m)+'-31';
+const isLocked=d=>!!CLOSEDTO&&!!d&&String(d).slice(0,10)<=CLOSEDTO;
+window.lockOk=function(d,what){
+  if(!isLocked(d))return true;
+  const mo=String(d).slice(0,7);
+  if(role!='corp'){alert('The month '+mo+' is closed. '+what+' needs the admin. Please ask the admin.');return false}
+  return confirm('The month '+mo+' is closed.\n\n'+what+' will change closed records. Continue as admin?\n\nThis will be logged.');
+};
+wrap('saveTrip',(o,a)=>lockOk(g('fd'),'Adding a trip')?o.apply(null,a):undefined);
+wrap('editTrip',(o,a)=>{const t=T.find(x=>x.bill==a[0]);if(t&&!lockOk(t.date,'Editing this bill'))return;return o.apply(null,a)});
+wrap('delPay',(o,a)=>{const p=PAY.find(x=>x.id==a[0]);if(p&&!lockOk(p.date,'Reversing this payment'))return;return o.apply(null,a)});
+wrap('delAdv',(o,a)=>{const x=ADV[a[0]];if(x&&!lockOk(monthEnd(x.month),'Removing this advance'))return;return o.apply(null,a)});
+wrap('delFine',(o,a)=>{const x=FIN[a[0]];if(x&&!lockOk(monthEnd(x.month),'Removing this deduction'))return;return o.apply(null,a)});
+wrap('addFine',(o,a)=>lockOk(monthEnd(+g('x5')),'Adding a deduction to this salary month')?o.apply(null,a):undefined);
+wrap('payOne',(o,a)=>lockOk(monthEnd(sm),'Paying this salary')?o.apply(null,a):undefined);
+wrap('setDI',(o,a)=>{if(!lockOk(monthEnd(sm),'Changing salary rates'))return salaryV();return o.apply(null,a)});
+wrap('addExp',(o,a)=>lockOk(g('xe_d'),'Adding an expense')?o.apply(null,a):undefined);
+wrap('doEmi',(o,a)=>lockOk(g('em_d'),'Recording an EMI payment')?o.apply(null,a):undefined);
+wrap('addBankTx',(o,a)=>lockOk(g('bt_d'),'Recording a bank transaction')?o.apply(null,a):undefined);
+wrap('addBankAdj',(o,a)=>lockOk(g('bc_d'),'Adjusting the bank balance')?o.apply(null,a):undefined);
+
+const closeCard=()=>{
+  if(role!='corp')return '';
+  const cl=CLOSEDTO?M[+CLOSEDTO.slice(5,7)-1]+' '+CLOSEDTO.slice(0,4):'';
+  return `<div class="card"><h3 style="margin-bottom:4px">Close month</h3><div class="note" style="margin-bottom:12px">After salary is paid, close the month. The accountant cannot add or change records dated in a closed month, and any admin change there needs an extra confirmation and is logged. ${CLOSEDTO?`<b>Closed up to ${esc(cl)}.</b>`:'<b>No month is closed yet.</b>'}</div><div class="row"><div><label>Close everything up to</label><select id="cm_m">${M.map((m,i)=>`<option value="${i+1}" ${i+1==sm?'selected':''}>${m} ${YR}</option>`).join('')}</select></div><div style="align-self:end;display:flex;gap:8px;flex-wrap:wrap"><button class="btn au" onclick="closeMonth()">Close month</button>${CLOSEDTO?'<button class="btn g" onclick="reopenMonth()">Reopen last closed month</button>':''}</div></div></div>`};
+wrap('salaryV',(o,a)=>{o.apply(null,a);$('#view').insertAdjacentHTML('beforeend',closeCard())});
+window.closeMonth=function(){need(()=>{
+  const m=+g('cm_m'),end=monthEnd(m),last=YR+'-'+pad(m)+'-'+pad(new Date(YR,m,0).getDate());
+  if(last>=today())return alert('A month can be closed only after it has ended.');
+  if(CLOSEDTO&&end<=CLOSEDTO)return alert('That month is already closed.');
+  const un=DR.filter(d=>{const w=salary(d,m),s=SAL[d+'|'+m]||{};return w.net>0&&s.status!='Paid'});
+  if(un.length&&!confirm('Salary is not marked as paid for: '+un.join(', ')+'.\n\nClose the month anyway?'))return;
+  if(!confirm('Close '+M[m-1]+' '+YR+' and every earlier month?\n\nThe accountant will not be able to change records in these months.'))return;
+  CLOSEDTO=end;lg('Month closed',M[m-1]+' '+YR+' and earlier are now locked');save();toast(M[m-1]+' closed');salaryV()})};
+window.reopenMonth=function(){need(()=>{
+  if(!CLOSEDTO)return;const m=+CLOSEDTO.slice(5,7),y=CLOSEDTO.slice(0,4),nm=M[m-1]+' '+y;
+  if(!confirm('Reopen '+nm+'? Records in that month can be changed again.'))return;
+  CLOSEDTO=m>1?y+'-'+pad(m-1)+'-31':'';lg('Month reopened',nm+' was reopened');save();toast(nm+' reopened');salaryV()})};
+
+/* ---------- 5. Second approval above AED 5,000 ---------- */
+const descApr=a=>a.type=='pay'?'Payment · '+a.party+' · AED '+fmt(a.amt)+' · '+a.mode+(a.tx?' ('+a.tx+')':'')+' · '+a.date
+  :a.type=='adv'?'Advance · '+a.driver+' · AED '+fmt(a.amt)+' · '+a.mode+(a.tx?' ('+a.tx+')':'')+' · deduct from '+M[a.month-1]
+  :'Cash '+(a.k=='in'?'added':'deducted')+' (correction) · AED '+fmt(a.amt)+' · '+a.note;
+function submitApproval(o){
+  const u=typeof fbAuth!='undefined'&&fbAuth&&fbAuth.currentUser;if(!u)return alert('Please sign in again.');
+  const now=Date.now();
+  APR.push(Object.assign({id:'ap'+now.toString(36)+Math.random().toString(36).slice(2,5),status:'pending',uid:u.uid,by:BY(),at:now,_by:BY(),_at:now},o));
+  lg('Approval requested',descApr(o),'Above AED '+fmt(APL));
+  try{updBadges()}catch(e){}
+  toast('Sent to the admin for approval · nothing is recorded yet');
+  try{refresh()}catch(e){}
+}
+function askApproval(o){
+  cfm({title:'Needs admin approval',line:descApr(o),sub:['This is above AED '+fmt(APL)+', so a second person must approve it.','Nothing is recorded until the admin approves.'],go:()=>submitApproval(o)});
+}
+wrap('payRec',(o,a)=>{
+  if(cfmOpen())return;
+  const k=DQ.k,L=dueL(k),due=sum(L,bdue),am=+g('pa_a'),m=g('pa_m'),tx=g('pa_t').trim(),dt=g('pa_d');
+  if(dt&&!lockOk(dt,'Recording a payment'))return;
+  const ok=L.length&&am>0&&am<=due+1e-9&&dt&&!(m=='Bank'&&(!tx||txnUsed(tx)));
+  if(ok&&am>APL)return askApproval({type:'pay',key:k,party:pn(L[0]),amt:am,mode:m,tx:m=='Bank'?tx:'',date:dt,note:g('pa_n').trim()});
+  return o.apply(null,a)});
+wrap('addAdv',(o,a)=>{
+  if(cfmOpen())return;
+  const d=g('y1'),am=+g('y2'),dt=g('y3'),m=+g('y4'),n=g('y5'),md=g('y6'),tx=g('y7');
+  if(!lockOk(monthEnd(m),'Recording an advance for this salary month'))return;
+  if(am>APL&&!chkOut(md,am,tx))return need(()=>askApproval({type:'adv',driver:d,amt:am,date:dt,month:m,note:n,mode:md,tx:md=='Bank'?tx.trim():''}));
+  return o.apply(null,a)});
+wrap('doCashAdj',(o,a)=>{
+  const k=g('ja_t'),am=+g('ja_a'),n=g('ja_n').trim();
+  if(am>APL&&n){cm();return askApproval({type:'cash',k,amt:am,note:n})}
+  return o.apply(null,a)});
+
+function applyPay(a){
+  const L=dueL(a.key),due=sum(L,bdue);
+  if(!L.length)return 'Nothing is outstanding for '+a.party+' any more. Reject this request.';
+  if(a.amt>due+1e-9)return 'Only AED '+fmt(due)+' is outstanding now. Reject this request and ask for a new one.';
+  if(a.mode=='Bank'&&(!a.tx||txnUsed(a.tx)))return 'The bank transaction ID is missing or already recorded.';
+  let left=a.amt;const al=[],nm=pn(L[0]);
+  L.forEach(t=>{if(left<=0)return;const p=Math.min(left,bdue(t));if(!(p>0))return;t.rp=(+t.rp||0)+p;if(t.rp>=amt(t)-1e-9)t.paid=1;al.push({bill:t.bill,amt:p});left-=p});
+  const id=eid++,bl=al.map(x=>x.bill).join(', ');
+  PAY.push({id,ts:Date.now(),key:a.key,party:nm,date:a.date,amt:a.amt,mode:a.mode,tx:a.mode=='Bank'?a.tx:'',note:a.note||'',al,by:a.by,_by:a.by,appr:BY()});
+  ent(a.mode=='Cash'?CL:BL,{k:'in',amt:a.amt,src:'Dues collected',ref:a.mode=='Cash'?'RCPT-'+id:a.tx,note:nm+' · bills '+bl,date:a.date,lk:'P'+id,by:a.by,_by:a.by,appr:BY()});
+  lg('Payment collected',`${nm} · AED ${a.amt} via ${a.mode}${a.mode=='Bank'?' ('+a.tx+')':''} · bills ${bl}`,'Approved · requested by '+a.by);
+  return null}
+function applyAdv(a){
+  const er=chkOut(a.mode,a.amt,a.tx);if(er)return er;
+  const id=eid++;
+  ADV.push({id,driver:a.driver,amt:a.amt,date:a.date,month:a.month,note:a.note,mode:a.mode,tx:a.mode=='Bank'?(a.tx||'').trim():'',_by:a.by,appr:BY()});
+  payOut({m:a.mode,a:a.amt,tx:a.tx,src:'Driver advance',ref:'Advance · '+a.driver,note:a.note,date:a.date,lk:'A'+id});
+  const L=a.mode=='Cash'?CL:BL,e=L[L.length-1];if(e){e.by=a.by;e._by=a.by;e.appr=BY()}
+  lg('Advance paid',`${a.driver} · AED ${a.amt} on ${a.date} via ${a.mode}${a.mode=='Bank'?' ('+(a.tx||'').trim()+')':''} → ${M[a.month-1]} salary`,'Approved · requested by '+a.by);
+  return null}
+function applyCash(a){
+  ent(CL,{k:a.k,amt:a.amt,src:a.k=='in'?'Cash added (correction)':'Cash deducted (correction)',note:a.note,by:a.by,_by:a.by,appr:BY()});
+  lg('Cash ledger adjusted',`${a.k=='in'?'+':'−'} AED ${a.amt}`,a.note+' · approved · requested by '+a.by);
+  return null}
+window.aprOk=function(id){need(()=>{
+  const a=APR.find(x=>x.id==id);if(!a||a.status!='pending')return aprV();
+  const me=fbAuth.currentUser.uid;
+  if(a.uid==me&&me!==OWNER_UID)return alert('You cannot approve your own request. Another admin must approve it.');
+  const er=a.type=='pay'?applyPay(a):a.type=='adv'?applyAdv(a):applyCash(a);
+  if(er)return alert(er);
+  a.status='approved';a.apBy=BY();a.apUid=me;a.apAt=Date.now();
+  lg('Approval granted',descApr(a),'Requested by '+a.by);
+  toast('Approved and recorded');aprV()})};
+window.aprNo=function(id){need(()=>{
+  const a=APR.find(x=>x.id==id);if(!a||a.status!='pending')return aprV();
+  const why=prompt('Reason for rejecting (the accountant will see this):');if(why===null)return;
+  if(!why.trim())return alert('Please give a short reason.');
+  a.status='rejected';a.why=why.trim();a.apBy=BY();a.apUid=fbAuth.currentUser.uid;a.apAt=Date.now();
+  lg('Approval rejected',descApr(a),a.why);toast('Request rejected');aprV()})};
+window.aprV=function(){
+  const P=APR.filter(a=>a.status=='pending'),H=APR.filter(a=>a.status!='pending').slice(0,40),adm=role=='corp';
+  const me=typeof fbAuth!='undefined'&&fbAuth&&fbAuth.currentUser?fbAuth.currentUser.uid:'';
+  $('#view').innerHTML='<div class="card"><h3 style="margin-bottom:4px">Waiting for approval</h3><div class="note" style="margin-bottom:12px">Payments, advances and cash corrections above AED '+fmt(APL)+' are recorded only after an admin approves them. '+(adm?'You cannot approve your own request unless you are the owner.':'The admin will review them. You will see the result here.')+'</div>'+
+  tb(['Requested','Request','Amount','Action'],P.map(a=>'<tr><td>'+esc(a.by)+'<br><small class="note">'+esc(tmF(a.at))+'</small></td><td style="white-space:normal;min-width:220px">'+esc(descApr(a))+(a.note&&a.type!='cash'?'<div class="note">'+esc(a.note)+'</div>':'')+'</td><td class="num">'+fmt(a.amt)+'</td><td>'+(adm?((a.uid==me&&me!==OWNER_UID)?'<span class="note">Another admin must approve</span> ':'<button class="btn au" onclick="aprOk(\''+esc(a.id)+'\')">Approve</button> ')+'<button class="btn g" onclick="aprNo(\''+esc(a.id)+'\')">Reject</button>':'<span class="vtag p">Waiting for admin</span>')+'</td></tr>'),[2])+'</div>'+
+  '<div class="card"><h3 style="margin-bottom:10px">Recent decisions</h3>'+tb(['Requested','Request','Amount','Result'],H.map(a=>'<tr><td>'+esc(a.by)+'<br><small class="note">'+esc(tmF(a.at))+'</small></td><td style="white-space:normal;min-width:220px">'+esc(descApr(a))+'</td><td class="num">'+fmt(a.amt)+'</td><td><span class="vtag '+(a.status=='approved'?'a':'r')+'">'+(a.status=='approved'?'Approved':'Rejected')+'</span><div class="note">'+esc(a.apBy||'')+(a.apAt?' · '+esc(tmF(a.apAt)):'')+'</div>'+(a.why?'<div class="note">'+esc(a.why)+'</div>':'')+'</td></tr>'),[2])+'</div>';
+};
+
+/* ---------- 6. Daily cash-in-hand check ---------- */
+window.ccDiff=function(){const v=g('cc_a');E('cc_d').value=v===''?'':Math.round((+v-bal(CL))*100)/100};
+window.ccSave=function(){
+  const v=g('cc_a'),n=g('cc_n').trim();if(v===''||isNaN(+v)||+v<0)return alert('Enter the cash you counted.');
+  const sys=Math.round(bal(CL)*100)/100,c=Math.round(+v*100)/100,diff=Math.round((c-sys)*100)/100;
+  if(diff!==0&&!n)return alert('The count does not match the system. Please explain the difference in the note.');
+  const now=Date.now();
+  CCK.push({id:'cc'+now.toString(36)+Math.random().toString(36).slice(2,5),date:ldate(now),at:now,sys,counted:c,diff,note:n,by:BY(),_by:BY(),_at:now});
+  lg('Cash counted',`Counted AED ${fmt(c)} · system AED ${fmt(sys)} · ${diff===0?'matches':'difference AED '+fmt(diff)}`,n||'-');
+  toast(diff===0?'Cash count saved · matches the system':'Cash count saved · difference recorded');cashV()};
+const cashCheckCard=()=>{
+  const sys=bal(CL),td=CCK.filter(c=>c.date==ldate(Date.now())).sort((a,b)=>b.at-a.at)[0],hist=CCK.slice().sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,10);
+  return `<div class="card"><h3 style="margin-bottom:4px">Daily cash-in-hand check</h3><div class="note" style="margin-bottom:12px">Count the cash you physically have and compare it with the system balance (AED ${fmt(sys)}). ${td?`<b>Today: counted AED ${fmt(td.counted)} · ${td.diff==0?'matches the system':'difference AED '+fmt(td.diff)} · by ${esc(td.by)}</b>`:'<b style="color:var(--bad)">No count has been recorded today.</b>'}</div><div class="row"><div><label>System balance (AED)</label><input value="${esc(Math.round(sys*100)/100)}" disabled></div><div><label>Counted cash (AED)</label><input id="cc_a" type="number" min="0" oninput="ccDiff()"></div><div><label>Difference</label><input id="cc_d" disabled></div><div><label>Note (needed if different)</label><input id="cc_n" placeholder="e.g. 50 short, handed to driver"></div><div style="align-self:end"><button class="btn au" onclick="ccSave()">Save count</button></div></div>${hist.length?tb(['Date','Time','System','Counted','Difference','By','Note'],hist.map(c=>`<tr class="${c.diff?'flagrow':''}"><td>${esc(c.date)}</td><td>${esc(tmF(c.at))}</td><td class="num">${fmt(c.sys)}</td><td class="num">${fmt(c.counted)}</td><td class="num" style="color:${c.diff?'var(--bad)':'var(--ok)'}">${c.diff?fmt(c.diff):'OK'}</td><td>${esc(c.by)}</td><td style="white-space:normal">${esc(c.note||'')}</td></tr>`),[2,3,4]):''}</div>`};
+wrap('cashV',(o,a)=>{o.apply(null,a);const kp=document.querySelector('#view .kp');if(kp)kp.insertAdjacentHTML('afterend',cashCheckCard());else $('#view').insertAdjacentHTML('afterbegin',cashCheckCard())});
+
+/* ---------- 7. Deleted items (kept 90 days) ---------- */
+const FRIENDLY={trips:'Trip',cash:'Cash ledger entry',bank:'Bank entry',payments:'Payment',expenses:'Expense',errors:'Error ticket',loans:'Loan',loanpay:'EMI payment',advances:'Advance',fines:'Fine',approvals:'Approval request',cashchecks:'Cash count'};
+let TRASH=null,FLN=null;
+const loadTrash=async()=>{try{const sn=await db.collection('trash').orderBy('at','desc').limit(400).get();TRASH=sn.docs.map(d=>Object.assign({_id:d.id},d.data()))}catch(e){console.error(e);TRASH=TRASH||[]}};
+const loadFails=async()=>{FLN={};try{const sn=await db.collection('loginfails').get();sn.docs.forEach(d=>FLN[d.id]=d.data())}catch(e){console.error(e)}};
+const trashLine=t=>{let o={};try{o=JSON.parse(t.data||'{}')}catch(e){}const b=[];
+  if(o.bill!=null)b.push('Bill '+o.bill);if(o.party)b.push(o.party);if(o.driver)b.push(o.driver);if(o.company)b.push(o.company);if(o.src)b.push(o.src);if(o.cat)b.push(o.cat);
+  if(o.amt!=null)b.push('AED '+fmt(o.amt));else if(o.charge!=null)b.push('AED '+fmt((+o.charge||0)+(+o.parking||0)+(+o.salik||0)));
+  if(o.date)b.push(o.date);if(typeof o.note=='string'&&o.note)b.push(o.note);return b.join(' · ')||'(no details)'};
+window.trashV=async function(){
+  $('#view').innerHTML='<div class="card"><h3>Deleted items</h3><p class="note" style="margin-top:6px">Loading…</p></div>';
+  await loadTrash();
+  const cut=Date.now()-90*864e5,cur=TRASH.filter(t=>t.at>=cut),old=TRASH.length-cur.length;
+  $('#view').innerHTML='<div class="card"><div class="top" style="margin-bottom:12px"><div><h3>Deleted items</h3><div class="note">Every record removed from the app is kept here for 90 days, with who removed it. Showing '+cur.length+' item'+(cur.length==1?'':'s')+'.</div></div>'+(old?'<button class="btn g" onclick="trashPurge()">Clear '+old+' older than 90 days</button>':'')+'</div>'+
+  tb(['Deleted','By','Type','What was deleted'],cur.map(t=>'<tr><td>'+esc(tmF(t.at))+'</td><td>'+esc(t.by)+'</td><td>'+esc(FRIENDLY[t.col]||t.col)+'</td><td style="white-space:normal;min-width:240px">'+esc(trashLine(t))+'<details style="margin-top:4px"><summary class="note" style="cursor:pointer">Full record</summary><pre class="note" style="white-space:pre-wrap;word-break:break-all;margin:6px 0 0">'+esc(t.data)+'</pre></details></td></tr>'))+'</div>';
+};
+window.trashPurge=function(){need(async()=>{
+  const cut=Date.now()-90*864e5,old=(TRASH||[]).filter(t=>t.at<cut);if(!old.length)return;
+  if(!confirm('Permanently clear '+old.length+' deleted item(s) older than 90 days?'))return;
+  try{for(let i=0;i<old.length;i+=400){const b=db.batch();old.slice(i,i+400).forEach(t=>b.delete(db.collection('trash').doc(t._id)));await b.commit()}lg('Deleted items cleared',old.length+' older than 90 days');toast('Cleared')}catch(e){alert('Could not clear them. '+(e&&e.code=='permission-denied'?'Only an admin can do this.':'Check your connection and try again.'))}
+  trashV()})};
+
+/* ---------- 8. Admin daily summary ---------- */
+const CATS={edit:a=>/edited|renamed|updated|changed|rectified|adjusted/i.test(a)&&a!='Cash ledger adjusted',rev:a=>/reversed|undone|removed|deleted/i.test(a),cash:a=>a=='Cash ledger adjusted'};
+const odd=(v,arr)=>{const avg=arr.reduce((s,x)=>s+x,0)/Math.max(1,arr.length);return v>=3&&v>2*avg};
+window.sumV=async function(){
+  $('#view').innerHTML='<div class="card"><h3>Daily summary</h3><p class="note" style="margin-top:6px">Loading…</p></div>';
+  await Promise.all([loadTrash(),loadFails()]);
+  const days=[];for(let i=0;i<14;i++)days.push(ldate(Date.now()-i*864e5));
+  const R={};days.forEach(d=>R[d]={edit:0,rev:0,cash:0,del:0,fail:FLN[d]?+FLN[d].n||0:0,cnt:0,diff:0,who:{}});
+  LOG.forEach(l=>{const t=l.ts||l._ts;if(!t)return;const d=ldate(t);if(!R[d])return;const a=l.a||'';
+    if(CATS.edit(a))R[d].edit++;if(CATS.rev(a))R[d].rev++;if(CATS.cash(a))R[d].cash++;R[d].who[l.by||'?']=(R[d].who[l.by||'?']||0)+1});
+  TRASH.forEach(t=>{const d=ldate(t.at);if(R[d])R[d].del++});
+  CCK.forEach(c=>{if(R[c.date]){R[c.date].cnt++;if(c.diff)R[c.date].diff++}});
+  const td=days[0],T0=R[td],prev=days.slice(1);
+  const flag=d=>{const r=R[d],p=days.filter(x=>x!=d);const w=[];
+    if(odd(r.edit,p.map(x=>R[x].edit)))w.push('many edits');if(odd(r.rev,p.map(x=>R[x].rev)))w.push('many reversals');
+    if(r.cash>=1&&odd(r.cash+2,p.map(x=>R[x].cash+2)))w.push('cash corrections');if(r.fail>=5)w.push('failed logins');if(r.diff)w.push('cash count differs');if(odd(r.del,p.map(x=>R[x].del)))w.push('many deletions');return w};
+  const pend=APR.filter(a=>a.status=='pending').length;
+  const who=Object.entries(T0.who).sort((a,b)=>b[1]-a[1]);
+  const last=FLN[td]&&FLN[td].em?esc(FLN[td].em):'';
+  $('#view').innerHTML=`<div class="kp">${K('Edits today',T0.edit,'#2563eb','')}${K('Reversals today',T0.rev,'var(--gold)','')}${K('Cash corrections today',T0.cash,'var(--bad)','')}${K('Failed logins today',T0.fail,'var(--bad)','')}${K('Waiting approvals',pend,'var(--gold)','')}</div>`+
+  `<div class="card"><h3 style="margin-bottom:4px">Today</h3><div class="note" style="margin-bottom:10px">${T0.cnt?`Cash count done ${T0.cnt} time(s)${T0.diff?` · <b style="color:var(--bad)">${T0.diff} with a difference</b>`:' · matches the system'}.`:'<b style="color:var(--bad)">No cash count recorded today.</b>'} ${T0.del?`${T0.del} item(s) deleted today.`:''} ${last?`Last failed login tried: ${last}.`:''}</div>${flag(td).length?`<div class="note" style="color:var(--bad);margin-bottom:10px"><b>⚠ Unusual today:</b> ${esc(flag(td).join(', '))}</div>`:''}${who.length?tb(['Person','Actions logged today'],who.map(([n,c])=>`<tr><td>${esc(n)}</td><td class="num">${c}</td></tr>`),[1]):'<div class="note">No actions logged yet today.</div>'}</div>`+
+  `<div class="card"><h3 style="margin-bottom:10px">Last 14 days</h3>`+tb(['Day','Edits','Reversals','Cash corrections','Failed logins','Deleted','Cash count','Check'],days.map(d=>{const r=R[d],f=flag(d);return`<tr class="${f.length?'flagrow':''}"><td>${esc(d)}</td><td class="num">${r.edit}</td><td class="num">${r.rev}</td><td class="num">${r.cash}</td><td class="num">${r.fail}</td><td class="num">${r.del}</td><td class="num">${r.cnt?(r.diff?'Difference':'OK'):'—'}</td><td style="white-space:normal">${f.length?'⚠ '+esc(f.join(', ')):''}</td></tr>`}),[1,2,3,4,5,6])+`<div class="note" style="margin-top:8px">A day is marked when its count is clearly above the usual level of the other days, when 5 or more logins failed, or when a cash count did not match.</div></div>`;
+};
+
+/* ---------- 9. Failed-login counter (free plan, no server code) ---------- */
+window.reportFail=function(em){try{if(typeof db=='undefined'||!db)return;db.collection('loginfails').doc(ldate(Date.now())).set({n:firebase.firestore.FieldValue.increment(1),t:Date.now(),em:String(em||'').slice(0,100)},{merge:true}).catch(()=>{})}catch(e){}};
+
+/* ---------- 10. Navigation ---------- */
+try{
+  if(NAV.corp.indexOf('Approvals')<0){NAV.corp.splice(1,0,'Approvals');NAV.corp.push('Daily Summary','Deleted Items');NAV.acc.push('Approvals')}
+  IC.Approvals='<path d="M5 12l5 5L20 7"/>';
+  IC['Daily Summary']='<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/>';
+  IC['Deleted Items']='<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>';
+}catch(e){console.error(e)}
+})();
+
+})();
 </script></body></html>
