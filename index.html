@@ -1138,7 +1138,25 @@ pdfTable(d,['Bill','Date','Customer','Vehicle','Route','Amount','Status'],tr.map
 pdfSum(d,[['Opening balance',fmt(op)],['Billed (credit) in period',fmt(sum(pr,x=>x.dr))],['Received in period',fmt(sum(pr,x=>x.cr))],['Closing balance (AED)',fmt(b)]]);pdfSign(d);pdfSave(d,'Statement_'+nm.replace(/\W+/g,'_')+'_'+f+'_to_'+to);toast('Statement downloaded')}catch(e){console.error(e);toast('Could not create PDF: '+e.message)}}
 
 /* ===== install as app (PWA) ===== */
-(function(){if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));
+(function(){if('serviceWorker' in navigator){
+  const hadSW=!!navigator.serviceWorker.controller;let shown=false;
+  const upd=()=>{if(shown)return;shown=true;
+    const lg=document.getElementById('login');
+    if(lg&&!lg.classList.contains('hide')){location.reload();return}
+    const b=document.createElement('div');
+    b.style.cssText='position:fixed;left:50%;bottom:56px;transform:translateX(-50%);z-index:3500;display:flex;gap:12px;align-items:center;background:#0f172a;color:#fff;padding:10px 14px;border-radius:10px;box-shadow:0 8px 24px rgba(15,23,42,.25);font:13px Inter,system-ui,sans-serif;max-width:92vw';
+    b.innerHTML='<span>A new version is ready.</span><button style="background:#2563eb;color:#fff;border:0;border-radius:8px;padding:6px 12px;font:600 13px Inter,system-ui,sans-serif;cursor:pointer">Update now</button>';
+    b.querySelector('button').onclick=()=>location.reload();
+    document.body.appendChild(b)};
+  window.addEventListener('load',()=>{
+    navigator.serviceWorker.register('sw.js',{updateViaCache:'none'}).then(reg=>{
+      const chk=()=>{try{reg.update()}catch(e){}};
+      chk();setInterval(chk,20*60*1000);
+      document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});
+    }).catch(()=>{});
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{if(hadSW)upd()});
+  });
+};
 const standalone=()=>matchMedia('(display-mode: standalone)').matches||navigator.standalone===true,ios=/iphone|ipad|ipod/i.test(navigator.userAgent)||(navigator.platform=='MacIntel'&&navigator.maxTouchPoints>1);let dp=null,hid=false;
 const st=document.createElement('style');st.textContent='#ib{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:450;display:none;gap:14px;align-items:center;max-width:94vw;width:520px;padding:14px 16px;border-radius:20px;background:linear-gradient(155deg,#1a2160f2,#0c1236f2);border:1px solid #ffc86b55;box-shadow:0 20px 50px -10px #000c,0 0 30px -8px #ff9f2e66;backdrop-filter:blur(18px)}#ib img{width:46px;height:46px;border-radius:12px;background:#fff;flex:none}#ib div{flex:1;font-size:13px;line-height:1.4}#ib b{display:block;font-size:14px}#ib .btn{padding:9px 16px;white-space:nowrap}';document.head.appendChild(st);
 const b=document.createElement('div');b.id='ib';b.innerHTML='<img src="icon-192.png" alt=""><div><b>Install Saif Navas Transport</b><span id="ibt">Add the app to your device for quick, full-screen access.</span></div><button class="btn au" id="ibi">Install</button><button class="btn g" id="ibx">Not now</button>';document.body.appendChild(b);
@@ -1265,7 +1283,7 @@ function undoPay(id){const i=PAY.findIndex(x=>x.id==id);if(i<0)return toast('Tha
 window.onLg=function(a){if(a=='Trip added'){draftClear();const t=T[T.length-1];if(t)showUndo('Trip saved \u00b7 Bill '+t.bill,()=>undoTrip(t.bill))}else if(a=='Advance paid'){const x=ADV[ADV.length-1];if(x)showUndo('Advance saved \u00b7 '+x.driver+' \u00b7 AED '+fmt(x.amt),()=>undoAdv(x.id))}else if(a=='Payment collected'){const p=PAY[PAY.length-1];if(p)showUndo('Payment saved \u00b7 '+p.party+' \u00b7 AED '+fmt(p.amt),()=>undoPay(p.id))}};
 /* ===================== v2: accountability, money safety, clarity ===================== */
 (function(){
-const APP_VER='2.0 · 2 Nov 2026',APL=5000;
+const APP_VER='2.1 · 3 Nov 2026',APL=5000;
 let PREV=false;
 const pad=n=>String(n).padStart(2,'0');
 const ldate=t=>{const d=new Date(t);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
@@ -1610,7 +1628,8 @@ window.ownerV=async function(){
   const frows=fails.slice(0,14).map(f=>'<tr><td>'+esc(f.day)+'</td><td class="num">'+esc(f.n||0)+(+f.n>=5?' <span class="tag" style="background:#fee2e2;color:var(--bad)">High</span>':'')+'</td><td>'+(f.t?esc(fdt(f.t)):'\u2014')+'</td><td>'+esc(f.em||'')+'</td></tr>');
   const flog='<div class="card oc-card"><h3 style="margin-bottom:4px">Failed logins</h3><div class="note" style="margin-bottom:10px">Wrong-password attempts per day (last 14 days with activity). Many attempts in one day can mean someone is guessing a password.</div>'+(fd?tb(['Date','Attempts','Last attempt','Last email tried'],frows,[1]):'<p class="note">Could not load.</p>')+'</div>';
   const bk='<div class="card oc-card"><h3 style="margin-bottom:4px">Backup</h3><div class="note" style="margin-bottom:12px">Download everything in the database (trips, cash, bank, payments, expenses, salary records, logs, deleted items, users) as one file. Keep it somewhere safe; it contains private business data.</div><button class="btn au" style="width:auto" onclick="ocBackup(this)">Download full backup</button></div>';
-  $('#view').innerHTML='<div class="card oc-card"><h3 style="margin-bottom:4px">Owner Console</h3><div class="note">Only you can see this page. Every action here is recorded in the Audit Log.</div></div>'+kpis+users+close+flog+links+bk;
+  const dz='<div class="card oc-card" style="border-color:#fca5a5"><h3 style="margin-bottom:4px;color:var(--bad)">Danger zone</h3><div class="note" style="margin-bottom:12px">Erase all business data and start fresh. Needs an email approval on your phone and your password. This cannot be undone, so download a backup first.</div><button class="btn" style="width:auto;background:var(--bad)" onclick="ocResetOpen()">Erase all data\u2026</button></div>';
+  $('#view').innerHTML='<div class="card oc-card"><h3 style="margin-bottom:4px">Owner Console</h3><div class="note">Only you can see this page. Every action here is recorded in the Audit Log.</div></div>'+kpis+users+close+flog+links+bk+dz;
 };
 
 /* ---- add / edit user ---- */
@@ -1720,6 +1739,116 @@ window.ocBackup=async function(btn){
   }catch(e){alert('Backup failed. '+errMsg(e))}
   btn.disabled=false;btn.textContent=t0;
 };
+
+/* ===== Danger zone: erase all data (email approval + password) ===== */
+let RS=null;
+const maskEm=e=>{const p=String(e).split('@');return p[0].slice(0,2)+'***@'+(p[1]||'')};
+const rbox=(t,b)=>modal('<h3 style="color:var(--bad)">'+t+'</h3>'+b);
+const rclose='<div style="margin-top:14px"><button class="btn g" onclick="ocResetCancel()">Close</button></div>';
+const EXP=10*60*1000+30000;
+window.ocResetCancel=function(){if(RS&&RS.un){try{RS.un()}catch(e){}}RS=null;cm()};
+window.ocResetOpen=function(){
+  if(!OWN())return;
+  if(RS&&RS.un){try{RS.un()}catch(e){}}RS=null;
+  rbox('Erase all data','<div class="note" style="margin:8px 0 12px;line-height:1.55"><b>This permanently deletes:</b> all trips, invoices, cash and bank records, payments, expenses, loans, advances, fines, error corrections, approvals, cash counts, deleted items, failed-login counts and all setup data (companies, drivers, vehicles, places, salary settings, closed months). Bill and invoice numbers start again.<br><br><b>Kept:</b> user accounts and roles, and the Audit Log (it records that the erase happened).<br><br>Everyone is signed out. <b>There is no undo.</b></div><div style="margin-bottom:12px"><button class="btn g" style="width:auto" onclick="ocBackup(this)">Download backup first</button></div><label>Type <b>ERASE ALL DATA</b> to continue</label><input id="rs_ph" autocomplete="off"><div style="margin-top:14px;display:flex;gap:8px"><button class="btn" style="background:var(--bad)" onclick="ocResetSend()">Send approval email</button><button class="btn g" onclick="ocResetCancel()">Cancel</button></div>');
+};
+window.ocResetSend=async function(){
+  if(!OWN())return;
+  if(gv('rs_ph').trim()!=='ERASE ALL DATA')return alert('Type ERASE ALL DATA exactly to continue.');
+  const u=fbAuth.currentUser,em=u.email;
+  if(!em)return alert('This account has no email address.');
+  rbox('Erase all data','<p class="note" style="margin-top:10px">Sending the approval email\u2026</p>');
+  let ref=null;
+  try{
+    ref=db.collection('reauth').doc();
+    await ref.set({uid:u.uid,status:'pending',t:firebase.firestore.FieldValue.serverTimestamp()});
+    try{localStorage.setItem('oc_email',em)}catch(e){}
+    await fbAuth.sendSignInLinkToEmail(em,{url:location.origin+location.pathname+'?approve='+encodeURIComponent(ref.id),handleCodeInApp:true});
+  }catch(e){
+    try{if(ref)await ref.delete()}catch(x){}
+    const m=({'auth/operation-not-allowed':'Email link sign-in is not turned on in Firebase. Turn on "Email link (passwordless sign-in)" under Authentication, Sign-in method, Email/Password.','auth/unauthorized-continue-uri':'This website address is not in Firebase Authorized domains. Add it under Authentication, Settings, Authorized domains.','auth/invalid-continue-uri':'The app must be opened from its website address (https), not from a file.','permission-denied':'Not allowed. Publish the updated Firestore rules first.','auth/network-request-failed':'No signal. Check your connection and try again.'})[e&&e.code]||((e&&e.message)||'Unknown error');
+    return rbox('Could not send the email','<p class="note" style="margin:10px 0">'+esc(m)+'</p>'+rclose);
+  }
+  RS={ref:ref,sent:Date.now(),un:null};
+  rbox('Check your email','<p class="note" style="margin:10px 0 6px;line-height:1.55">An approval link was sent to <b>'+esc(maskEm(em))+'</b>. Open that email on your phone (check Spam if it is missing) and tap the link. It works for 10 minutes.</p><p class="note" style="margin-bottom:12px">Waiting for your approval\u2026 keep this window open.</p><button class="btn g" onclick="ocResetCancel()">Cancel</button>');
+  RS.un=ref.onSnapshot(s=>{const d=s.data();if(d&&d.status=='approved'&&RS&&RS.ref===ref){try{RS.un()}catch(e){}RS.un=null;ocResetReady()}},e=>console.error(e));
+};
+function ocResetReady(){
+  if(!RS)return;
+  if(Date.now()-RS.sent>EXP)return rbox('Approval expired','<p class="note" style="margin:10px 0">Please start again.</p>'+rclose);
+  rbox('Approved \u2713','<p class="note" style="margin:10px 0 12px">Email approval received. Enter your password to erase everything.</p><label>Your password</label><input id="rs_pw" type="password" autocomplete="current-password" onkeydown="if(event.key==\'Enter\')ocResetGo()"><div style="margin-top:14px;display:flex;gap:8px"><button class="btn" style="background:var(--bad)" onclick="ocResetGo()">Erase all data now</button><button class="btn g" onclick="ocResetCancel()">Cancel</button></div>');
+  setTimeout(()=>{const p=document.getElementById('rs_pw');if(p)p.focus()},50);
+}
+window.ocResetGo=async function(){
+  if(!OWN()||!RS)return;
+  const pw=gv('rs_pw');if(!pw)return alert('Enter your password.');
+  if(Date.now()-RS.sent>EXP)return rbox('Approval expired','<p class="note" style="margin:10px 0">Please start again.</p>'+rclose);
+  const u=fbAuth.currentUser;
+  try{await u.reauthenticateWithCredential(firebase.auth.EmailAuthProvider.credential(u.email,pw))}catch(e){return alert('Incorrect password.')}
+  if(!confirm('LAST CHANCE.\n\nAll data will be erased permanently. Continue?'))return;
+  const ref=RS.ref;RS=null;
+  await runErase(ref);
+};
+async function runErase(ref){
+  const say=m=>{const e=document.getElementById('rs_msg');if(e)e.textContent=m};
+  rbox('Erasing\u2026','<p id="rs_msg" class="note" style="margin:10px 0">Starting\u2026 do not close this window.</p>');
+  const cols=['trips','cash','bank','expenses','payments','loans','loanpay','advances','fines','errors','approvals','cashchecks','trash','loginfails','meta'],counts={};
+  let at='start';
+  try{
+    LOADED=false;
+    unsubs.forEach(f=>{try{f()}catch(e){}});
+    const now=Date.now(),by=BY();
+    await db.collection('logs').doc('reset'+now).set({t:new Date().toLocaleString(),ts:now,by:by,a:'ALL DATA ERASE STARTED',d:'Owner approved by email and password',r:'-',_ts:now,_by:by,_at:now});
+    for(const c of cols){
+      at=c;say('Erasing '+c+'\u2026');
+      const sn=await db.collection(c).get();counts[c]=sn.size;
+      let b=db.batch(),n=0;
+      for(const d of sn.docs){b.delete(d.ref);n++;if(n%400===0){await b.commit();b=db.batch()}}
+      if(n%400!==0)await b.commit();
+    }
+    at='users';say('Signing everyone out\u2026');
+    const us=await db.collection('users').get();let b2=db.batch(),k=0;
+    for(const d of us.docs){if(d.id===OWNER_UID)continue;b2.set(d.ref,{epoch:firebase.firestore.FieldValue.increment(1)},{merge:true});k++}
+    if(k)await b2.commit();
+    at='cleanup';try{await ref.delete()}catch(e){}
+    const t2=Date.now();
+    await db.collection('logs').doc('reset'+t2+'b').set({t:new Date().toLocaleString(),ts:t2,by:by,a:'ALL DATA ERASED',d:Object.keys(counts).map(c=>c+': '+counts[c]).join(', '),r:'-',_ts:t2,_by:by,_at:t2});
+    try{Object.keys(localStorage).filter(x=>x.indexOf('sn_draft_')===0).forEach(x=>localStorage.removeItem(x));localStorage.removeItem('oc_email')}catch(e){}
+    try{await db.terminate();await db.clearPersistence()}catch(e){}
+    rbox('Done','<p class="note" style="margin:10px 0">All data has been erased. The app will reload now.</p>');
+    setTimeout(()=>location.reload(),1800);
+  }catch(e){
+    console.error(e);
+    rbox('Erase stopped','<p class="note" style="margin:10px 0;line-height:1.55">It stopped while working on <b>'+esc(at)+'</b> ('+esc((e&&e.code)||(e&&e.message)||'error')+'). Some data may already be erased. Reload the page and look at the Owner Console, then try again if needed.</p><button class="btn" onclick="location.reload()">Reload</button>');
+  }
+}
+
+/* ---- phone side: open the emailed approval link ---- */
+(function(){
+  const ov=h=>{let o=document.getElementById('oc_ov');if(!o){o=document.createElement('div');o.id='oc_ov';o.style.cssText='position:fixed;left:0;top:0;right:0;bottom:0;z-index:3000;background:#f6f7f9;display:grid;place-items:center;padding:20px';document.body.appendChild(o)}o.innerHTML='<div style="background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:28px;max-width:420px;width:100%;text-align:center;font-family:Inter,system-ui,sans-serif;color:#0f172a">'+h+'</div>'};
+  window.ocOvClose=function(){const o=document.getElementById('oc_ov');if(o)o.remove();try{history.replaceState(null,'',location.pathname)}catch(e){}};
+  (async function(){
+    try{
+      if(typeof fbAuth==='undefined'||!fbAuth||!fbAuth.isSignInWithEmailLink(location.href))return;
+      const id=new URLSearchParams(location.search).get('approve');if(!id)return;
+      ov('<p>Verifying\u2026</p>');
+      let em='';try{em=localStorage.getItem('oc_email')||''}catch(e){}
+      if(!em)em=(prompt('Enter the email address this link was sent to:')||'').trim();
+      if(!em)return ov('<h3>Cancelled</h3><p style="margin:10px 0 16px;color:#64748b">No email entered.</p><button class="btn" onclick="ocOvClose()">Close</button>');
+      const cr=await fbAuth.signInWithEmailLink(em,location.href);
+      if(cr.user.uid!==OWNER_UID){try{await fbAuth.signOut()}catch(e){}return ov('<h3>Not allowed</h3><p style="margin:10px 0 16px;color:#64748b">This approval link is only for the owner account.</p><button class="btn" onclick="ocOvClose()">Close</button>')}
+      await cr.user.getIdToken(true);
+      await db.collection('reauth').doc(id).update({status:'approved',at:Date.now(),dev:((/iPhone|iPad|Android|Windows|Mac OS X|Linux/.exec(navigator.userAgent)||['Device'])[0]).slice(0,30)});
+      try{localStorage.removeItem('oc_email')}catch(e){}
+      ov('<h3 style="color:#15803d">Approved \u2713</h3><p style="margin:10px 0 16px;color:#64748b;line-height:1.5">Go back to your computer and enter your password to finish.</p><button class="btn" onclick="ocOvClose()">Close</button>');
+    }catch(e){
+      console.error(e);
+      const m=({'auth/invalid-action-code':'This link was already used or is not valid. Start again from the Owner Console.','auth/expired-action-code':'This link has expired. Start again from the Owner Console.','auth/invalid-email':'That email does not match the link.','permission-denied':'The approval could not be saved. It may be older than 10 minutes. Start again.','not-found':'That request no longer exists. Start again.'})[e&&e.code]||((e&&e.message)||'Something went wrong.');
+      ov('<h3>Could not approve</h3><p style="margin:10px 0 16px;color:#64748b;line-height:1.5">'+m.replace(/[<>&]/g,'')+'</p><button class="btn" onclick="ocOvClose()">Close</button>');
+    }
+  })();
+})();
+
 })();
 
 </script>
