@@ -1347,7 +1347,7 @@ function undoPay(id){const i=PAY.findIndex(x=>x.id==id);if(i<0)return toast('Tha
 window.onLg=function(a){if(a=='Trip added'){draftClear();const t=T[T.length-1];if(t)showUndo('Trip saved \u00b7 Bill '+t.bill,()=>undoTrip(t.bill))}else if(a=='Advance paid'){const x=ADV[ADV.length-1];if(x)showUndo('Advance saved \u00b7 '+x.driver+' \u00b7 AED '+fmt(x.amt),()=>undoAdv(x.id))}else if(a=='Payment collected'){const p=PAY[PAY.length-1];if(p)showUndo('Payment saved \u00b7 '+p.party+' \u00b7 AED '+fmt(p.amt),()=>undoPay(p.id))}};
 /* ===================== v2: accountability, money safety, clarity ===================== */
 (function(){
-const APP_VER='2.1 · 3 Nov 2026',APL=5000;
+const APP_VER='2.1 · 3 Nov 2026';let APL=5000;
 let PREV=false;
 const pad=n=>String(n).padStart(2,'0');
 const ldate=t=>{const d=new Date(t);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())};
@@ -1915,5 +1915,105 @@ async function runErase(ref){
 
 })();
 
+</script>
+<script id="owner-portal">
+(function(){
+const own=()=>{try{return OWN()}catch(e){return false}};
+const OP=['Money Overview','Alerts','Edit History','Sessions','Permissions','Controls'];
+const ONLY=['Owner Console','Daily Summary','Deleted Items','Audit Log'].concat(OP),XTRA=['Trip Sheet','Invoice','Filter Bills'];
+const TOP=['Owner Console','Money Overview','Alerts','Dashboard','Approvals','Daily Summary','Audit Log','Edit History','Deleted Items','Sessions','Permissions','Controls'];
+const ic='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';OP.forEach(n=>{if(!IC[n])IC[n]=ic});
+window.HIDE=[];
+const _sg=window.sessGate;if(_sg)window.sessGate=async function(u,ud){try{window.HIDE=(ud&&ud.exists&&ud.data().hide)||[]}catch(e){window.HIDE=[]}return _sg.apply(this,arguments)};
+window.ownerNav=function(){try{
+  if(!window.NAV0)window.NAV0={corp:NAV.corp.slice(),acc:NAV.acc.slice()};
+  if(+CF.apl>0)APL=+CF.apl;
+  ['corp','acc'].forEach(k=>{NAV[k].length=0;NAV0[k].forEach(n=>NAV[k].push(n))});
+  const c=NAV.corp;
+  ONLY.concat(XTRA).forEach(n=>{const i=c.indexOf(n);if(i>=0)c.splice(i,1)});
+  if(own()){
+    const rest=c.filter(n=>TOP.indexOf(n)<0).concat(XTRA);
+    c.length=0;TOP.concat(rest).forEach(n=>c.push(n));
+  }else{
+    ['corp','acc'].forEach(k=>{for(let i=NAV[k].length-1;i>=0;i--)if(HIDE.indexOf(NAV[k][i])>=0&&NAV[k].length>1)NAV[k].splice(i,1)});
+  }
+}catch(e){console.error(e)}};
+const denied=()=>{$('#view').innerHTML='<div class="card"><h3>Owner only</h3><p class="note" style="margin-top:6px">This page is only available to the owner account.</p></div>'};
+const card=(h,b)=>'<div class="card" style="margin-bottom:14px"><h3 style="margin-bottom:6px">'+h+'</h3>'+b+'</div>';
+const kp=(l,v,s)=>'<div class="card"><div class="note">'+l+'</div><h3 style="margin:4px 0">'+v+'</h3><div class="note">'+(s||'')+'</div></div>';
+const tsOf=l=>l.ts||Date.parse(l.t)||0;
+const dt=t=>t?new Date(t).toLocaleString():'-';
+/* ---- Money overview ---- */
+const PAGES={};
+PAGES['Money Overview']=function(){
+  const d=new Date(),m=today().slice(0,7);d.setDate(1);d.setMonth(d.getMonth()-1);const lm=d.getFullYear()+'-'+pad2(d.getMonth()+1);
+  const S=ym=>{const ts=T.filter(t=>String(t.date).slice(0,7)==ym),b=sum(ts,amt),te=sum(ts,exp),oe=sum(EXP.filter(x=>String(x.date).slice(0,7)==ym),x=>+x.amt||0);return{b,te,oe,p:b-te-oe,n:ts.length}};
+  const a=S(m),b=S(lm),bal=L=>sum(L,x=>x.k=='in'?+x.amt:-x.amt);
+  let due=0;try{due=sum(T,t=>Math.max(0,bdue(t)))}catch(e){}
+  const pend=sum(T.filter(t=>t.pm=='Cash'&&t.cs=='Pending'),cashT);
+  const ch=(x,y)=>y?((x-y)/Math.abs(y)*100).toFixed(0)+'% vs last month':'no last-month data';
+  $('#view').innerHTML='<div class="oc-g">'+kp('Cash in hand','AED '+fmt(bal(CL)),'cash ledger')+kp('Bank balance','AED '+fmt(bal(BL)),'bank ledger')+kp('Customers owe you','AED '+fmt(due),'unpaid and part-paid bills')+kp('Drivers owe cash','AED '+fmt(pend),'cash pending deposit')+'</div><div class="oc-g">'+kp('Billed this month','AED '+fmt(a.b),a.n+' trips · '+ch(a.b,b.b))+kp('Costs this month','AED '+fmt(a.te+a.oe),'trip costs + expenses')+kp('Profit this month','AED '+fmt(a.p),ch(a.p,b.p))+kp('Profit last month','AED '+fmt(b.p),b.n+' trips')+'</div><p class="note">Profit = billed − trip costs − other expenses. Salary and EMI are not included.</p>';
+};
+/* ---- Alerts ---- */
+PAGES['Alerts']=async function(){
+  $('#view').innerHTML=card('Alerts','<p class="note">Loading…</p>');
+  const wk=Date.now()-7*DAY,L=LOG.filter(l=>tsOf(l)>=wk),by=(re)=>{const o={};L.filter(l=>re.test(l.a)).forEach(l=>o[l.by]=(o[l.by]||0)+1);return o};
+  const row=(t,x)=>'<tr><td>'+esc(t)+'</td><td>'+esc(x)+'</td></tr>',R=[];
+  const dl=by(/delet/i),ed=by(/edit|rectif|correct/i);
+  Object.keys(dl).forEach(u=>{if(dl[u]>=3)R.push(row('Many deletes',u+' deleted '+dl[u]+' items in 7 days'))});
+  Object.keys(ed).forEach(u=>{if(ed[u]>=10)R.push(row('Many edits',u+' made '+ed[u]+' edits/corrections in 7 days'))});
+  L.forEach(l=>{const h=new Date(tsOf(l)).getHours();if(h>=23||h<5)R.push(row('Night activity',l.by+' · '+l.a+' at '+dt(tsOf(l))));const m=/AED\s*([\d,]+(?:\.\d+)?)/.exec(l.d||'');if(m&&+m[1].replace(/,/g,'')>=APL)R.push(row('Large amount',l.by+' · '+l.a+' · AED '+m[1]+' · '+dt(tsOf(l))))});
+  let fl=0;try{const sn=await db.collection('loginfails').get();sn.docs.forEach(d=>{const t=Date.parse(d.id);if(t>=wk)fl+=+d.data().n||0})}catch(e){}
+  if(fl>=5)R.unshift(row('Failed logins',fl+' failed sign-in attempts in 7 days'));
+  $('#view').innerHTML=card('Alerts · last 7 days',R.length?'<div class="tw"><table><tr><th>Type</th><th>Details</th></tr>'+R.join('')+'</table></div>':'<p class="note">Nothing unusual found.</p>')+'<p class="note">Rules: 3+ deletes or 10+ edits by one person, activity between 11pm and 5am, entries of AED '+fmt(APL)+' or more, 5+ failed logins.</p>';
+};
+/* ---- Audit log with filters + export ---- */
+let AF={u:'',a:'',q:'',f:'',t:''};
+const aFilt=()=>LOG.filter(l=>{const x=tsOf(l),q=AF.q.toLowerCase();return (!AF.u||l.by==AF.u)&&(!AF.a||l.a==AF.a)&&(!q||((l.d||'')+(l.r||'')+(l.a||'')).toLowerCase().includes(q))&&(!AF.f||x>=Date.parse(AF.f))&&(!AF.t||x<=Date.parse(AF.t)+DAY)});
+const opt=(arr,v)=>'<option value="">All</option>'+arr.map(x=>'<option'+(x==v?' selected':'')+'>'+esc(x)+'</option>').join('');
+window.auditV=function(){
+  if(!own())return denied();
+  const us=[...new Set(LOG.map(l=>l.by))].sort(),ac=[...new Set(LOG.map(l=>l.a))].sort(),R=aFilt();
+  $('#view').innerHTML=card('Audit log','<div class="oc-row" style="margin-bottom:10px"><div><label>User</label><select id="af_u" onchange="afSet()">'+opt(us,AF.u)+'</select></div><div><label>Action</label><select id="af_a" onchange="afSet()">'+opt(ac,AF.a)+'</select></div><div><label>From</label><input id="af_f" type="date" value="'+AF.f+'" onchange="afSet()"></div><div><label>To</label><input id="af_t" type="date" value="'+AF.t+'" onchange="afSet()"></div><div><label>Search</label><input id="af_q" value="'+esc(AF.q)+'" onchange="afSet()"></div><button class="btn au" onclick="afCsv()">Export CSV</button></div><div class="note" style="margin-bottom:8px">'+R.length+' of '+LOG.length+' entries</div>'+tbl(['Time','By','Action','Details','Reason'],R.slice(0,500).map(l=>'<tr><td>'+esc(l.t)+'</td><td>'+esc(l.by)+'</td><td><b>'+esc(l.a)+'</b></td><td>'+esc(l.d)+'</td><td>'+esc(l.r)+'</td></tr>'))+(R.length>500?'<p class="note">Showing first 500. Export CSV for all.</p>':''));
+};
+window.afSet=function(){AF={u:$('#af_u').value,a:$('#af_a').value,f:$('#af_f').value,t:$('#af_t').value,q:$('#af_q').value};auditV()};
+window.afCsv=function(){if(!own())return;const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"',rows=[['Time','By','Action','Details','Reason']].concat(aFilt().map(l=>[l.t,l.by,l.a,l.d,l.r]));const b=new Blob(['\ufeff'+rows.map(r=>r.map(q).join(',')).join('\n')],{type:'text/csv'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='audit_log_'+today()+'.csv';document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);lg('Audit log exported',aFilt().length+' entries')};
+/* ---- Edit history ---- */
+let EHB='';
+PAGES['Edit History']=function(){
+  const re=EHB?new RegExp('\\bBill\\s*#?'+EHB.replace(/[^\w]/g,'')+'\\b','i'):null,R=re?LOG.filter(l=>re.test(l.d||'')):[];
+  $('#view').innerHTML=card('Edit history by bill','<div class="oc-row"><div><label>Bill number</label><input id="eh_b" value="'+esc(EHB)+'" onkeydown="if(event.key==\'Enter\')ehGo()"></div><button class="btn au" onclick="ehGo()">Show history</button></div>')+(re?card('Bill '+esc(EHB)+' · '+R.length+' entries',tbl(['Time','By','Action','Details','Reason'],R.map(l=>'<tr><td>'+esc(l.t)+'</td><td>'+esc(l.by)+'</td><td><b>'+esc(l.a)+'</b></td><td style="white-space:normal;min-width:220px">'+esc(l.d)+'</td><td>'+esc(l.r)+'</td></tr>'))+'<p class="note" style="margin-top:8px">Edits are recorded as text, so values cannot be restored automatically. Deleted trips can be restored from Deleted Items.</p>'):'');
+};
+window.ehGo=function(){EHB=$('#eh_b').value.trim();PAGES['Edit History']()};
+/* ---- Sessions ---- */
+PAGES['Sessions']=async function(){
+  $('#view').innerHTML=card('Sessions','<p class="note">Loading…</p>');
+  try{const sn=await db.collection('users').get(),rows=sn.docs.map(d=>Object.assign({id:d.id},d.data())).filter(x=>x.id!==OWNER_UID);
+  $('#view').innerHTML=card('Sessions and devices',tbl(['Name','Role','Last sign-in','Device','Status',''],rows.map(x=>'<tr><td><b>'+esc(x.name||x.email||x.id.slice(0,8))+'</b></td><td>'+esc(x.role||'-')+'</td><td>'+(x.lastLogin&&x.lastLogin.t?esc(dt(x.lastLogin.t)):'-')+'</td><td>'+esc((x.lastLogin&&x.lastLogin.device)||'-')+'</td><td>'+(x.disabled?'Access off':'Active')+'</td><td><button class="btn g" onclick="ocKick(\''+esc(x.id)+'\')">Sign out everywhere</button></td></tr>'))+'<p class="note" style="margin-top:8px">Shows each person\u2019s most recent sign-in. Signing out ends all their devices; they can sign in again unless access is turned off in Owner Console.</p>')}
+  catch(e){$('#view').innerHTML=card('Sessions','<p class="note">Could not load: '+esc(e.code||e.message)+'</p>')}
+};
+/* ---- Permissions ---- */
+PAGES['Permissions']=async function(){
+  $('#view').innerHTML=card('Permissions','<p class="note">Loading…</p>');
+  try{const sn=await db.collection('users').get(),rows=sn.docs.map(d=>Object.assign({id:d.id},d.data())).filter(x=>x.id!==OWNER_UID);
+  window._pu=rows;
+  $('#view').innerHTML=rows.map((x,i)=>{const pg=(x.role=='admin'?NAV0.corp:NAV0.acc).filter(n=>ONLY.indexOf(n)<0);return card(esc(x.name||x.email||x.id.slice(0,8))+' <span class="note">('+esc(x.role||'-')+')</span>','<div class="oc-row" style="margin-bottom:10px">'+pg.map(n=>'<label style="display:flex;gap:6px;align-items:center;margin-right:14px"><input type="checkbox" data-u="'+i+'" value="'+esc(n)+'"'+((x.hide||[]).indexOf(n)<0?' checked':'')+'> '+esc(n)+'</label>').join('')+'</div><button class="btn au" onclick="permSave('+i+')">Save</button>')}).join('')+'<p class="note">Unticked pages are hidden from that person\u2019s menu at their next sign-in. Rules in Firebase are what truly block data access.</p>'}
+  catch(e){$('#view').innerHTML=card('Permissions','<p class="note">Could not load: '+esc(e.code||e.message)+'</p>')}
+};
+window.permSave=function(i){if(!own())return;const x=window._pu[i],hide=[...document.querySelectorAll('input[data-u="'+i+'"]')].filter(c=>!c.checked).map(c=>c.value);
+  need(async()=>{try{await db.collection('users').doc(x.id).set({hide:hide},{merge:true});lg('Permissions changed',(x.name||x.email||x.id)+' · hidden: '+(hide.join(', ')||'none'));toast('Saved')}catch(e){alert('Could not save: '+(e.code||e.message))}})};
+/* ---- Controls ---- */
+PAGES['Controls']=function(){
+  $('#view').innerHTML=card('Approval limit','<p class="note" style="margin-bottom:8px">Payments above this amount need approval before they are recorded.</p><div class="oc-row"><div><label>Limit (AED)</label><input id="ct_a" type="number" min="1" value="'+APL+'"></div><button class="btn au" onclick="ctSave()">Save limit</button></div>')+card('Month lock','<p class="note" style="margin-bottom:8px">Closed months cannot be changed by admins or accountants. Closing and reopening a month is done in Owner Console.</p><button class="btn g" onclick="ocJump(\'Owner Console\')">Open Owner Console</button>');
+};
+window.ctSave=function(){if(!own())return;const n=+$('#ct_a').value;if(!(n>0))return alert('Enter an amount above 0');need(()=>{const o=APL;CF.apl=n;APL=n;lg('Approval limit changed','AED '+o+' to AED '+n);toast('Limit saved');PAGES['Controls']()})};
+/* ---- routing ---- */
+const _go=go;
+window.go=function(i,el,instant){const n=NAV[role][i];if(!PAGES[n])return _go.apply(this,arguments);
+  document.querySelectorAll('.nav a').forEach((a,k)=>a.classList.toggle('on',k==i));$('#ttl').textContent=n;$('#sub').textContent='Saif Navas Transport \u00b7 '+new Date().toDateString();window.scrollTo(0,0);own()?PAGES[n]():denied()};
+['sumV','trashV'].forEach(k=>{const f=window[k];if(typeof f!=='function')return;window[k]=function(){return own()?f.apply(this,arguments):denied()}});
+const _en=enter;
+window.enter=function(){_en.apply(this,arguments);try{if(own()){const w=document.getElementById('who');if(w)w.textContent='Owner \u00b7 '+(USERN||'');const b=document.getElementById('swv');if(b)b.remove()}}catch(e){console.error(e)}};
+})();
 </script>
 </body></html>
