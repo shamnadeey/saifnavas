@@ -877,7 +877,7 @@ function lbad(m){const e=$('#lerr');e.textContent=m;e.classList.remove('hide')}
 function signin(){const em=g('lem').trim(),pw=g('lpw');$('#lerr').classList.add('hide');if(!FBOK)return lbad('Cannot reach Firebase. Check your internet connection and reload.');if(!em||!pw)return lbad('Enter your email and password');if(lockLeft(em)>0)return showLock(em);const b=$('#lbtn');b.classList.add('ld');
 fbAuth.signInWithEmailAndPassword(em,pw).catch(e=>{b.classList.remove('ld');lbad(({'auth/invalid-credential':'Incorrect email or password','auth/wrong-password':'Incorrect email or password','auth/user-not-found':'Incorrect email or password','auth/invalid-email':'Enter a valid email address','auth/too-many-requests':'Too many attempts. Try again in a few minutes','auth/network-request-failed':'No signal. Check your internet and try again.'})[e.code]||e.message);loginFail(em,e.code)})}
 async function begin(u){if(STARTED)return;STARTED=true;const t0=Date.now(),b=$('#lbtn'),back=m=>{STARTED=false;$('#splash').classList.remove('on');b.classList.remove('ld');lbad(m)};$('#splash').classList.add('on');splashSteps();
-try{let ud=null,r=null;try{ud=await db.collection('users').doc(u.uid).get();r=ud.exists&&ud.data().role}catch(e){if(u.uid!==OWNER_UID)throw e}if(u.uid===OWNER_UID){BOTH=true;if(r!='admin'&&r!='accountant')r='admin'}if(r!='admin'&&r!='accountant'){await fbAuth.signOut();return back('No role is assigned to this account yet. Ask the admin to add it. Your user ID: '+u.uid)}
+try{let ud=null,r=null;try{ud=await db.collection('users').doc(u.uid).get();r=ud.exists&&ud.data().role}catch(e){if(u.uid!==OWNER_UID)throw e}if(u.uid===OWNER_UID){BOTH=true;if(r!='admin'&&r!='accountant')r='admin'}else if(r=='admin'&&ud&&ud.exists&&ud.data().both===true){BOTH=true}if(r!='admin'&&r!='accountant'){await fbAuth.signOut();return back('No role is assigned to this account yet. Ask the admin to add it. Your user ID: '+u.uid)}
 const _sg=await sessGate(u,ud);if(_sg){try{await fbAuth.signOut()}catch(x){}return back(_sg)}role=r=='admin'?'corp':'acc';USERN=((ud&&ud.exists&&ud.data().name)||u.email||'').trim();await listen();LOADED=true;afterRemote();const w=2000-(Date.now()-t0);if(w>0)await new Promise(r=>setTimeout(r,w));b.classList.remove('ld');$('#login').classList.add('hide');$('#splash').classList.remove('on');enter();try{postLogin(u,ud)}catch(e){console.error(e)}}
 catch(e){console.error(e);try{await fbAuth.signOut()}catch(x){}back('Could not load your workspace: '+(e.code=='permission-denied'?'permission denied by Firestore rules':e.message))}}
 
@@ -911,9 +911,9 @@ let role='corp',user='',GT;
 
 $('#splogo').src=LOGO;
 const NAV={corp:['Dashboard','Statements','Companies & Drivers','Salary','Deductions','Collections','Cash Ledger','Bank Balance','Expenses','EMI','Error Corrections','Masters','Letterhead','Team Access','Audit Log'],acc:['Trip Sheet','Invoice','Filter Bills','Collections','Cash Ledger','Expenses','EMI','Bank']};
-const VIEWS=()=>({'Dashboard':dash,'Statements':stmt,'Companies & Drivers':comp,'Trip Sheet':sheet,'Invoice':inv,'Filter Bills':fbV,'Collections':duesV,'Cash Ledger':cashV,'Bank':bankV,'Bank Balance':bankV,'Expenses':expV,'EMI':emiV,'Salary':salaryV,'Deductions':finV,'Error Corrections':errV,'Masters':mastV,'Audit Log':auditV,'Letterhead':lhV,'Team Access':teamV,'Approvals':window.aprV,'Daily Summary':window.sumV,'Deleted Items':window.trashV});
+const VIEWS=()=>({'Dashboard':dash,'Statements':stmt,'Companies & Drivers':comp,'Trip Sheet':sheet,'Invoice':inv,'Filter Bills':fbV,'Collections':duesV,'Cash Ledger':cashV,'Bank':bankV,'Bank Balance':bankV,'Expenses':expV,'EMI':emiV,'Salary':salaryV,'Deductions':finV,'Error Corrections':errV,'Masters':mastV,'Audit Log':auditV,'Letterhead':lhV,'Team Access':teamV,'Approvals':window.aprV,'Daily Summary':window.sumV,'Deleted Items':window.trashV,'Owner Console':window.ownerV});
 function swView(){role=role=='corp'?'acc':'corp';UNL=false;enter()}
-function enter(){
+function enter(){try{window.ownerNav&&window.ownerNav()}catch(e){}
 $('#app').classList.remove('hide');user=USERN||(role=='corp'?'Management':'Accounts');$('#who').textContent=({corp:'Admin',acc:'Accountant'})[role]+' · '+user;
 $('#nav').innerHTML=NAV[role].map((n,i)=>`<a class="${i?'':'on'}" onclick="go(${i},this)"><svg class="ic" viewBox="0 0 24 24">${IC[n]||''}</svg><span>${n}</span></a>`).join('');(function(){const o=document.getElementById('swv');if(o)o.remove();if(BOTH){const b=document.createElement('button');b.id='swv';b.className='btn g';b.style.marginBottom='8px';b.textContent='Switch to '+(role=='corp'?'Accountant':'Admin')+' view';b.onclick=swView;const lo=document.querySelector('aside .btn.g');lo.parentNode.insertBefore(b,lo)}})();updBadges();go(0)}
 const skel=()=>{$('#view').innerHTML=cloudSkel();cloudState('sync')},
@@ -1566,5 +1566,157 @@ window.tsRecent=()=>{const c=document.getElementById('tsrec');if(!c)return;modal
 const _go2=window.go;
 window.go=function(i){try{document.body.classList.toggle('tsfull',NAV[role][i]=='Trip Sheet')}catch(e){}return _go2.apply(this,arguments)};
 })();
+</script>
+<script id="owner-console">
+/* ===== Owner Console (visible only when the owner account is signed in) ===== */
+(function(){
+const OWN=()=>!!(typeof fbAuth!=='undefined'&&fbAuth&&fbAuth.currentUser&&fbAuth.currentUser.uid===OWNER_UID);
+const gv=id=>{const e=document.getElementById(id);return e?e.value:''};
+const jsq=s=>String(s).replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+const errMsg=e=>{const c=(e&&e.code)||'';return({'auth/email-already-in-use':'That email already has a login. Use the "existing login" box and paste its User ID.','auth/weak-password':'Password is too weak. Use at least 6 characters.','auth/invalid-email':'That email address is not valid.','permission-denied':'Not allowed. Publish the updated Firestore rules first (see the instructions).','auth/operation-not-allowed':'Email/password sign-in is not enabled in Firebase.','auth/network-request-failed':'No signal. Check your connection and try again.'})[c]||('Could not complete this. '+((e&&e.message)||''))};
+let OCU=[];
+
+window.ownerNav=function(){try{const i=NAV.corp.indexOf('Owner Console');if(OWN()){if(i<0)NAV.corp.splice(1,0,'Owner Console')}else if(i>=0)NAV.corp.splice(i,1)}catch(e){console.error(e)}};
+IC['Owner Console']='<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>';
+const st=document.createElement('style');
+st.textContent='.oc-g{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-bottom:16px}.oc-f{display:grid;gap:12px}.oc-row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}.oc-k{cursor:pointer}.oc-k span.note{display:block;margin-top:4px}.oc-btns .btn{width:auto;padding:6px 12px;font-size:12.5px}.oc-card{margin-bottom:16px}';
+document.head.appendChild(st);
+
+window.ocJump=function(n){try{const i=NAV[role].indexOf(n);if(i>=0)go(i)}catch(e){console.error(e)}};
+
+window.ownerV=async function(){
+  if(!OWN()){$('#view').innerHTML='<div class="card"><h3>Owner Console</h3><p class="note" style="margin-top:6px">This area is only for the owner account.</p></div>';return}
+  $('#view').innerHTML='<div class="card"><h3>Owner Console</h3><p class="note" style="margin-top:6px">Loading\u2026</p></div>';
+  const rd=p=>p.then(s=>s.docs).catch(e=>{console.error(e);return null});
+  const [ud,fd,td]=await Promise.all([rd(db.collection('users').get()),rd(db.collection('loginfails').get()),rd(db.collection('trash').get())]);
+  if(!$('#ttl')||$('#ttl').textContent!=='Owner Console')return;
+  OCU=(ud||[]).map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>U(a.name||a.email||a.id).localeCompare(U(b.name||b.email||b.id)));
+  const fails=(fd||[]).map(d=>Object.assign({day:d.id},d.data())).sort((a,b)=>b.day.localeCompare(a.day));
+  const pend=APR.filter(a=>a.status=='pending').length,openErr=ERR.filter(e=>e.st=='Open').length;
+  const cut=Date.now()-90*864e5,delN=td?td.filter(d=>((d.data()||{}).at||0)>=cut).length:'\u2014';
+  const wk=ldate(Date.now()-6*864e5),failWk=fd?fails.filter(f=>f.day>=wk).reduce((s,f)=>s+(+f.n||0),0):'\u2014';
+  const cl=CLOSEDTO?M[+CLOSEDTO.slice(5,7)-1]+' '+CLOSEDTO.slice(0,4):'None';
+  const kc=(l,v,s,go)=>'<div class="k'+(go?' oc-k':'')+'"'+(go?' onclick="ocJump(\''+go+'\')"':'')+'><small>'+l+'</small><b>'+esc(v)+'</b><span class="note">'+s+'</span></div>';
+  const kpis='<div class="oc-g">'+kc('Waiting for approval',pend,'Open approvals','Approvals')+kc('Open error corrections',openErr,'Open the list','Error Corrections')+kc('Deleted items (90 days)',delN,'Restore or review','Deleted Items')+kc('Failed logins (7 days)',failWk,'See below','')+kc('Books closed up to',cl,'Change below','')+'</div>';
+  const links='<div class="card oc-card"><h3 style="margin-bottom:8px">Quick links</h3><div class="oc-row oc-btns">'+['Approvals','Error Corrections','Deleted Items','Audit Log','Daily Summary'].map(n=>'<button class="btn g" onclick="ocJump(\''+n+'\')">'+n+'</button>').join('')+'</div></div>';
+  const me=OWNER_UID;
+  const urows=OCU.map(x=>{const off=!!x.disabled,own=x.id===me,id=jsq(esc(x.id));
+    const act=own?'<span class="note">Owner</span>':'<div class="oc-row oc-btns"><button class="btn g" onclick="ocEdit(\''+id+'\')">Edit</button>'+(off?'<button class="btn g" onclick="ocOff(\''+id+'\',false)">Turn on</button>':'<button class="btn au" onclick="ocOff(\''+id+'\',true)">Turn off</button><button class="btn g" onclick="ocKick(\''+id+'\')">Sign out</button>')+'<button class="btn g" onclick="ocReset(\''+id+'\')">Reset password</button></div>';
+    return '<tr><td><b>'+esc(x.name||x.email||x.id.slice(0,8))+'</b>'+(x.email&&x.name?'<br><span class="note">'+esc(x.email)+'</span>':'')+'</td><td>'+(own?'Owner (admin + accountant)':esc(x.role||'-')+(x.both?' + accountant view':''))+'</td><td>'+(x.lastLogin&&x.lastLogin.t?esc(fdt(x.lastLogin.t))+'<br><span class="note">'+esc(x.lastLogin.device||'')+'</span>':'<span class="note">\u2014</span>')+'</td><td>'+(off?'<span class="tag" style="background:#fee2e2;color:var(--bad)">Access off</span>':'<span class="tag" style="background:#dcfce7;color:var(--ok)">Active</span>')+'</td><td>'+act+'</td></tr>'});
+  const users='<div class="card oc-card"><div class="top" style="margin-bottom:10px"><div><h3>Users and access</h3><div class="note">Add people, change roles, turn access off, sign out or send a password reset.'+(ud?'':' <b>Could not load the list.</b>')+'</div></div><button class="btn au" style="width:auto" onclick="ocEdit(null)">+ Add user</button></div>'+tb(['Name','Role','Last sign-in','Status',''],urows)+'</div>';
+  const mm=Math.max(1,new Date().getMonth()),clBtn=CLOSEDTO?'<button class="btn g" style="width:auto" onclick="ocReopen()">Reopen last closed month</button>':'';
+  const close='<div class="card oc-card"><h3 style="margin-bottom:4px">Close month</h3><div class="note" style="margin-bottom:12px">Accountants cannot add or change records in a closed month. <b>'+(CLOSEDTO?'Closed up to '+esc(cl)+'.':'No month is closed yet.')+'</b></div><div class="oc-row"><div><label>Close everything up to</label><select id="oc_cm">'+M.map((m,i)=>'<option value="'+(i+1)+'"'+(i+1==mm?' selected':'')+'>'+m+' '+YR+'</option>').join('')+'</select></div><button class="btn au" style="width:auto" onclick="ocClose()">Close month</button>'+clBtn+'</div></div>';
+  const frows=fails.slice(0,14).map(f=>'<tr><td>'+esc(f.day)+'</td><td class="num">'+esc(f.n||0)+(+f.n>=5?' <span class="tag" style="background:#fee2e2;color:var(--bad)">High</span>':'')+'</td><td>'+(f.t?esc(fdt(f.t)):'\u2014')+'</td><td>'+esc(f.em||'')+'</td></tr>');
+  const flog='<div class="card oc-card"><h3 style="margin-bottom:4px">Failed logins</h3><div class="note" style="margin-bottom:10px">Wrong-password attempts per day (last 14 days with activity). Many attempts in one day can mean someone is guessing a password.</div>'+(fd?tb(['Date','Attempts','Last attempt','Last email tried'],frows,[1]):'<p class="note">Could not load.</p>')+'</div>';
+  const bk='<div class="card oc-card"><h3 style="margin-bottom:4px">Backup</h3><div class="note" style="margin-bottom:12px">Download everything in the database (trips, cash, bank, payments, expenses, salary records, logs, deleted items, users) as one file. Keep it somewhere safe; it contains private business data.</div><button class="btn au" style="width:auto" onclick="ocBackup(this)">Download full backup</button></div>';
+  $('#view').innerHTML='<div class="card oc-card"><h3 style="margin-bottom:4px">Owner Console</h3><div class="note">Only you can see this page. Every action here is recorded in the Audit Log.</div></div>'+kpis+users+close+flog+links+bk;
+};
+
+/* ---- add / edit user ---- */
+window.ocEdit=function(id){
+  const x=id?OCU.find(u=>u.id===id):null;if(id&&!x)return;
+  modal('<h3>'+(x?'Edit user':'Add user')+'</h3><div class="oc-f" style="margin-top:12px">'+
+   (x?'<div class="note">User ID: '+esc(id)+'</div>':
+    '<div><label>Email (creates a new login)</label><input id="oc_em" type="email" autocomplete="off"></div><div><label>Temporary password (at least 6 characters)</label><input id="oc_pw" type="text" autocomplete="off"></div><div class="note">Already have a login? Leave the two boxes above empty and paste the User ID here instead.</div><div><label>Existing login User ID (optional)</label><input id="oc_uid" autocomplete="off"></div>')+
+   '<div><label>Name</label><input id="oc_nm" value="'+esc((x&&x.name)||'')+'"></div>'+
+   '<div><label>Role</label><select id="oc_rl"><option value="accountant"'+(x&&x.role=='accountant'?' selected':'')+'>Accountant</option><option value="admin"'+(x&&x.role=='admin'?' selected':'')+'>Admin</option></select></div>'+
+   '<div><label style="display:flex;gap:8px;align-items:center"><input id="oc_bt" type="checkbox" style="width:auto"'+(x&&x.both?' checked':'')+'> Admin also gets the Accountant view</label></div></div>'+
+   '<div style="margin-top:14px;display:flex;gap:8px"><button class="btn" onclick="ocSave('+(x?"'"+jsq(esc(id))+"'":'null')+')">Save</button><button class="btn g" onclick="cm()">Cancel</button></div>');
+};
+async function mkLogin(em,pw){
+  const app2=firebase.initializeApp(FB_CFG,'oc'+Date.now());
+  try{const cr=await app2.auth().createUserWithEmailAndPassword(em,pw);const uid=cr.user.uid;try{await app2.auth().signOut()}catch(e){}return uid}
+  finally{try{await app2.delete()}catch(e){}}
+}
+window.ocSave=function(id){
+  if(!OWN())return;
+  const nm=gv('oc_nm').trim(),rl=gv('oc_rl')=='admin'?'admin':'accountant',bt=rl=='admin'&&!!(document.getElementById('oc_bt')||{}).checked;
+  let em='',pw='',uid=id||'';
+  if(!id){em=gv('oc_em').trim();pw=gv('oc_pw');uid=gv('oc_uid').trim();
+    if(uid){if(!/^[A-Za-z0-9]{20,40}$/.test(uid))return alert('That User ID does not look right. Copy it again from Firebase.');em=''}
+    else{if(!/^\S+@\S+\.\S+$/.test(em))return alert('Enter a valid email address, or paste an existing User ID.');if(pw.length<6)return alert('The password must be at least 6 characters.')}}
+  if(!nm)return alert('Enter the person\u2019s name.');
+  if(uid===OWNER_UID)return alert('The owner account cannot be changed here.');
+  cm();
+  need(async()=>{
+    let made=false;
+    try{
+      if(!uid){uid=await mkLogin(em,pw);made=true}
+      const o={name:nm,role:rl,both:bt};if(em)o.email=em;
+      await db.collection('users').doc(uid).set(o,{merge:true});
+      lg(id?'User updated':'User added',nm+' \u00b7 '+rl+(bt?' + accountant view':''));
+      toast(id?'User updated':'User added. They can sign in now.');
+    }catch(e){alert((made?'The login was created (User ID: '+uid+') but the role could not be saved.\n\nOpen Add user again, paste this User ID in the "existing login" box and save.\n\n':'')+errMsg(e))}
+    ownerV();
+  });
+};
+const nmOf=id=>{const x=OCU.find(u=>u.id===id)||{};return x.name||x.email||String(id).slice(0,8)};
+window.ocOff=function(id,off){
+  if(!OWN()||id===OWNER_UID)return;
+  need(async()=>{
+    const nm=nmOf(id);
+    if(off&&!confirm('Turn off access for '+nm+'?\n\nThey will be signed out at once and cannot sign in until you turn it back on.'))return;
+    try{const o={disabled:off,disabledAt:Date.now(),disabledBy:BY()};if(off)o.epoch=firebase.firestore.FieldValue.increment(1);await db.collection('users').doc(id).set(o,{merge:true});lg(off?'Access turned off':'Access turned on',nm);toast(off?nm+' can no longer use the app':nm+' can sign in again')}catch(e){alert(errMsg(e))}
+    ownerV();
+  });
+};
+window.ocKick=function(id){
+  if(!OWN()||id===OWNER_UID)return;
+  need(async()=>{const nm=nmOf(id);try{await db.collection('users').doc(id).set({epoch:firebase.firestore.FieldValue.increment(1)},{merge:true});lg('User signed out everywhere',nm);toast(nm+' was signed out of all devices')}catch(e){alert(errMsg(e))}});
+};
+window.ocReset=function(id){
+  if(!OWN())return;
+  const x=OCU.find(u=>u.id===id)||{};
+  const em=(prompt('Send a password reset email to:',x.email||'')||'').trim();
+  if(!em)return;
+  if(!/^\S+@\S+\.\S+$/.test(em))return alert('That email address is not valid.');
+  fbAuth.sendPasswordResetEmail(em).then(()=>{lg('Password reset sent',em);toast('Reset email sent to '+em)}).catch(e=>alert(errMsg(e)));
+};
+
+/* ---- close / reopen month ---- */
+window.ocClose=function(){
+  if(!OWN())return;
+  const m=+gv('oc_cm');
+  need(()=>{
+    const end=YR+'-'+pad2(m)+'-31',last=YR+'-'+pad2(m)+'-'+pad2(new Date(YR,m,0).getDate());
+    if(last>=today())return alert('A month can be closed only after it has ended.');
+    if(CLOSEDTO&&end<=CLOSEDTO)return alert('That month is already closed.');
+    let un=[];try{un=DR.filter(d=>{const w=salary(d,m),s=SAL[d+'|'+m]||{};return w.net>0&&s.status!='Paid'})}catch(e){}
+    if(un.length&&!confirm('Salary is not marked as paid for: '+un.join(', ')+'.\n\nClose the month anyway?'))return;
+    if(!confirm('Close '+M[m-1]+' '+YR+' and every earlier month?\n\nThe accountant will not be able to change records in these months.'))return;
+    CLOSEDTO=end;CFG_CT=true;lg('Month closed',M[m-1]+' '+YR+' and earlier are now locked');save();toast(M[m-1]+' closed');ownerV();
+  });
+};
+window.ocReopen=function(){
+  if(!OWN())return;
+  need(()=>{
+    if(!CLOSEDTO)return;const m=+CLOSEDTO.slice(5,7),y=CLOSEDTO.slice(0,4),nm=M[m-1]+' '+y;
+    if(!confirm('Reopen '+nm+'? Records in that month can be changed again.'))return;
+    CLOSEDTO=m>1?y+'-'+pad2(m-1)+'-31':'';CFG_CT=true;lg('Month reopened',nm+' was reopened');save();toast(nm+' reopened');ownerV();
+  });
+};
+
+/* ---- full backup ---- */
+window.ocBackup=async function(btn){
+  if(!OWN())return;
+  const cols=['trips','cash','bank','expenses','payments','loans','loanpay','advances','fines','errors','logs','approvals','cashchecks','trash','meta','users','loginfails'];
+  const t0=btn.textContent;btn.disabled=true;
+  try{
+    const out={app:'Saif Navas Transport',exportedAt:new Date().toISOString(),by:BY(),collections:{}},miss=[];
+    for(let i=0;i<cols.length;i++){
+      btn.textContent='Reading '+cols[i]+'\u2026 ('+(i+1)+'/'+cols.length+')';
+      try{const sn=await db.collection(cols[i]).get();out.collections[cols[i]]=sn.docs.map(d=>Object.assign({_id:d.id},d.data()))}catch(e){console.error(e);miss.push(cols[i]);out.collections[cols[i]]=null}
+    }
+    const blob=new Blob([JSON.stringify(out)],{type:'application/json'}),a=document.createElement('a');
+    a.href=URL.createObjectURL(blob);a.download='SaifNavas_backup_'+ldate(Date.now())+'.json';document.body.appendChild(a);a.click();
+    setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1500);
+    lg('Backup downloaded',cols.length-miss.length+' collections');
+    toast('Backup downloaded');
+    if(miss.length)alert('These parts could not be read and are empty in the backup: '+miss.join(', '));
+  }catch(e){alert('Backup failed. '+errMsg(e))}
+  btn.disabled=false;btn.textContent=t0;
+};
+})();
+
 </script>
 </body></html>
