@@ -2101,14 +2101,18 @@ if(role=='acc'&&isLocked(g('fd')))return alert('That date is in a closed month �
 const old=window._editBill==b?T.find(x=>x.bill==b):null;
 if(!old&&b>0&&T.some(x=>x.bill==b)){loadBill(b);return}
 if(!old){if(!window._dupOk){const w=dupWarn();if(w.length){dupShow(w);return}}window._dupOk=0;return _st.apply(this,arguments)}
-const idx=T.indexOf(old),cl0=CL.slice(),bl0=BL.slice(),nb=bill;unlink('T'+b);T.splice(idx,1);
-_st.apply(this,arguments);const nt=T.find(x=>x.bill==b);
-if(!nt){T.splice(idx,0,old);CL.splice(0,CL.length,...cl0);BL.splice(0,BL.length,...bl0);bill=nb;return}
-const skip=['pm','cs','tx','cdt','ra','rp','paid','tm'];Object.keys(old).forEach(k=>{if(!(k in nt)&&skip.indexOf(k)<0)nt[k]=old[k]});
-T.splice(T.indexOf(nt),1);T.splice(idx,0,nt);
+const idx=T.indexOf(old),cl0=CL.slice(),bl0=BL.slice(),nb=bill;
+const strip=()=>{unlink('T'+b);const i=T.indexOf(old);if(i>=0)T.splice(i,1)};
+const back=()=>{if(T.indexOf(old)<0)T.splice(Math.min(idx,T.length),0,old);CL.splice(0,CL.length,...cl0);BL.splice(0,BL.length,...bl0);bill=nb};
+const post=nt=>{const skip=['pm','cs','tx','cdt','ra','rp','paid','tm'];Object.keys(old).forEach(k=>{if(!(k in nt)&&skip.indexOf(k)<0)nt[k]=old[k]});
+const ci=T.indexOf(nt);if(ci>=0)T.splice(ci,1);T.splice(Math.min(idx,T.length),0,nt);
 if(old.cdt&&nt.cdt&&nt.pm==old.pm){nt.cdt=old.cdt;[CL,BL].forEach(L=>L.forEach(l=>{if(l.lk=='T'+b)l.date=old.cdt}))}
 bill=nb;const fe=_E('fb');if(fe)fe.value=nb;window._editBill=null;
 lg('Trip edited','Bill '+b+' updated from trip sheet · cash ledger / bank synced');save();toast('Bill '+b+' updated · cash ledger & bank synced')};
+strip();let nt;try{_st.apply(this,arguments);nt=T.find(x=>x.bill==b)}catch(err){back();throw err}
+if(nt){post(nt);return}
+back();const cf=document.getElementById('cfm'),y=document.getElementById('cfy');
+if(cf&&y&&cf.style.display=='grid'){const orig=y.onclick;y.onclick=()=>{strip();try{orig()}catch(err){back();throw err}const n2=T.find(x=>x.bill==b);if(n2)post(n2);else back()}}};
 const _need=window.need;window.need=function(cb){if(role=='acc'&&window._tripEd)return cb();return _need.apply(this,arguments)};
 const _et=window.editTrip;window.editTrip=function(b){const t=T.find(x=>x.bill==b);if(!t)return alert('Bill not found');if(role=='acc'&&isLocked(t.date))return alert('This bill is in a closed month and can no longer be edited.');window._tripEd=1;try{_et(b)}finally{window._tripEd=0}};
 const _se=window.saveEdit;window.saveEdit=function(b){const t=T.find(x=>x.bill==b);if(role=='acc'&&t&&(isLocked(t.date)||isLocked(g('m_date'))))return alert('Closed month — this bill cannot be changed.');return _se.apply(this,arguments)};})();
