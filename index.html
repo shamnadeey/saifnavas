@@ -1935,8 +1935,8 @@ const OP=['Money Overview','Alerts','Edit History','Sessions','Permissions','Con
 const ONLY=['Owner Console','Daily Summary','Deleted Items','Audit Log'].concat(OP),XTRA=['Trip Sheet','Invoice','Filter Bills'];
 const TOP=['Owner Console','Money Overview','Alerts','Dashboard','Approvals','Daily Summary','Audit Log','Edit History','Deleted Items','Sessions','Permissions','Controls'];
 const ic='<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>';OP.forEach(n=>{if(!IC[n])IC[n]=ic});
-window.HIDE=[];
-const _sg=window.sessGate;if(_sg)window.sessGate=async function(u,ud){try{window.HIDE=(ud&&ud.exists&&ud.data().hide)||[]}catch(e){window.HIDE=[]}return _sg.apply(this,arguments)};
+window.HIDE=[];window.ADD=[];
+const _sg=window.sessGate;if(_sg)window.sessGate=async function(u,ud){try{window.HIDE=(ud&&ud.exists&&ud.data().hide)||[];window.ADD=(ud&&ud.exists&&ud.data().add)||[]}catch(e){window.HIDE=[];window.ADD=[]}return _sg.apply(this,arguments)};
 window.ownerNav=function(){try{
   if(!window.NAV0)window.NAV0={corp:NAV.corp.slice(),acc:NAV.acc.slice()};
   if(+CF.apl>0&&window.setAPL)setAPL(+CF.apl);
@@ -1947,7 +1947,7 @@ window.ownerNav=function(){try{
     const rest=c.filter(n=>TOP.indexOf(n)<0).concat(XTRA);
     c.length=0;TOP.concat(rest).forEach(n=>c.push(n));
   }else{
-    ['corp','acc'].forEach(k=>{for(let i=NAV[k].length-1;i>=0;i--)if(HIDE.indexOf(NAV[k][i])>=0&&NAV[k].length>1)NAV[k].splice(i,1)});
+    ['corp','acc'].forEach(k=>{for(let i=NAV[k].length-1;i>=0;i--)if(HIDE.indexOf(NAV[k][i])>=0&&NAV[k].length>1)NAV[k].splice(i,1)});(window.ADD||[]).forEach(n=>{if(NAV[role].indexOf(n)<0)NAV[role].push(n)});
   }
 }catch(e){console.error(e)}};
 const denied=()=>{$('#view').innerHTML='<div class="card"><h3>Owner only</h3><p class="note" style="margin-top:6px">This page is only available to the owner account.</p></div>'};
@@ -2016,11 +2016,11 @@ PAGES['Permissions']=async function(){
   $('#view').innerHTML=card('Permissions','<p class="note">Loading…</p>');
   try{const sn=await db.collection('users').get(),rows=sn.docs.map(d=>Object.assign({id:d.id},d.data())).filter(x=>x.id!==OWNER_UID);
   window._pu=rows;
-  $('#view').innerHTML=rows.map((x,i)=>{const pg=(x.role=='admin'?NAV0.corp:NAV0.acc).filter(n=>ONLY.indexOf(n)<0);return card(esc(x.name||x.email||x.id.slice(0,8))+' <span class="note">('+esc(x.role||'-')+')</span>','<div class="oc-row" style="margin-bottom:10px">'+pg.map(n=>'<label style="display:flex;gap:6px;align-items:center;margin-right:14px"><input type="checkbox" data-u="'+i+'" value="'+esc(n)+'"'+((x.hide||[]).indexOf(n)<0?' checked':'')+'> '+esc(n)+'</label>').join('')+'</div><button class="btn au" onclick="permSave('+i+')">Save</button>')}).join('')+'<p class="note">Unticked pages are hidden from that person\u2019s menu at their next sign-in. Rules in Firebase are what truly block data access.</p>'}
+  $('#view').innerHTML=rows.map((x,i)=>{const def=(x.role=='admin'?NAV0.corp:NAV0.acc),pg=[...new Set(NAV0.corp.concat(NAV0.acc))].filter(n=>ONLY.indexOf(n)<0);return card(esc(x.name||x.email||x.id.slice(0,8))+' <span class="note">('+esc(x.role||'-')+')</span>','<div class="oc-row" style="margin-bottom:10px">'+pg.map(n=>'<label style="display:flex;gap:6px;align-items:center;margin-right:14px"><input type="checkbox" data-u="'+i+'" value="'+esc(n)+'"'+((def.indexOf(n)>=0?(x.hide||[]).indexOf(n)<0:(x.add||[]).indexOf(n)>=0)?' checked':'')+'> '+esc(n)+'</label>').join('')+'</div><button class="btn au" onclick="permSave('+i+')">Save</button>')}).join('')+'<p class="note">Ticked pages not in their usual menu are added for them (any Admin or Accountant page). Unticked pages are hidden from that person\u2019s menu at their next sign-in. Rules in Firebase are what truly block data access.</p>'}
   catch(e){$('#view').innerHTML=card('Permissions','<p class="note">Could not load: '+esc(e.code||e.message)+'</p>')}
 };
-window.permSave=function(i){if(!own())return;const x=window._pu[i],hide=[...document.querySelectorAll('input[data-u="'+i+'"]')].filter(c=>!c.checked).map(c=>c.value);
-  need(async()=>{try{await db.collection('users').doc(x.id).set({hide:hide},{merge:true});lg('Permissions changed',(x.name||x.email||x.id)+' · hidden: '+(hide.join(', ')||'none'));toast('Saved')}catch(e){alert('Could not save: '+(e.code||e.message))}})};
+window.permSave=function(i){if(!own())return;const x=window._pu[i],def=(x.role=='admin'?NAV0.corp:NAV0.acc),cb=[...document.querySelectorAll('input[data-u]')].filter(c=>c.dataset.u==i),add=cb.filter(c=>c.checked&&def.indexOf(c.value)<0).map(c=>c.value),hide=[...document.querySelectorAll('input[data-u="'+i+'"]')].filter(c=>!c.checked&&def.indexOf(c.value)>=0).map(c=>c.value);
+  need(async()=>{try{await db.collection('users').doc(x.id).set({hide:hide,add:add},{merge:true});lg('Permissions changed',(x.name||x.email||x.id)+' · hidden: '+(hide.join(', ')||'none')+' · added: '+(add.join(', ')||'none'));toast('Saved')}catch(e){alert('Could not save: '+(e.code||e.message))}})};
 /* ---- Controls ---- */
 PAGES['Controls']=function(){
   $('#view').innerHTML=card('Approval limit','<p class="note" style="margin-bottom:8px">Payments above this amount need approval before they are recorded.</p><div class="oc-row"><div><label>Limit (AED)</label><input id="ct_a" type="number" min="1" value="'+APLV()+'"></div><button class="btn au" onclick="ctSave()">Save limit</button></div>')+card('Month lock','<p class="note" style="margin-bottom:8px">Closed months cannot be changed by admins or accountants. Closing and reopening a month is done in Owner Console.</p><button class="btn g" onclick="ocJump(\'Owner Console\')">Open Owner Console</button>');
