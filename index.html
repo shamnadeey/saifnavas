@@ -2046,10 +2046,17 @@ window.enter=function(){try{if(own()&&role!='corp')role='corp'}catch(e){}if(stal
 })();
 </script>
 <style id="ts-fix">
-body.tsfull #view>.card:has(#fb){flex:none!important;display:block!important;min-height:auto!important;overflow:visible!important}
-body.tsfull #view{overflow-y:auto!important;display:block!important}
-body.tsfull #view .sum{position:sticky;bottom:0;z-index:30;background:var(--bg,#f4f6fb)!important;border:1px solid #dbe2ee;box-shadow:0 -8px 16px rgba(15,23,42,.10)}
-body.tsfull #wbrow{margin-bottom:10px}
+input:not([type]),input[type=text],input[type=search],input[type=tel],textarea{text-transform:uppercase}
+input::placeholder,textarea::placeholder{text-transform:none}
+#tsx{display:none}
+body.tsfull,body.tsfull #app{overflow:hidden!important}
+body.tsfull aside{display:none!important}
+body.tsfull #tsx{display:block;position:fixed;top:10px;right:14px;z-index:60;width:auto}
+body.tsfull main>.top{padding-right:150px}
+body.tsfull #view{overflow:hidden!important;display:flex!important;flex-direction:column}
+body.tsfull #view>.card:has(#fb){flex:none!important;display:block!important;min-height:0!important;overflow:visible!important}
+body.tsfull #view .sum{position:static}
+body.tsfull #m .md{max-height:none!important;overflow:visible!important}
 </style>
 <script id="out-drivers">
 IC['Outside Drivers']=IC['Companies & Drivers']||'<circle cx="12" cy="12" r="9"/>';
@@ -2067,11 +2074,50 @@ function odPaySave(){const d=window._od,a=+g('op_a');if(!(a>0))return alert('Ent
 function odPayDel(d,id){if(!confirm('Delete this payment record? Ledger entries are not changed.'))return;DI[d].pays=(DI[d].pays||[]).filter(p=>p.id!=id);lg('Outside driver payment removed',d);save();odView(d);outV()}
 function odView(d){const ts=odTrips(d).slice().sort((a,b)=>String(b.date).localeCompare(String(a.date))),ps=(DI[d].pays||[]),q=esc(d).replace(/'/g,"&#39;");
 modal(`<h3>${esc(d)} · statement</h3><p class="note" style="margin:4px 0 10px">Earned AED ${fmt(odEarn(d))} · Paid AED ${fmt(odPaid(d))} · Due AED ${fmt(odEarn(d)-odPaid(d))}</p><div style="max-height:46vh;overflow:auto">`+tb(['Bill','Date','Type','Company','Route','Batha','Bonus'],ts.map(t=>`<tr><td>${esc(t.bill)}</td><td>${esc(t.date)}</td><td>${esc(t.cat||'Company')}</td><td>${esc(t.company)}</td><td>${route(t)}</td><td class="num">${fmt(+t.batha||0)}</td><td class="num">${fmt(+t.wb||0)}</td></tr>`),[5,6])+`<h4 style="margin:12px 0 6px">Payments</h4>`+tb(['Date','Amount','From','Note',''],ps.map(p=>`<tr><td>${esc(p.date)}</td><td class="num">${fmt(p.amt)}</td><td>${esc(p.mode||'')}</td><td>${esc(p.note||'')}</td><td><button class="btn g" onclick="odPayDel('${q}',${p.id})">Delete</button></td></tr>`),[1])+`</div><div style="margin-top:12px"><button class="btn g" onclick="cm()">Close</button></div>`)}
-function dupPop(b){const t=T.find(x=>x.bill==b);if(!t)return false;const lk=isLocked(t.date);modal(`<h3>Bill ${esc(b)} is already entered</h3><p class="note" style="margin:4px 0 12px">${lk?'This bill is in a closed month and cannot be edited.':'Do not enter it again — edit the existing bill instead.'}</p><div class="fg" style="margin-bottom:12px"><div><label>DATE</label><div>${esc(t.date)}</div></div><div><label>COMPANY</label><div>${esc(t.company)}</div></div><div><label>CUSTOMER</label><div>${esc(t.customer)}</div></div><div><label>DRIVER</label><div>${esc(t.driver)}</div></div><div><label>VEHICLE</label><div>${esc(t.vehicle)}</div></div><div><label>ROUTE</label><div>${route(t)}</div></div><div><label>BILLED (AED)</label><div>${fmt(amt(t))}</div></div></div><div style="display:flex;gap:8px">${lk?'':`<button class="btn au" onclick="cm();editTrip(${esc(b)})">Edit this bill</button>`}<button class="btn g" onclick="cm()">Close</button></div>`);return true}
-(function(){const _st=window.saveTrip;window.saveTrip=function(){const b=+g('fb');if(b>0&&T.some(x=>x.bill==b))return dupPop(b);return _st.apply(this,arguments)};
-document.addEventListener('change',e=>{if(e.target&&e.target.id=='fb'){const b=+e.target.value;if(b>0&&T.some(x=>x.bill==b))dupPop(b)}});
+const _TOK=t=>String(t==null?'':t).trim().toUpperCase();
+function dupWarn(){const b=+g('fb'),d=g('fd'),co=persOn()?'PERSONAL':g('fc'),f=_TOK(g('ff')),t=_TOK(g('ft')),a=(+g('c1')||0)+(+g('c2')||0)+(+g('c3')||0);
+return T.filter(x=>x.bill!=b&&x.date==d&&_TOK(x.company)==_TOK(co)).map(x=>{const r=[];if(f&&t&&_TOK(x.from)==f&&_TOK(x.to)==t)r.push('same route');if(a>0&&amt(x)==a)r.push('same amount');return r.length?{x,r}:null}).filter(Boolean)}
+function dupShow(w){modal(`<h3>⚠ Possible double entry</h3><p class="note" style="margin:4px 0 10px">Same date and company already has a similar entry:</p>`+tb(['Bill','Date','Route','Amount','Match'],w.slice(0,5).map(({x,r})=>`<tr><td>${esc(x.bill)}</td><td>${esc(x.date)}</td><td>${route(x)}</td><td class="num">${fmt(amt(x))}</td><td>${r.join(' + ')}</td></tr>`),[3])+`<div style="margin-top:12px;display:flex;gap:8px"><button class="btn au" onclick="dupGo()">Save anyway</button><button class="btn g" onclick="cm()">Go back</button></div>`)}
+function dupGo(){window._dupOk=1;cm();saveTrip()}
+function setEditUI(on){const h=document.querySelector('#view .card h3'),sb=E('svb');if(h)h.textContent=on?'Edit Trip Entry · Bill '+window._editBill:'New Trip Entry';if(sb)sb.textContent=on?'Update Trip':'Save Trip';if(!on)window._editBill=null}
+function loadBill(b){const t=T.find(x=>x.bill==b);if(!t)return false;
+if(role=='acc'&&isLocked(t.date)){alert('Bill '+b+' is in a closed month and cannot be edited.');E('fb').value=bill;return false}
+const set=(id,v)=>{const e=E(id);if(!e)return false;if(e.type=='checkbox'){e.checked=!!v;return true}if(e.tagName=='SELECT'){if([...e.options].some(o=>o.value==v)){e.value=v;return true}return false}e.value=v==null?'':v;return true};
+const pers=t.company=='PERSONAL';set('ftm',t.cat&&t.cat!='Outsider'?t.cat:'Local');if(t.cat!='Outsider'&&!t.cat)set('ftm','Company');set('fpers',pers);tmApply();
+set('fb',t.bill);set('fd',t.date);if(!pers)set('fc',t.company);set('fcu',t.customer=='-'?'':t.customer);set('fcid',t.cid||'');set('fdp',t.dept||'');
+if(!set('fdr',t.driver)){set('fdr','__o');set('fdo',t.driver)}if(!set('fv',t.vehicle)){set('fv','__v');set('fvo',t.vehicle)}
+set('fty',t.type);set('ftn',t.tn||'');set('ff',t.from);set('ft',t.to);set('ff2',t.from2||'');set('ft2',t.to2||'');
+set('c1',t.charge);set('c2',t.parking);set('c3',t.salik);set('e1',t.fuel);set('e3',t.batha);set('e4',t.other);set('wbx',+t.wb>0);set('wb',t.wb||0);set('wbn',t.wbn||'');
+set('fpm',t.pm=='Bank'?'bank':t.pm=='Cash'?(t.cs=='Received'?'cash':'pend'):'credit');set('fut',t.tx||'');set('fra',t.ra!=null?t.ra:'');
+if(t.type=='Round')rtEdited=true;tmApply();rtShow();wbShow(1);dtBadge();custReq();calc(1);window._editBill=+b;setEditUI(true);toast('Bill '+b+' loaded — edit and press Update Trip');return true}
+(function(){const _sh=window.sheet;window.sheet=function(){window._editBill=null;return _sh.apply(this,arguments)};
+document.addEventListener('change',e=>{if(!e.target||e.target.id!='fb')return;const b=+e.target.value;if(b>0&&T.some(x=>x.bill==b)){if(window._editBill!=b)loadBill(b)}else if(window._editBill)setEditUI(false)});
+const _st=window.saveTrip;window.saveTrip=function(){const b=+g('fb');
+if(role=='acc'&&isLocked(g('fd')))return alert('That date is in a closed month — entries cannot be added or changed there.');
+const old=window._editBill==b?T.find(x=>x.bill==b):null;
+if(!old&&b>0&&T.some(x=>x.bill==b)){loadBill(b);return}
+if(!old){if(!window._dupOk){const w=dupWarn();if(w.length){dupShow(w);return}}window._dupOk=0;return _st.apply(this,arguments)}
+const idx=T.indexOf(old),cl0=CL.slice(),bl0=BL.slice(),nb=bill;unlink('T'+b);T.splice(idx,1);
+_st.apply(this,arguments);const nt=T.find(x=>x.bill==b);
+if(!nt){T.splice(idx,0,old);CL.splice(0,CL.length,...cl0);BL.splice(0,BL.length,...bl0);bill=nb;return}
+const skip=['pm','cs','tx','cdt','ra','rp','paid','tm'];Object.keys(old).forEach(k=>{if(!(k in nt)&&skip.indexOf(k)<0)nt[k]=old[k]});
+T.splice(T.indexOf(nt),1);T.splice(idx,0,nt);
+if(old.cdt&&nt.cdt&&nt.pm==old.pm){nt.cdt=old.cdt;[CL,BL].forEach(L=>L.forEach(l=>{if(l.lk=='T'+b)l.date=old.cdt}))}
+bill=nb;const fe=E('fb');if(fe)fe.value=nb;window._editBill=null;
+lg('Trip edited','Bill '+b+' updated from trip sheet · cash ledger / bank synced');save();toast('Bill '+b+' updated · cash ledger & bank synced')};
 const _need=window.need;window.need=function(cb){if(role=='acc'&&window._tripEd)return cb();return _need.apply(this,arguments)};
 const _et=window.editTrip;window.editTrip=function(b){const t=T.find(x=>x.bill==b);if(!t)return alert('Bill not found');if(role=='acc'&&isLocked(t.date))return alert('This bill is in a closed month and can no longer be edited.');window._tripEd=1;try{_et(b)}finally{window._tripEd=0}};
 const _se=window.saveEdit;window.saveEdit=function(b){const t=T.find(x=>x.bill==b);if(role=='acc'&&t&&(isLocked(t.date)||isLocked(g('m_date'))))return alert('Closed month — this bill cannot be changed.');return _se.apply(this,arguments)};})();
+
+/* auto capitals, full-screen trip sheet fit */
+document.addEventListener('input',e=>{const el=e.target;if(!el||!(el.tagName=='INPUT'||el.tagName=='TEXTAREA'))return;const ty=(el.type||'text').toLowerCase();if(el.tagName=='INPUT'&&['text','search','tel'].indexOf(ty)<0)return;if(/mail|pass|pwd|otp|token/i.test((el.id||'')+(el.name||'')+(el.autocomplete||'')))return;const v=el.value,u=v.toUpperCase();if(v!==u){const a=el.selectionStart,b=el.selectionEnd;el.value=u;try{el.setSelectionRange(a,b)}catch(_){}}},true);
+window.tsExit=function(){document.body.classList.remove('tsfull');const i=NAV[role].findIndex(n=>n!='Trip Sheet');go(Math.max(i,0))};
+(function(){const bt=document.createElement('button');bt.id='tsx';bt.className='btn g';bt.textContent='✕ Exit trip sheet';bt.onclick=tsExit;document.body.appendChild(bt);
+const fit=(el,av)=>{let z=1;for(let i=0;i<5;i++){el.style.zoom=z;const h=el.getBoundingClientRect().height;if(h<=av+1)break;z=Math.max(.4,z*av/h*.99)}};
+function tsFit(){if(!document.body.classList.contains('tsfull'))return;const v=document.getElementById('view');if(!v)return;const c=[...v.children].find(x=>x.querySelector&&x.querySelector('#fb'));
+if(c){c.style.zoom=1;let o=0;[...v.children].forEach(x=>{if(x!==c)o+=x.getBoundingClientRect().height});fit(c,v.getBoundingClientRect().height-o-6)}
+const m=document.querySelector('#m .md');if(m&&m.parentNode.style.display!='none'){m.style.zoom=1;fit(m,innerHeight*.94)}}
+let q=0;const sch=()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;try{tsFit()}catch(e){}})};
+new MutationObserver(sch).observe(document.body,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});addEventListener('resize',sch);document.addEventListener('change',sch,true)})();
 </script>
 </body></html>
