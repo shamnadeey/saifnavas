@@ -2059,6 +2059,7 @@ body.tsfull #view .sum{position:static}
 body.tsfull #m .md{max-height:none!important;overflow:visible!important}
 </style>
 <script id="out-drivers">
+const _E=id=>document.getElementById(id);
 IC['Outside Drivers']=IC['Companies & Drivers']||'<circle cx="12" cy="12" r="9"/>';
 const odTrips=d=>T.filter(t=>t.driver==d),odEarn=d=>sum(odTrips(d),t=>(+t.batha||0)+(+t.wb||0)),odPaid=d=>sum((DI[d]&&DI[d].pays)||[],p=>+p.amt||0);
 function outV(){const od=DR.filter(isOut),ym=today().slice(0,7);
@@ -2079,10 +2080,10 @@ function dupWarn(){const b=+g('fb'),d=g('fd'),co=persOn()?'PERSONAL':g('fc'),f=_
 return T.filter(x=>x.bill!=b&&x.date==d&&_TOK(x.company)==_TOK(co)).map(x=>{const r=[];if(f&&t&&_TOK(x.from)==f&&_TOK(x.to)==t)r.push('same route');if(a>0&&amt(x)==a)r.push('same amount');return r.length?{x,r}:null}).filter(Boolean)}
 function dupShow(w){modal(`<h3>⚠ Possible double entry</h3><p class="note" style="margin:4px 0 10px">Same date and company already has a similar entry:</p>`+tb(['Bill','Date','Route','Amount','Match'],w.slice(0,5).map(({x,r})=>`<tr><td>${esc(x.bill)}</td><td>${esc(x.date)}</td><td>${route(x)}</td><td class="num">${fmt(amt(x))}</td><td>${r.join(' + ')}</td></tr>`),[3])+`<div style="margin-top:12px;display:flex;gap:8px"><button class="btn au" onclick="dupGo()">Save anyway</button><button class="btn g" onclick="cm()">Go back</button></div>`)}
 function dupGo(){window._dupOk=1;cm();saveTrip()}
-function setEditUI(on){const h=document.querySelector('#view .card h3'),sb=E('svb');if(h)h.textContent=on?'Edit Trip Entry · Bill '+window._editBill:'New Trip Entry';if(sb)sb.textContent=on?'Update Trip':'Save Trip';if(!on)window._editBill=null}
+function setEditUI(on){const h=document.querySelector('#view .card h3'),sb=_E('svb');if(h)h.textContent=on?'Edit Trip Entry · Bill '+window._editBill:'New Trip Entry';if(sb)sb.textContent=on?'Update Trip':'Save Trip';if(!on)window._editBill=null}
 function loadBill(b){const t=T.find(x=>x.bill==b);if(!t)return false;
-if(role=='acc'&&isLocked(t.date)){alert('Bill '+b+' is in a closed month and cannot be edited.');E('fb').value=bill;return false}
-const set=(id,v)=>{const e=E(id);if(!e)return false;if(e.type=='checkbox'){e.checked=!!v;return true}if(e.tagName=='SELECT'){if([...e.options].some(o=>o.value==v)){e.value=v;return true}return false}e.value=v==null?'':v;return true};
+if(role=='acc'&&isLocked(t.date)){alert('Bill '+b+' is in a closed month and cannot be edited.');_E('fb').value=bill;return false}
+const set=(id,v)=>{const e=_E(id);if(!e)return false;if(e.type=='checkbox'){e.checked=!!v;return true}if(e.tagName=='SELECT'){if([...e.options].some(o=>o.value==v)){e.value=v;return true}return false}e.value=v==null?'':v;return true};
 const pers=t.company=='PERSONAL';set('ftm',t.cat&&t.cat!='Outsider'?t.cat:'Local');if(t.cat!='Outsider'&&!t.cat)set('ftm','Company');set('fpers',pers);tmApply();
 set('fb',t.bill);set('fd',t.date);if(!pers)set('fc',t.company);set('fcu',t.customer=='-'?'':t.customer);set('fcid',t.cid||'');set('fdp',t.dept||'');
 if(!set('fdr',t.driver)){set('fdr','__o');set('fdo',t.driver)}if(!set('fv',t.vehicle)){set('fv','__v');set('fvo',t.vehicle)}
@@ -2091,7 +2092,7 @@ set('c1',t.charge);set('c2',t.parking);set('c3',t.salik);set('e1',t.fuel);set('e
 set('fpm',t.pm=='Bank'?'bank':t.pm=='Cash'?(t.cs=='Received'?'cash':'pend'):'credit');set('fut',t.tx||'');set('fra',t.ra!=null?t.ra:'');
 window._editBill=+b;if(t.type=='Round')try{rtEdited=true}catch(_){}[tmApply,rtShow,()=>wbShow(1),dtBadge,custReq,()=>calc(1)].forEach(f=>{try{f()}catch(_){}});setEditUI(true);toast('Bill '+b+' loaded — edit and press Update Trip');return true}
 (function(){const _sh=window.sheet;window.sheet=function(){window._editBill=null;return _sh.apply(this,arguments)};
-const chkBill=()=>{try{const f=E('fb');if(!f)return;const b=+f.value;if(b>0&&T.some(x=>x.bill==b)){if(window._editBill!=b)loadBill(b)}else if(window._editBill)setEditUI(false)}catch(err){alert('Could not load this bill: '+err.message)}};
+const chkBill=()=>{try{const f=_E('fb');if(!f)return;const b=+f.value;if(b>0&&T.some(x=>x.bill==b)){if(window._editBill!=b)loadBill(b)}else if(window._editBill)setEditUI(false)}catch(err){console.error(err);toast('Could not load this bill: '+err.message)}};
 let _bt;['change','focusout'].forEach(n=>document.addEventListener(n,e=>{if(e.target&&e.target.id=='fb')chkBill()},true));
 document.addEventListener('input',e=>{if(e.target&&e.target.id=='fb'){clearTimeout(_bt);_bt=setTimeout(chkBill,600)}},true);
 document.addEventListener('keydown',e=>{if(e.target&&e.target.id=='fb'&&e.key=='Enter')chkBill()},true);
@@ -2106,7 +2107,7 @@ if(!nt){T.splice(idx,0,old);CL.splice(0,CL.length,...cl0);BL.splice(0,BL.length,
 const skip=['pm','cs','tx','cdt','ra','rp','paid','tm'];Object.keys(old).forEach(k=>{if(!(k in nt)&&skip.indexOf(k)<0)nt[k]=old[k]});
 T.splice(T.indexOf(nt),1);T.splice(idx,0,nt);
 if(old.cdt&&nt.cdt&&nt.pm==old.pm){nt.cdt=old.cdt;[CL,BL].forEach(L=>L.forEach(l=>{if(l.lk=='T'+b)l.date=old.cdt}))}
-bill=nb;const fe=E('fb');if(fe)fe.value=nb;window._editBill=null;
+bill=nb;const fe=_E('fb');if(fe)fe.value=nb;window._editBill=null;
 lg('Trip edited','Bill '+b+' updated from trip sheet · cash ledger / bank synced');save();toast('Bill '+b+' updated · cash ledger & bank synced')};
 const _need=window.need;window.need=function(cb){if(role=='acc'&&window._tripEd)return cb();return _need.apply(this,arguments)};
 const _et=window.editTrip;window.editTrip=function(b){const t=T.find(x=>x.bill==b);if(!t)return alert('Bill not found');if(role=='acc'&&isLocked(t.date))return alert('This bill is in a closed month and can no longer be edited.');window._tripEd=1;try{_et(b)}finally{window._tripEd=0}};
