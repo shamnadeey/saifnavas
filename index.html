@@ -2089,9 +2089,12 @@ if(!set('fdr',t.driver)){set('fdr','__o');set('fdo',t.driver)}if(!set('fv',t.veh
 set('fty',t.type);set('ftn',t.tn||'');set('ff',t.from);set('ft',t.to);set('ff2',t.from2||'');set('ft2',t.to2||'');
 set('c1',t.charge);set('c2',t.parking);set('c3',t.salik);set('e1',t.fuel);set('e3',t.batha);set('e4',t.other);set('wbx',+t.wb>0);set('wb',t.wb||0);set('wbn',t.wbn||'');
 set('fpm',t.pm=='Bank'?'bank':t.pm=='Cash'?(t.cs=='Received'?'cash':'pend'):'credit');set('fut',t.tx||'');set('fra',t.ra!=null?t.ra:'');
-if(t.type=='Round')rtEdited=true;tmApply();rtShow();wbShow(1);dtBadge();custReq();calc(1);window._editBill=+b;setEditUI(true);toast('Bill '+b+' loaded — edit and press Update Trip');return true}
+window._editBill=+b;if(t.type=='Round')try{rtEdited=true}catch(_){}[tmApply,rtShow,()=>wbShow(1),dtBadge,custReq,()=>calc(1)].forEach(f=>{try{f()}catch(_){}});setEditUI(true);toast('Bill '+b+' loaded — edit and press Update Trip');return true}
 (function(){const _sh=window.sheet;window.sheet=function(){window._editBill=null;return _sh.apply(this,arguments)};
-document.addEventListener('change',e=>{if(!e.target||e.target.id!='fb')return;const b=+e.target.value;if(b>0&&T.some(x=>x.bill==b)){if(window._editBill!=b)loadBill(b)}else if(window._editBill)setEditUI(false)});
+const chkBill=()=>{try{const f=E('fb');if(!f)return;const b=+f.value;if(b>0&&T.some(x=>x.bill==b)){if(window._editBill!=b)loadBill(b)}else if(window._editBill)setEditUI(false)}catch(err){alert('Could not load this bill: '+err.message)}};
+let _bt;['change','focusout'].forEach(n=>document.addEventListener(n,e=>{if(e.target&&e.target.id=='fb')chkBill()},true));
+document.addEventListener('input',e=>{if(e.target&&e.target.id=='fb'){clearTimeout(_bt);_bt=setTimeout(chkBill,600)}},true);
+document.addEventListener('keydown',e=>{if(e.target&&e.target.id=='fb'&&e.key=='Enter')chkBill()},true);
 const _st=window.saveTrip;window.saveTrip=function(){const b=+g('fb');
 if(role=='acc'&&isLocked(g('fd')))return alert('That date is in a closed month — entries cannot be added or changed there.');
 const old=window._editBill==b?T.find(x=>x.bill==b):null;
