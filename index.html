@@ -1031,7 +1031,7 @@ function dash(){const KC=(l,n,c,red)=>`<div class="k" style="--c:${c}"><small>${
 $('#view').innerHTML=`<div class="kp"><div class="k" style="--c:var(--gold)"><small>Total Revenue</small><b style="color:var(--ok)">AED <span data-n="${esc(s.rev)}">${fmt(s.rev)}</span></b></div><div class="k"><small>Our Expenses</small><b style="color:var(--bad)">AED <span data-n="${esc(s.ex)}">${fmt(s.ex)}</span></b></div><div class="k" style="--c:var(--ok)"><small>Net Profit (before salary)</small><b style="color:${s.rev-s.ex>=0?'var(--ok)':'var(--bad)'}">AED <span data-n="${s.rev-s.ex}">${fmt(s.rev-s.ex)}</span></b></div><div class="k" style="--c:var(--ok)"><small>Net Profit (after salary)</small><b style="color:${s.rev-s.ex-SL>=0?'var(--ok)':'var(--bad)'}">AED <span data-n="${s.rev-s.ex-SL}">${fmt(s.rev-s.ex-SL)}</span></b></div><div class="k" style="--c:#6941c6"><small>Completed Trips</small><b><span data-n="${esc(s.n)}">${esc(s.n)}</span></b></div><div class="k" style="--c:var(--bad)"><small>Outstanding</small><b style="color:var(--bad)">AED <span data-n="${esc(s.out)}">${fmt(s.out)}</span></b></div>${KC('Total payroll this month (Salary page)',SG,'var(--bad)',1)}${KC('This month profit (before payroll)',MS.rev-MS.ex,'var(--ok)')}${KC('This month profit (after payroll)',MS.rev-MS.ex-SM,'var(--ok)')}${K('Pending deposit (with drivers)',PD,'var(--gold)','AED ')}${K('Cash in hand',bal(CL),'var(--ok)','AED ')}${K('Available bank balance',bal(BL),'#2563eb','AED ')}</div>
 <p class="note" style="margin:0 0 10px">Total payroll = the same total shown on the Salary page for the current month (net salary of all company drivers). Profit after payroll = profit before payroll − total payroll. Green = profit, red = loss or cost.</p><div class="card"><h3>Revenue vs Expense — ${YR}</h3><p class="note" style="margin:4px 0 8px">Blue: revenue · Grey: expense incl. salary</p><div class="chart">${ms.map((x,i)=>`<div class="col"><div class="bars"><i style="height:${x.rev/mx*100}%"></i><i style="height:${x.ex/mx*100}%"></i></div><small>${M[i]}</small></div>`).join('')}</div></div>`}
 function stmt(){const rows=mode=='Monthly'?M.map((m,i)=>[m+' '+YR,T.filter(t=>t.date.slice(0,4)==YR&&+t.date.slice(5,7)==i+1),salGross(YR,i+1),salCost(YR,i+1)]):[[''+YR,T.filter(t=>t.date.slice(0,4)==YR),salGrossYear(YR),salYear(YR)],[''+(YR-1),T.filter(t=>t.date.slice(0,4)==YR-1),salGrossYear(YR-1),salYear(YR-1)]];let R=0,E=0,N=0,O=0,S=0;
-$('#view').innerHTML=`<div class="card"><div class="top" style="margin-bottom:14px"><div class="tabs"><span class="${mode=='Monthly'?'on':''}" onclick="mode='Monthly';stmt()">Monthly</span><span class="${mode=='Yearly'?'on':''}" onclick="mode='Yearly';stmt()">Yearly</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn au" onclick="pdfDoc('stmt')">Download PDF</button><button class="btn au" onclick="pdfDoc('bal')">Download Balance Sheet</button></div></div><h3 style="margin-bottom:10px">Consolidated ${mode} Statement</h3>`+tbl(['Period','Trips','Revenue','Expense','Salary','Profit','Outstanding'],rows.map(([p,a,sl,sa])=>{const s=stats(a);s.ex=Math.round((s.ex-(sl-sa))*100)/100;const pf=s.rev-s.ex-sl;R+=s.rev;E+=s.ex;N+=s.n;O+=s.out;S+=sl;return`<tr><td><b>${p}</b></td><td>${esc(s.n)}</td><td class="num">${fmt(s.rev)}</td><td class="num">${fmt(s.ex)}</td><td class="num">${fmt(sl)}</td><td class="num" style="color:${pf>=0?'var(--ok)':'var(--bad)'}">${fmt(pf)}</td><td class="num">${fmt(s.out)}</td></tr>`}))+`<div class="sum" style="margin-top:14px"><span><small>Trips</small><b>${N}</b></span><span><small>Revenue</small><b>${fmt(R)}</b></span><span><small>Expense</small><b>${fmt(E)}</b></span><span><small>Salary</small><b>${fmt(S)}</b></span><span><small>Net profit</small><b>${fmt(R-E-S)}</b></span><span><small>Outstanding</small><b>${fmt(O)}</b></span></div><p class="note" style="margin-top:8px">Profit = revenue − trip expenses − salary. Salary = total payroll of the month, same as the Salary tab (net salary of company drivers). Profit = revenue − expense − salary.</p></div>`}
+$('#view').innerHTML=`<div class="card"><div class="top" style="margin-bottom:14px"><div class="tabs"><span class="${mode=='Monthly'?'on':''}" onclick="mode='Monthly';stmt()">Monthly</span><span class="${mode=='Yearly'?'on':''}" onclick="mode='Yearly';stmt()">Yearly</span></div><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn au" onclick="pdfDoc('stmt')">Download PDF</button></div></div><h3 style="margin-bottom:10px">Consolidated ${mode} Statement</h3>`+tbl(['Period','Trips','Revenue','Expense','Salary','Profit','Outstanding'],rows.map(([p,a,sl,sa])=>{const s=stats(a);s.ex=Math.round((s.ex-(sl-sa))*100)/100;const pf=s.rev-s.ex-sl;R+=s.rev;E+=s.ex;N+=s.n;O+=s.out;S+=sl;return`<tr><td><b>${p}</b></td><td>${esc(s.n)}</td><td class="num">${fmt(s.rev)}</td><td class="num">${fmt(s.ex)}</td><td class="num">${fmt(sl)}</td><td class="num" style="color:${pf>=0?'var(--ok)':'var(--bad)'}">${fmt(pf)}</td><td class="num">${fmt(s.out)}</td></tr>`}))+`<div class="sum" style="margin-top:14px"><span><small>Trips</small><b>${N}</b></span><span><small>Revenue</small><b>${fmt(R)}</b></span><span><small>Expense</small><b>${fmt(E)}</b></span><span><small>Salary</small><b>${fmt(S)}</b></span><span><small>Net profit</small><b>${fmt(R-E-S)}</b></span><span><small>Outstanding</small><b>${fmt(O)}</b></span></div><p class="note" style="margin-top:8px">Profit = revenue − trip expenses − salary. Salary = total payroll of the month, same as the Salary tab (net salary of company drivers). Profit = revenue − expense − salary.</p></div>`}
 function comp(){const by=(k,L)=>tbl([k,'Trips','Revenue','Expense','Profit','Outstanding'],L.map(c=>{const s=stats(T.filter(t=>t[k.toLowerCase()]==c));return`<tr><td><b>${c}${k=='Driver'&&isOut(c)?' (outsider)':''}</b></td><td>${esc(s.n)}</td><td class="num">${fmt(s.rev)}</td><td class="num">${fmt(s.ex)}</td><td class="num">${fmt(s.rev-s.ex-(k=='Driver'&&!isOut(c)?salDrvAll(c):0))}</td><td class="num">${fmt(s.out)}</td></tr>`}));
 $('#view').innerHTML=[['Company',COX()],['Driver',DR],['Vehicle',VE]].map(([k,v])=>`<div class="card"><h3 style="margin-bottom:10px">${k}-wise Report</h3>${by(k,v)}</div>`).join('')}
 
@@ -2159,14 +2159,15 @@ const salW=w=>w.net,gW=w=>w.net;
 let C=null,Ct=0;
 function calc(){const fk={};let mx=kOf(today());
  let k0=1e9;T.forEach(t=>{const k=kOf(t.date);if(k<k0)k0=k;if(k>mx)mx=k});if(k0<1e9)DR.forEach(d=>{if(!isOut(d))fk[d]=k0});
- const R={m:{},g:{},d:{},tot:0};
- for(const d in fk){for(let k=fk[d];k<=mx;k++){let c=0,gg=0;try{const w=salary(d,k%12+1,Math.floor(k/12));c=salW(w);gg=gW(w)}catch(e){}R.g[k]=(R.g[k]||0)+gg;R.m[k]=(R.m[k]||0)+c;R.d[d]=(R.d[d]||0)+c;R.tot+=c}}
+ const R={m:{},g:{},pk:{},d:{},tot:0};
+ for(const d in fk){for(let k=fk[d];k<=mx;k++){let c=0,gg=0,pp=0;try{const w=salary(d,k%12+1,Math.floor(k/12));c=salW(w);gg=gW(w);pp=w.pk||0}catch(e){}R.g[k]=(R.g[k]||0)+gg;R.pk[k]=(R.pk[k]||0)+pp;R.m[k]=(R.m[k]||0)+c;R.d[d]=(R.d[d]||0)+c;R.tot+=c}}
  return R}
 const get=()=>{if(!C||Date.now()-Ct>500){C=calc();Ct=Date.now()}return C};
 window.salCost=(y,m)=>r2(get().m[y*12+m-1]||0);
 window.salYear=y=>{let s=0;for(let m=1;m<=12;m++)s+=get().m[y*12+m-1]||0;return r2(s)};
 window.salGross=(y,m)=>r2(get().g[y*12+m-1]||0);
 window.salGrossYear=y=>{let s=0;for(let m=1;m<=12;m++)s+=get().g[y*12+m-1]||0;return r2(s)};
+window.salPk=(y,m)=>r2(get().pk[y*12+m-1]||0);
 window.salAllTime=()=>r2(get().tot);
 window.salDrvAll=d=>r2(get().d[d]||0);
 
@@ -2242,6 +2243,181 @@ setInterval(()=>{try{const t=document.getElementById('ttl');if(!t||t.textContent
  const sig=[T.length,sum(T,amt),sum(T,exp),salAllTime(),sum(T.filter(x=>x.pm=='Cash'&&x.cs=='Pending'),pendA),bal(CL),bal(BL)].join('|');
  if(window.__dsig===undefined){window.__dsig=sig;return}
  if(sig!==window.__dsig){window.__dsig=sig;dash();countUp()}}catch(e){}},5000);
+})();
+</script>
+<script id="fs-pack">
+(function(){
+const r2=x=>Math.round((+x||0)*100)/100,R0=x=>Math.round(+x||0),N=(o,k)=>+(o&&o[k])||0;
+const MF=['January','February','March','April','May','June','July','August','September','October','November','December'];
+const p2=n=>String(n).padStart(2,'0'),$$=id=>document.getElementById(id);
+/* ---- extra expense categories (what must be picked when an expense is recorded) ---- */
+(function(){const o=EXC.indexOf('Other');if(o>=0)EXC.splice(o,1);['Telephone / internet','Visa expenses','Printing & stationery','Discount allowed','Rent / premises','Government & licence fees','Legal & professional','Other'].forEach(c=>{if(!EXC.includes(c))EXC.push(c)})})();
+/* ---- P&L engine ---- */
+const PL=[['sal','Salary'],['fuel','Fuel expenses'],['outd','Outside driver payments'],['maint','Maintenance and other expenses'],['park','Parking'],['rta','RTA charges'],['salik','Salik'],['tel','Telephone expenses'],['disc','Discount allowed'],['visa','Visa expenses'],['ins','Insurance'],['print','Printing and stationery'],['rent','Rent and premises'],['gov','Government and licence fees'],['legal','Legal and professional fees']];
+const CAT={fuel:['Petrol / Fuel'],maint:['Car maintenance','Tyres & service','Car wash','Fines','Other'],park:['Parking'],rta:['Registration / RTA'],salik:['Salik'],tel:['Telephone / internet'],disc:['Discount allowed'],visa:['Visa expenses'],ins:['Insurance'],print:['Printing & stationery','Office'],rent:['Rent / premises'],gov:['Government & licence fees'],legal:['Legal & professional']};
+const ALW=['sal','fuel','outd','maint','park','rta','salik','tel','disc','visa','ins','print'];
+function plM(y,m){const pm=y+'-'+p2(m),tr=T.filter(t=>String(t.date).slice(0,7)==pm),ex=EXP.filter(x=>String(x.date).slice(0,7)==pm);
+ const eC=k=>sum(ex.filter(x=>CAT[k].includes(x.cat)),x=>+x.amt||0),o={inc:sum(tr,amt)};
+ o.sal=r2(salCost(y,m)-salPk(y,m));o.fuel=r2(sum(tr,t=>+t.fuel||0)+eC('fuel'));o.outd=sum(tr.filter(t=>isOut(t.driver)),t=>+t.batha||0);
+ o.maint=r2(sum(tr,t=>+t.other||0)+eC('maint'));o.park=r2(sum(tr,t=>+t.parking||0)+eC('park'));o.salik=r2(sum(tr,t=>+t.salik||0)+eC('salik'));
+ ['rta','tel','disc','visa','ins','print','rent','gov','legal'].forEach(k=>o[k]=eC(k));
+ o.exp=r2(PL.reduce((s,[k])=>s+o[k],0));o.net=r2(o.inc-o.exp);return o}
+function plSum(arr){const o={};['inc','exp','net',...PL.map(x=>x[0])].forEach(k=>o[k]=r2(arr.reduce((s,x)=>s+x[k],0)));return o}
+const plYr=y=>{const a=[];for(let m=1;m<=12;m++)a.push(plM(y,m));return a};
+const plRange=(y,m2)=>plSum(plYr(y).slice(0,m2));
+function actM(a){const h=a.map(o=>o.inc!==0||o.exp!==0),f=h.indexOf(true),l=h.lastIndexOf(true);if(f<0)return[...Array(12).keys()];const r=[];for(let i=f;i<=l;i++)r.push(i);return r}
+const yrs=()=>{const a=[YR];T.forEach(t=>a.push(+String(t.date).slice(0,4)));EXP.forEach(x=>a.push(+String(x.date).slice(0,4)));const lo=Math.min(...a),hi=Math.max(...a),r=[];for(let y=hi;y>=lo;y--)r.push(y);return r};
+const f2=n=>n?(n<0?'('+fmt(-n)+')':fmt(n)):'-',f0=n=>n==null||n===''?'':(n===0?'-':(n<0?'('+Math.abs(n).toLocaleString('en-US')+')':n.toLocaleString('en-US')));
+/* ---- settings store ---- */
+const FK='saifFSM';
+const DEF26={c:{capital:300000,relief:'Y'},p:{accRecv:51270,drvCash:0,recvOther:0,prepaid:14500,bank:129835,cash:6109,otherPay:0,duties:0,salPay:39118,capital:300000,reserve:150000,ownerCur:-546597,retained:675504,relief:'Y',ctPay:0,rev:1149110,cor:180053,ga1:661953,ga2:62411,ga3:3914,ga4:21575,ga5:16924,ga6:8650,ga7:14727},ppe:[['Hp Printer',839],['Vehicles',8326],['Kia Carnival',19188],['H1 Installment',28932],['Camry',94250],['Altima',113854],['Avalone',150923]].map(([n,p])=>({n,c:'',p}))};
+const load=()=>{try{return JSON.parse(localStorage.getItem(FK))||{}}catch(e){return{}}},store=o=>{try{localStorage.setItem(FK,JSON.stringify(o))}catch(e){toast('Could not save on this device')}};
+function cfg(){const S=load();S.co=Object.assign({name:'SAIF NAVAS TRANSPORTS L.L.C',loc:'Fujairah, United Arab Emirates',lic:'62473',licDate:'14 January 2008',auth:'Fujairah municipality',sig:'Authorised signatory'},S.co||{});S.y=S.y||{};return S}
+function getY(S,y){if(!S.y[y])S.y[y]=y==2026?JSON.parse(JSON.stringify(DEF26)):{c:{relief:'Y'},p:{relief:'Y'},ppe:[{n:'',c:'',p:''}]};const Y=S.y[y];Y.c=Y.c||{};Y.p=Y.p||{};Y.ppe=Y.ppe||[];return Y}
+/* ---- page header / footer ---- */
+const NV=[20,40,90];
+function head(d,title,sub){const co=cfg().co,W=d.internal.pageSize.getWidth();d.setFont('helvetica','bold').setFontSize(14).setTextColor(...NV);d.text(String(co.name).toUpperCase(),W/2,16,{align:'center'});d.setFont('helvetica','normal').setFontSize(9).setTextColor(90,90,90);d.text(String(co.loc).toUpperCase(),W/2,21.5,{align:'center'});d.setFont('helvetica','bold').setFontSize(11).setTextColor(...NV);d.text(title,W/2,30,{align:'center'});d.setFont('helvetica','normal').setFontSize(9).setTextColor(90,90,90);if(sub)d.text(sub,W/2,35.5,{align:'center'});return 41}
+function foot(d){const n=d.getNumberOfPages(),W=d.internal.pageSize.getWidth(),H=d.internal.pageSize.getHeight();for(let i=1;i<=n;i++){d.setPage(i);d.setFont('helvetica','normal').setFontSize(8).setTextColor(130,130,130);d.text('Page '+i+' of '+n,W/2,H-8,{align:'center'});if(CO_P.trn)d.text('TRN: '+CO_P.trn,14,H-8)}}
+function sign(d){const co=cfg().co,W=d.internal.pageSize.getWidth(),H=d.internal.pageSize.getHeight();let y=d.lastAutoTable.finalY+10;if(y>H-45){d.addPage();y=30}d.setFont('helvetica','normal').setFontSize(9).setTextColor(60,60,60);d.text('For '+co.name+',',W-14,y,{align:'right'});d.line(W-70,y+17,W-14,y+17);d.text(co.sig||'Authorised signatory',W-14,y+22,{align:'right'})}
+const newDoc=land=>new window.jspdf.jsPDF({orientation:land?'l':'p',unit:'mm',format:'a4'});
+/* ---- P&L PDF ---- */
+function plPdf(y,m){if(!window.jspdf)return toast('PDF engine not loaded');const d=newDoc(!m),a=plYr(y);
+ const nz=k=>a.some(o=>o[k]!==0);const lines=PL.filter(([k])=>ALW.includes(k)||nz(k));
+ const body=[],B=(c,fill)=>({content:c,styles:{fontStyle:'bold',fillColor:fill||[236,240,250]}});
+ let hd,cs={};
+ if(m){const o=a[m-1],ytd=plRange(y,m);hd=['Particulars',MF[m-1]+' '+y,'Year to date (Jan - '+M[m-1]+')'];
+  body.push(['Income from transportation',f2(o.inc),f2(ytd.inc)],[B('Total income'),B(f2(o.inc)),B(f2(ytd.inc))]);
+  lines.forEach(([k,l])=>body.push([l,f2(o[k]),f2(ytd[k])]));
+  body.push([B('Total expenses'),B(f2(o.exp)),B(f2(ytd.exp))],[B('Net profit (before tax)',[255,246,225]),B(f2(o.net),[255,246,225]),B(f2(ytd.net),[255,246,225])]);
+  cs={1:{halign:'right'},2:{halign:'right'}};
+  head(d,'PROFIT AND LOSS ACCOUNT','For the month of '+MF[m-1]+' '+y+'  |  Amounts in AED');
+ }else{const ix=actM(a),tot=plSum(ix.map(i=>a[i]));hd=['Particulars',...ix.map(i=>M[i]+"'"+String(y).slice(2)),'Total'];
+  const row=(l,k,b,fill)=>{const f=b?(c=>B(c,fill)):(c=>c);return[f(l),...ix.map(i=>f(f2(a[i][k]))),f(f2(tot[k]))]};
+  body.push(row('Income from transportation','inc'),row('Total income','inc',1));
+  lines.forEach(([k,l])=>body.push(row(l,k)));
+  body.push(row('Total expenses','exp',1),row('Net profit (before tax)','net',1,[255,246,225]));
+  ix.concat([99]).forEach((_,i)=>cs[i+1]={halign:'right'});
+  head(d,'PROFIT AND LOSS ACCOUNT','Year '+y+' - month-wise  |  Amounts in AED');
+ }
+ d.autoTable({startY:43,head:[hd.map((h,i)=>({content:h,styles:{halign:i?'right':'left'}}))],body,theme:'grid',styles:{fontSize:m?9:6.8,cellPadding:m?2:1.5,lineColor:[215,220,235],lineWidth:.1,textColor:[25,35,70]},headStyles:{fillColor:NV,textColor:255},columnStyles:Object.assign({0:{cellWidth:m?80:46}},cs),margin:{left:14,right:14,bottom:18}});
+ d.setFont('helvetica','normal').setFontSize(7.5).setTextColor(110,110,110);d.text('Salary = total payroll per Salary tab (excluding parking reimbursed to drivers, shown under Parking). Outside driver payments = batha paid to outside drivers.',14,d.lastAutoTable.finalY+6);
+ foot(d);d.save(m?'Profit_and_Loss_'+MF[m-1]+'_'+y+'.pdf':'Profit_and_Loss_'+y+'_monthwise.pdf');toast('PDF downloaded')}
+/* ---- Financial statements calc ---- */
+const SEC=[['Assets',[['accRecv','Accounts receivable (unpaid bills)','a','m'],['drvCash','Cash held by drivers (pending deposit)','a','m'],['recvOther','Other receivables','m','m'],['prepaid','Prepaid expenses (rent, trade licence, visa)','m','m'],['bank','Bank balances','a','m'],['cash','Cash in hand','a','m']]],
+['Liabilities',[['otherPay','Other payables','m','m'],['duties','Duties and taxes payable (VAT etc.)','m','m'],['salPay','Salaries payable (outstanding expenses)','s','m']]],
+['Equity',[['capital',"Owner's capital account",'m','m'],['reserve','Statutory reserve (balance brought forward)','-','m'],['reserveTr','Transfer to statutory reserve during the period','m','-'],['ownerCur',"Owner's current account (balance brought forward)",'-','m'],['retained','Retained earnings (balance brought forward)','-','m']]],
+['Corporate tax',[['relief','Small Business Relief elected? (Y/N)','y','y'],['ctPaid','Corporate tax paid during the period','m','-'],['ctPay','Corporate tax payable at year end','-','m']]],
+['Previous-year income statement (comparatives)',[['rev','Revenue','-','m'],['cor','Cost of revenue','-','m'],['ga1','Salaries and wages','-','m'],['ga2','Vehicle running & fleet costs','-','m'],['ga3','Government, licence & registration fees','-','m'],['ga4','Premises & establishment costs','-','m'],['ga5','Office & communication expenses','-','m'],['ga6','Legal & professional fees','-','m'],['ga7','Other operating expenses','-','m']]]];
+const GAL=['Salaries and Wages','Vehicle running & fleet costs','Government, licence & registration fees','Premises & establishment costs','Office & communication expenses','Legal & professional fees','Other operating expenses'];
+const balAt=(L,D)=>r2(L.reduce((s,x)=>(!x.date||String(x.date)<=D)?s+(x.k=='in'?+x.amt:-x.amt):s,0));
+const lastD=(y,m)=>y+'-'+p2(m)+'-'+p2(new Date(y,m,0).getDate());
+function autos(y,me){const D=lastD(y,me);return{D,accRecv:R0(sum(T.filter(t=>String(t.date)<=D),bdue)),drvCash:R0(sum(T.filter(t=>t.pm=='Cash'&&t.cs=='Pending'&&String(t.date)<=D),pendA)),bank:R0(balAt(BL,D)),cash:R0(balAt(CL,D)),
+ salPay:R0(sum(DR.filter(d=>!isOut(d)),d=>{const x=SAL[d+'|'+me];if(x&&x.status)return 0;try{return Math.max(0,salary(d,me,y).net)}catch(e){return 0}}))}}
+function fsCalc(y,me,Y){const A=autos(y,me),c=Y.c,p=Y.p,R=plRange(y,me);
+ const ga=[R.sal,R.fuel+R.maint+R.park+R.salik+R.rta+R.ins,R.visa+R.gov,R.rent,R.tel+R.print,R.legal,R.disc].map(R0),GA=ga.reduce((s,x)=>s+x,0);
+ const rev=R0(R.inc),cor=R0(R.outd),gp=rev-cor,pbt=gp-GA,ind=R0(Math.max(0,pbt-375000)*.09),tax=c.relief=='N'?ind:0,npat=pbt-tax;
+ const ppeC=Y.ppe.map(x=>R0(x.c)),ppeP=Y.ppe.map(x=>R0(x.p)),sC=ppeC.reduce((s,x)=>s+x,0),sP=ppeP.reduce((s,x)=>s+x,0);
+ const cur={accRecv:A.accRecv,drvCash:A.drvCash,recvOther:R0(c.recvOther),prepaid:R0(c.prepaid),bank:A.bank,cash:A.cash};
+ cur.recv=cur.accRecv+cur.drvCash+cur.recvOther;cur.tca=cur.recv+cur.prepaid+cur.bank+cur.cash;cur.ppe=sC;cur.ta=sC+cur.tca;
+ cur.pay=R0(c.otherPay)+R0(c.duties);cur.sal=R0(c.salPay);cur.taxPay=Math.max(0,tax-R0(c.ctPaid));cur.tl=cur.pay+cur.sal+cur.taxPay;
+ const cap=R0(c.capital),tr=R0(c.reserveTr),res=R0(p.reserve)+tr,re=R0(p.retained)+npat-tr,own=cur.ta-cur.tl-cap-res-re,contrib=own-R0(p.ownerCur);
+ cur.cap=cap;cur.res=res;cur.re=re;cur.own=own;cur.te=cap+own+res+re;
+ const pr={accRecv:R0(p.accRecv),drvCash:R0(p.drvCash),recvOther:R0(p.recvOther),prepaid:R0(p.prepaid),bank:R0(p.bank),cash:R0(p.cash)};
+ pr.recv=pr.accRecv+pr.drvCash+pr.recvOther;pr.tca=pr.recv+pr.prepaid+pr.bank+pr.cash;pr.ppe=sP;pr.ta=sP+pr.tca;pr.pay=R0(p.otherPay)+R0(p.duties);pr.sal=R0(p.salPay);pr.taxPay=R0(p.ctPay);pr.tl=pr.pay+pr.sal+pr.taxPay;
+ pr.cap=R0(p.capital);pr.own=R0(p.ownerCur);pr.res=R0(p.reserve);pr.re=R0(p.retained);pr.te=pr.cap+pr.own+pr.res+pr.re;
+ const gaP=[1,2,3,4,5,6,7].map(i=>R0(p['ga'+i])),GAP=gaP.reduce((s,x)=>s+x,0),revP=R0(p.rev),corP=R0(p.cor),pbtP=revP-corP-GAP,indP=R0(Math.max(0,pbtP-375000)*.09),taxP=p.relief=='N'?indP:0;
+ return{A,ga,GA,rev,cor,gp,pbt,ind,tax,npat,cur,pr,contrib,ppeC,ppeP,sC,sP,gaP,GAP,revP,corP,gpP:revP-corP,pbtP,indP,taxP,npatP:pbtP-taxP,tr,ctPaid:R0(c.ctPaid),balP:pr.ta-pr.tl-pr.te}}
+/* ---- Financial statements PDF ---- */
+function fsPdf(y,me,Y,S){const F=fsCalc(y,me,Y),co=S.co,d=newDoc(0),W=d.internal.pageSize.getWidth(),H=d.internal.pageSize.getHeight(),ye=me==12;
+ const dl=(yy,mm)=>p2(new Date(yy,mm,0).getDate())+'-'+M[mm-1]+'-'+String(yy).slice(2),CUR=dl(y,me),PRI='31-Dec-'+String(y-1).slice(2);
+ const per=ye?'FOR THE YEAR ENDED 31 DECEMBER '+y:'FOR THE PERIOD 1 JANUARY TO '+p2(new Date(y,me,0).getDate())+' '+MF[me-1].toUpperCase()+' '+y,asAt=ye?'AS AT 31 DECEMBER '+y:'AS AT '+p2(new Date(y,me,0).getDate())+' '+MF[me-1].toUpperCase()+' '+y;
+ /* cover */
+ d.setFont('helvetica','bold').setFontSize(20).setTextColor(...NV);d.text(String(co.name).toUpperCase(),W/2,100,{align:'center'});d.setFont('helvetica','normal').setFontSize(11).setTextColor(90,90,90);d.text(String(co.loc).toUpperCase(),W/2,109,{align:'center'});
+ d.setFont('helvetica','bold').setFontSize(14).setTextColor(...NV);d.text('FINANCIAL STATEMENTS',W/2,130,{align:'center'});d.setFontSize(11);d.text(ye?'FOR THE YEAR ENDED DECEMBER 31, '+y:per,W/2,138,{align:'center'});
+ d.setFont('helvetica','normal').setFontSize(9).setTextColor(110,110,110);d.text('Prepared on an accrual basis in line with IFRS | Amounts in UAE Dirhams (AED)',W/2,150,{align:'center'});if(CO_P.trn)d.text('TRN: '+CO_P.trn,W/2,156,{align:'center'});
+ const TH=[{content:'',styles:{halign:'left'}},{content:'Notes',styles:{halign:'center'}},{content:CUR+'\nAED',styles:{halign:'right'}},{content:PRI+'\nAED',styles:{halign:'right'}}];
+ const mk=rows=>rows.map(r=>{const st=r[4]=='h'?{fontStyle:'bold',fillColor:[236,240,250]}:r[4]=='b'?{fontStyle:'bold',fillColor:[255,246,225]}:{};return[{content:r[0],styles:Object.assign({halign:'left'},st)},{content:r[1]==null?'':String(r[1]),styles:Object.assign({halign:'center'},st)},{content:f0(r[2]),styles:Object.assign({halign:'right'},st)},{content:f0(r[3]),styles:Object.assign({halign:'right'},st)}]});
+ const base={theme:'grid',styles:{fontSize:8.5,cellPadding:1.8,lineColor:[215,220,235],lineWidth:.1,textColor:[25,35,70]},headStyles:{fillColor:NV,textColor:255},columnStyles:{0:{cellWidth:100},1:{cellWidth:14},2:{cellWidth:34},3:{cellWidth:34}},margin:{left:14,right:14,bottom:20}};
+ const c=F.cur,p=F.pr;
+ /* SOFP */
+ d.addPage();let y0=head(d,'STATEMENT OF FINANCIAL POSITION',asAt);
+ d.autoTable(Object.assign({},base,{startY:y0+2,head:[TH],body:mk([['ASSETS','','','','h'],['Non-current assets','','','','h'],['Property, plant and equipment',2,c.ppe,p.ppe],['Total non-current assets','',c.ppe,p.ppe,'b'],['Current assets','','','','h'],['Accounts and other receivables',3,c.recv,p.recv],['Prepaid expenses',4,c.prepaid,p.prepaid],['Bank and cash balances',5,c.bank+c.cash,p.bank+p.cash],['Total current assets','',c.tca,p.tca,'b'],['TOTAL ASSETS','',c.ta,p.ta,'b'],
+  ['EQUITY AND LIABILITIES','','','','h'],['Equity','','','','h'],["Owner's capital account",8,c.cap,p.cap],["Owner's current account",8,c.own,p.own],['Statutory reserve',8,c.res,p.res],['Retained earnings',8,c.re,p.re],['Total equity','',c.te,p.te,'b'],['Current liabilities','','','','h'],['Accounts payable and other payables',6,c.pay,p.pay],['Outstanding expenses',7,c.sal,p.sal],['Corporate tax payable',12,c.taxPay,p.taxPay],['Total current liabilities','',c.tl,p.tl,'b'],['TOTAL EQUITY AND LIABILITIES','',c.te+c.tl,p.te+p.tl,'b']])}));sign(d);
+ /* SOCI */
+ d.addPage();y0=head(d,'STATEMENT OF COMPREHENSIVE INCOME',per);
+ d.autoTable(Object.assign({},base,{startY:y0+2,head:[TH],body:mk([['Revenue',9,F.rev,F.revP],['Cost of revenue',10,-F.cor,-F.corP],['Gross profit','',F.gp,F.gpP,'b'],['General and administrative expenses',11,-F.GA,-F.GAP],['Profit before tax (PBT)','',F.pbt,F.pbtP,'b'],['Corporate tax expense',12,-F.tax,-F.taxP],['Net profit After Tax (NPAT)','',F.npat,F.npatP,'b'],['Other comprehensive income for the period','',0,0],['Transfer to Statutory Reserve','',-F.tr,0],['Total comprehensive income for the period','',F.npat,F.npatP,'b']])}));sign(d);
+ /* SOCE */
+ d.addPage();y0=head(d,'STATEMENT OF CHANGES IN EQUITY',per);
+ const E=(l,a,b,cc,dd,t)=>[{content:l,styles:Object.assign({halign:'left'},t?{fontStyle:'bold',fillColor:[255,246,225]}:{})},...[a,b,cc,dd,a+b+cc+dd].map(v=>({content:f0(v),styles:Object.assign({halign:'right'},t?{fontStyle:'bold',fillColor:[255,246,225]}:{})}))];
+ d.autoTable({startY:y0+2,head:[['Particulars',"Owner's capital","Owner's current a/c",'Statutory reserve','Retained earnings','Total'].map((h,i)=>({content:h+(i?'\nAED':''),styles:{halign:i?'right':'left'}}))],body:[E('Balance at 1 January '+y,p.cap,p.own,p.res,p.re,1),E(ye?'Profit for the year':'Profit for the period',0,0,0,F.npat),E('Transfer to statutory reserve',0,0,F.tr,-F.tr),E("Owner's contributions / (drawings)",0,F.contrib,0,0),E('Balance at '+(ye?'31 December '+y:p2(new Date(y,me,0).getDate())+' '+MF[me-1]+' '+y),c.cap,c.own,c.res,c.re,1)],theme:'grid',styles:{fontSize:8,cellPadding:1.8,lineColor:[215,220,235],lineWidth:.1,textColor:[25,35,70]},headStyles:{fillColor:NV,textColor:255},columnStyles:{0:{cellWidth:50}},margin:{left:14,right:14}});sign(d);
+ /* NOTES */
+ d.addPage();head(d,'NOTES TO THE FINANCIAL STATEMENTS',per);d.__y=44;
+ const ensure=h=>{if(d.__y+h>H-22){d.addPage();d.setFont('helvetica','normal').setFontSize(8).setTextColor(120,120,120);d.text(co.name+' - Notes to the financial statements (continued)',14,14);d.__y=22}};
+ const note=(n,t,rows)=>{ensure(14+rows.length*7);d.setFont('helvetica','bold').setFontSize(9.5).setTextColor(...NV);d.text(n+'   '+t,14,d.__y);
+  d.autoTable({startY:d.__y+2,head:[[{content:'',styles:{halign:'left'}},{content:CUR+'\nAED',styles:{halign:'right'}},{content:PRI+'\nAED',styles:{halign:'right'}}]],body:rows.map(r=>{const st=r[3]?{fontStyle:'bold',fillColor:[236,240,250]}:{};return[{content:r[0],styles:Object.assign({halign:'left'},st)},{content:f0(r[1]),styles:Object.assign({halign:'right'},st)},{content:f0(r[2]),styles:Object.assign({halign:'right'},st)}]}),theme:'grid',styles:{fontSize:8.3,cellPadding:1.6,lineColor:[215,220,235],lineWidth:.1,textColor:[25,35,70]},headStyles:{fillColor:NV,textColor:255},columnStyles:{0:{cellWidth:110}},margin:{left:14,right:14}});d.__y=d.lastAutoTable.finalY+7};
+ d.setFont('helvetica','bold').setFontSize(9.5).setTextColor(...NV);d.text('1   GENERAL INFORMATION',14,d.__y);d.setFont('helvetica','normal').setFontSize(9).setTextColor(40,40,40);
+ const gi=d.splitTextToSize(co.name+' (the company) is a business incorporated in '+String(co.loc).split(',')[0]+' as per Licence No. '+co.lic+' issued on '+co.licDate+' by the '+co.auth+'.',182);d.text(gi,14,d.__y+6);d.__y+=8+gi.length*5;
+ note(2,'PROPERTY, PLANT AND EQUIPMENT',[...Y.ppe.map((x,i)=>[x.n,F.ppeC[i],F.ppeP[i]]),['Total',F.sC,F.sP,1]]);
+ note(3,'ACCOUNTS AND OTHER RECEIVABLES',[['Accounts receivables',c.accRecv,p.accRecv],['Cash held by drivers (pending deposit)',c.drvCash,p.drvCash],['Other receivables',c.recvOther,p.recvOther],['Total',c.recv,p.recv,1]]);
+ note(4,'PREPAID EXPENSES',[['Prepaid rent, trade licence and visa expenses',c.prepaid,p.prepaid],['Total',c.prepaid,p.prepaid,1]]);
+ note(5,'BANK AND CASH BALANCES',[['Bank balances',c.bank,p.bank],['Cash in hand',c.cash,p.cash],['Total',c.bank+c.cash,p.bank+p.cash,1]]);
+ note(6,'ACCOUNTS PAYABLE AND OTHER PAYABLES',[['Other payables',R0(Y.c.otherPay),R0(Y.p.otherPay)],['Duties & taxes',R0(Y.c.duties),R0(Y.p.duties)],['Total',c.pay,p.pay,1]]);
+ note(7,'OUTSTANDING EXPENSES',[['Salaries payable',c.sal,p.sal],['Total',c.sal,p.sal,1]]);
+ note(8,'EQUITY',[["Owner's capital account",c.cap,p.cap],["Owner's current account",c.own,p.own],['Statutory reserve',c.res,p.res],['Retained earnings',c.re,p.re],['Total equity',c.te,p.te,1]]);
+ note(9,'REVENUE',[['Sales revenue (transportation income)',F.rev,F.revP],['Total',F.rev,F.revP,1]]);
+ note(10,'COST OF REVENUE',[['Purchases and direct costs (outside driver payments)',F.cor,F.corP],['Total',F.cor,F.corP,1]]);
+ note(11,'GENERAL AND ADMINISTRATIVE EXPENSES',[...GAL.map((l,i)=>[l,F.ga[i],F.gaP[i]]),['Total',F.GA,F.GAP,1]]);
+ const yn=v=>v=='N'?'N':'Y';
+ note(12,'CORPORATE TAX',[['Accounting profit before tax',F.pbt,F.pbtP],['Add: non-deductible expenses',0,0],['Add: depreciation on non-qualifying assets',0,0],['Less: exempt income / reliefs',0,0],['Taxable income',F.pbt,F.pbtP,1],['Small Business Relief elected? (Y/N)',yn(Y.c.relief),yn(Y.p.relief)],['0% band threshold',375000,375000],['Tax rate above threshold (9%)',F.ind,F.indP],['Current tax charge recognised in profit or loss',F.tax,F.taxP],['Deferred tax charge / (credit)',0,0],['Total tax expense',F.tax,F.taxP,1],['Corporate tax payable at the reporting date',c.taxPay,p.taxPay,1]].map(r=>{return r}));
+ sign(d);foot(d);d.save('Financial_Statements_'+(ye?y:MF[me-1]+'_'+y)+'.pdf');toast('Financial statements downloaded')}
+/* ---- UI ---- */
+const ST={tab:'sum',y:YR,m:+today().slice(5,7),fy:YR,fe:12};
+const tabsH=()=>`<div class="card" style="padding:10px 14px;margin-bottom:14px"><div class="tabs">${[['sum','Summary'],['pl','Profit & Loss'],['fs','Financial Position']].map(([k,l])=>`<span class="${ST.tab==k?'on':''}" onclick="fsTab('${k}')">${l}</span>`).join('')}</div></div>`;
+const _stmt=window.stmt;
+window.stmt=function(){if(ST.tab=='pl')return plView();if(ST.tab=='fs')return fsView();_stmt();$('#view').insertAdjacentHTML('afterbegin',tabsH())};
+window.fsTab=t=>{if(ST.tab=='fs')fsKeep();ST.tab=t;stmt()};
+const yOpts=(sel)=>yrs().map(y=>`<option ${y==sel?'selected':''}>${y}</option>`).join('');
+function plView(){const a=plYr(ST.y),ix=actM(a),tot=plSum(ix.map(i=>a[i])),nz=k=>a.some(o=>o[k]!==0),lines=PL.filter(([k])=>ALW.includes(k)||nz(k));
+ const rw=(l,k,st)=>`<tr${st?` style="${st}"`:''}><td><b>${l}</b></td>${ix.map(i=>`<td class="num">${f2(a[i][k])}</td>`).join('')}<td class="num"><b>${f2(tot[k])}</b></td></tr>`;
+ const rn=l=>`<tr><td>${l[1]}</td>${ix.map(i=>`<td class="num">${f2(a[i][l[0]])}</td>`).join('')}<td class="num"><b>${f2(tot[l[0]])}</b></td></tr>`;
+ const netc=`<tr><td><b>Net profit (before tax)</b></td>${ix.map(i=>`<td class="num" style="color:${a[i].net>=0?'var(--ok)':'var(--bad)'}"><b>${f2(a[i].net)}</b></td>`).join('')}<td class="num" style="color:${tot.net>=0?'var(--ok)':'var(--bad)'}"><b>${f2(tot.net)}</b></td></tr>`;
+ $('#view').innerHTML=tabsH()+`<div class="card"><div class="top" style="margin-bottom:12px;gap:12px;flex-wrap:wrap"><div><label>Year</label><select onchange="ST_set('y',+this.value)">${yOpts(ST.y)}</select></div><div><label>Month</label><select onchange="ST_set('m',+this.value)">${MF.map((m,i)=>`<option value="${i+1}" ${i+1==ST.m?'selected':''}>${m}</option>`).join('')}</select></div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:end"><button class="btn au" onclick="plDl(1)">Download month PDF</button><button class="btn au" onclick="plDl(0)">Download full year PDF</button></div></div>
+ <h3 style="margin-bottom:8px">Profit and Loss account - ${ST.y}</h3><div class="tw"><table><tr><th>Particulars</th>${ix.map(i=>`<th class="num">${M[i]}'${String(ST.y).slice(2)}</th>`).join('')}<th class="num">Total</th></tr>${rw('Income from transportation','inc')}${rw('Total income','inc','background:#f2f5ff')}${lines.map(rn).join('')}${rw('Total expenses','exp','background:#f2f5ff')}${netc}</table></div>
+ <p class="note" style="margin-top:10px">Salary = total payroll (Salary tab) excluding parking reimbursed to drivers. Outside driver payments = batha paid to outside drivers (replaces the old plate-number lines). Other lines come from trip entries and the expense category chosen when an expense is logged.</p></div>`}
+window.ST_set=(k,v)=>{ST[k]=v;stmt()};window.plDl=mo=>plPdf(ST.y,mo?ST.m:0);
+/* financial position form */
+function fsView(){const S=cfg(),Y=getY(S,ST.fy),A=autos(ST.fy,ST.fe),co=S.co,CUR=p2(new Date(ST.fy,ST.fe,0).getDate())+'-'+M[ST.fe-1]+'-'+String(ST.fy).slice(2),PRI='31-Dec-'+String(ST.fy-1).slice(2);
+ const inp=(id,v,ph)=>`<input id="${id}" type="number" step="0.01" value="${esc(v==null?'':v)}" placeholder="${ph||''}">`;
+ const cell=(k,kind,o,pre)=>kind=='-'?'<span class="note">—</span>':kind=='a'?`<input readonly value="${fmt(A[k])}" style="background:#f4f6fb">`:kind=='y'?`<select id="fs_${pre}_${k}"><option ${o[k]!='N'?'selected':''}>Y</option><option ${o[k]=='N'?'selected':''}>N</option></select>`:inp('fs_'+pre+'_'+k,kind=='s'&&(o[k]===undefined||o[k]==='')?A[k]:o[k]);
+ const sec=SEC.map(([t,rows])=>`<tr><td colspan="3" style="background:#eef2fb"><b>${t}</b></td></tr>`+rows.map(([k,l,c,p])=>`<tr><td>${l}</td><td>${cell(k,c,Y.c,'c')}</td><td>${cell(k,p,Y.p,'p')}</td></tr>`).join('')).join('');
+ const ppe=Y.ppe.map((x,i)=>`<tr data-ppe="1"><td><input id="fs_ppe_n_${i}" value="${esc(x.n)}" placeholder="Asset name"></td><td>${inp('fs_ppe_c_'+i,x.c)}</td><td style="display:flex;gap:6px">${inp('fs_ppe_p_'+i,x.p)}<button class="btn g" onclick="fsDelPpe(${i})">×</button></td></tr>`).join('');
+ const coF=[['name','Company name'],['loc','Location'],['lic','Trade licence no.'],['licDate','Licence issue date'],['auth','Issuing authority'],['sig','Signatory title']].map(([k,l])=>`<div><label>${l}</label><input id="fs_co_${k}" value="${esc(co[k])}"></div>`).join('');
+ $('#view').innerHTML=tabsH()+`<div class="card"><h3 style="margin-bottom:4px">Financial position statements</h3><p class="note" style="margin-bottom:12px">Fill every entry below (receivables, cash, bank and profit come from the system automatically). Nothing is generated until all required entries are filled. Entries are saved on this device.</p>
+ <div class="row"><div><label>Year</label><select onchange="fsSet('fy',+this.value)">${yOpts(ST.fy)}</select></div><div><label>As at the end of</label><select onchange="fsSet('fe',+this.value)">${MF.map((m,i)=>`<option value="${i+1}" ${i+1==ST.fe?'selected':''}>${m}${i==11?' (year end)':''}</option>`).join('')}</select></div></div>
+ <h4 style="margin:14px 0 6px">Company details</h4><div class="row">${coF}</div>
+ <h4 style="margin:14px 0 6px">Property, plant and equipment (net book value)</h4><div class="tw"><table><tr><th>Asset</th><th>${CUR}</th><th>${PRI}</th></tr>${ppe}</table></div><button class="btn g" style="margin-top:8px" onclick="fsAddPpe()">+ Add asset</button>
+ <h4 style="margin:14px 0 6px">Balances and equity</h4><div class="tw"><table><tr><th>Item</th><th>${CUR}</th><th>${PRI} (comparative)</th></tr>${sec}</table></div>
+ <div id="fs_pv" style="margin-top:14px"></div>
+ <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px"><button class="btn g" onclick="fsSave()">Save entries</button><button class="btn g" onclick="fsPrev()">Check figures</button><button class="btn au" onclick="fsGen()">Generate financial statements PDF</button></div></div>`;fsPrev(1)}
+function fsKeep(){const S=cfg(),Y=getY(S,ST.fy),gv=id=>{const e=$$(id);return e?e.value:undefined};
+ ['name','loc','lic','licDate','auth','sig'].forEach(k=>{const v=gv('fs_co_'+k);if(v!==undefined)S.co[k]=v});
+ SEC.forEach(([,rows])=>rows.forEach(([k,,c,p])=>{if(c=='m'||c=='s'||c=='y'){const v=gv('fs_c_'+k);if(v!==undefined)Y.c[k]=v}if(p=='m'||p=='y'){const v=gv('fs_p_'+k);if(v!==undefined)Y.p[k]=v}}));
+ const n=document.querySelectorAll('[data-ppe]').length;if(n){Y.ppe=[];for(let i=0;i<n;i++)Y.ppe.push({n:gv('fs_ppe_n_'+i)||'',c:gv('fs_ppe_c_'+i)||'',p:gv('fs_ppe_p_'+i)||''})}
+ store(S);return{S,Y}}
+window.fsSet=(k,v)=>{fsKeep();ST[k]=v;fsView()};
+window.fsAddPpe=()=>{const{S,Y}=fsKeep();Y.ppe.push({n:'',c:'',p:''});store(S);fsView()};
+window.fsDelPpe=i=>{const{S,Y}=fsKeep();Y.ppe.splice(i,1);store(S);fsView()};
+window.fsSave=()=>{fsKeep();toast('Entries saved')};
+function missing(S,Y){const m=[],ids=[],ok=v=>v!==undefined&&v!==null&&String(v).trim()!=='';
+ [['name','Company name'],['loc','Location'],['lic','Trade licence no.'],['licDate','Licence issue date'],['auth','Issuing authority']].forEach(([k,l])=>{if(!ok(S.co[k])){m.push(l);ids.push('fs_co_'+k)}});
+ if(!Y.ppe.length){m.push('At least one fixed asset')}
+ Y.ppe.forEach((x,i)=>{if(!ok(x.n)){m.push('Asset '+(i+1)+' name');ids.push('fs_ppe_n_'+i)}if(!ok(x.c)){m.push((x.n||'Asset '+(i+1))+' - current value');ids.push('fs_ppe_c_'+i)}if(!ok(x.p)){m.push((x.n||'Asset '+(i+1))+' - comparative value');ids.push('fs_ppe_p_'+i)}});
+ SEC.forEach(([,rows])=>rows.forEach(([k,l,c,p])=>{if((c=='m'||c=='s')&&!ok(Y.c[k])){m.push(l+' (current)');ids.push('fs_c_'+k)}if(p=='m'&&!ok(Y.p[k])){m.push(l+' (comparative)');ids.push('fs_p_'+k)}}));return{m,ids}}
+window.fsPrev=quiet=>{const{S,Y}=fsKeep(),F=fsCalc(ST.fy,ST.fe,Y),c=F.cur,col=v=>v>=0?'var(--ok)':'var(--bad)';
+ $('#fs_pv').innerHTML=`<div class="sum"><span><small>Revenue</small><b>${fmt(F.rev)}</b></span><span><small>Profit before tax</small><b style="color:${col(F.pbt)}">${fmt(F.pbt)}</b></span><span><small>Total assets</small><b>${fmt(c.ta)}</b></span><span><small>Total liabilities</small><b>${fmt(c.tl)}</b></span><span><small>Total equity</small><b>${fmt(c.te)}</b></span><span><small>Owner's drawings / (contributions)</small><b style="color:${col(F.contrib)}">${fmt(F.contrib)}</b></span></div><p class="note" style="margin-top:6px">Owner's current account is the balancing figure so the statement balances. ${Math.abs(F.balP)>2?'<b style="color:var(--bad)">Comparative column does not balance by '+fmt(F.balP)+' - please re-check the comparative entries.</b>':'Comparative column balances.'}</p>`;if(!quiet)toast('Figures updated')};
+window.fsGen=()=>{if(!window.jspdf)return toast('PDF engine not loaded');const{S,Y}=fsKeep(),x=missing(S,Y);document.querySelectorAll('#view input,#view select').forEach(e=>e.style.borderColor='');
+ if(x.m.length){x.ids.forEach(i=>{const e=$$(i);if(e)e.style.borderColor='#e11d48'});alert('Please fill these required entries before the statements can be generated:\n\n- '+x.m.slice(0,25).join('\n- ')+(x.m.length>25?'\n...and '+(x.m.length-25)+' more':''));return}
+ try{fsPdf(ST.fy,ST.fe,Y,S)}catch(e){console.error(e);toast('Could not create PDF: '+e.message)}};
 })();
 </script>
 </body></html>
