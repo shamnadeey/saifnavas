@@ -850,7 +850,7 @@ const w=x=>{if(!x)return'Zero';let s='';[[1e9,'Billion'],[1e6,'Million'],[1e3,'T
 return(n,up)=>{n=Math.round((+n||0)*100)/100;const a=Math.floor(n+1e-9),f=Math.round((n-a)*100);let s=w(a)+(f?' And '+w(f)+' Fils':'')+' Only';return up?s.toUpperCase().replace(/ ONLY$/,' Only'):s}})();
 const fitTxt=(d,s,w,fs)=>{d.setFontSize(fs);while(fs>5.5&&d.getTextWidth(s)>w){fs-=.5;d.setFontSize(fs)}return fs};
 /* one invoice page: title box, party block, table, totals, amount in words, stamp + signature */
-function invPage(d,o){const X0=9,X1=201,Wd=X1-X0,Y0=44,yT=Y0+12.4,yP=Y0+33.7,yH=yP+6.2,yB=219.5,yS=230.1,yK=241.9,yO=248.3,yE=271.9,cols=o.cols,bx=[X0];cols.forEach(c=>bx.push(bx[bx.length-1]+c.w));bx[bx.length-1]=X1;
+function invPage(d,o){const X0=9,X1=201,Wd=X1-X0,Y0=44,yT=Y0+12.4,yP=Y0+33.7,yH=yP+6.2,ex=Math.max(0,(o.extras?o.extras.length:2)-2)*4.2,yB=219.5-ex,yS=230.1-ex,yK=241.9,yO=248.3,yE=271.9,cols=o.cols,bx=[X0];cols.forEach(c=>bx.push(bx[bx.length-1]+c.w));bx[bx.length-1]=X1;
 const ln=w=>d.setLineWidth(w).setDrawColor(0,0,0),tx=(s,x,y,op)=>d.text(cl(s),x,y,op);
 d.setFillColor(211,211,211).rect(X0,yP,Wd,yH-yP,'F');ln(.4);d.rect(X0,Y0,Wd,yE-Y0);ln(.3);[yT,yP,yH,yB,yS,yK,yO].forEach(y=>d.line(X0,y,X1,y));ln(.3);
 for(let i=1;i<cols.length;i++)d.line(bx[i],yP,bx[i],i==cols.length-1?yE:yB);
@@ -860,11 +860,11 @@ d.setFont('helvetica','normal').setFontSize(8.5);tx('Party Name',X0+2.2,yT+5.4);
 d.setFont('helvetica','normal').setFontSize(8);String(o.block||'').split(/\r?\n/).filter(s=>s.trim()).slice(0,3).forEach((s,i)=>tx(s,X0+22,yT+11.6+i*3.9));
 tx('Date',160,yT+5.3);tx(':',170.2,yT+5.3);tx(o.date,177,yT+5.3);tx('Inv No',160,yT+9.6);tx(':',170.2,yT+9.6);tx(o.no,177,yT+9.6);
 o.body(d,{bx,yH,yB,cl,tx});
-const big=o.big,R=X1-2.5;d.setFont('helvetica','bold').setFontSize(big?9.5:8.5);tx('Sub Total',X0+2.2,yS-3.2);tx(fm2(o.sub),R,yS-3.2,{align:'right'});
-d.setFont('helvetica','normal').setFontSize(8);tx('Salik',X0+2.2,yS+4.6);tx('Parking',X0+2.2,yS+8.8);d.setFont('helvetica',big?'bold':'normal').setFontSize(big?9.5:8);tx(fm2(o.salik),R,yS+4.6,{align:'right'});tx(fm2(o.park),R,yS+8.8,{align:'right'});
+if(o.cont){d.setFont('helvetica','italic').setFontSize(8);tx('Continued on next page ...',X0+2.2,yS-3.2)}else{const big=o.big,R=X1-2.5;d.setFont('helvetica','bold').setFontSize(big?9.5:8.5);tx('Sub Total',X0+2.2,yS-3.2);tx(fm2(o.sub),R,yS-3.2,{align:'right'});
+(o.extras||[['Salik',o.salik],['Parking',o.park]]).forEach((e,i)=>{d.setFont('helvetica','normal').setFontSize(8);tx(e[0],X0+2.2,yS+4.6+i*4.2);d.setFont('helvetica',big?'bold':'normal').setFontSize(big?9.5:8);tx(fm2(e[1]),R,yS+4.6+i*4.2,{align:'right'})});
 d.setFont('helvetica','bold').setFontSize(8.5);tx('TOTAL (AED)',X0+2.2,yK+4.5);d.setFontSize(big?10:9.5);tx(fm2(o.total),R,yK+4.5,{align:'right'});
 d.setFont('helvetica','normal').setFontSize(6.5);tx('(In words)',X0+2.2,yO+3.6);d.setFont('helvetica','bold');d.splitTextToSize(cl(o.words),82).forEach((s,i)=>d.text(s,X0+2.2,yO+7.6+i*3));
-d.setFont('helvetica','normal').setFontSize(6.8);tx('Authorised Signatory',X0+2.2,yE-7.2);tx(cl(d.P.name||'Saif Navas Transport').replace(/\b(\w)(\w*)/g,(m,a,b)=>a.toUpperCase()+b.toLowerCase()),X0+2.2,yE-3.2);
+}d.setFont('helvetica','normal').setFontSize(6.8);tx('Authorised Signatory',X0+2.2,yE-7.2);tx(cl(d.P.name||'Saif Navas Transport').replace(/\b(\w)(\w*)/g,(m,a,b)=>a.toUpperCase()+b.toLowerCase()),X0+2.2,yE-3.2);
 const P=d.P,put=(im,bw,bh,px,py)=>{try{const q=d.getImageProperties(im),r=Math.min(bw/q.width,bh/q.height);d.addImage(im,'PNG',px,py,q.width*r,q.height*r)}catch(e){}};if(P.sig)put(P.sig,32,11,44,yE-13);if(P.stamp)put(P.stamp,21,21,98,yO+1.2)}
 /* Aramco: Date | Trip No. | Customer | Route | Vehicle | Charge  -  one trip per invoice */
 const ARCOLS=[{h:'Date',w:20.5},{h:'Trip No.',w:18.4},{h:'Customer Name',w:41},{h:'Rout Details',w:66.9},{h:'Vehicle',w:21.7},{h:'Charge',w:23.5}];
@@ -2651,79 +2651,165 @@ async function dvRetry(){const q=DV_Q.splice(0);for(const x of q){try{await dvUp
 function drvV(){const c=dvC();if(!c.url){$('#view').innerHTML='<div class="card"><h3>Drive</h3><div class="note">Drive is not set up yet. The owner can set it up under <b>Letterhead &rarr; Google Drive</b>.</div></div>';return}
 $('#view').innerHTML=`<div class="card"><div class="top" style="margin-bottom:10px"><div><h3>Drive</h3><div class="note">Company Google Drive${DV_Q.length?' · '+DV_Q.length+' file(s) waiting to upload':''}</div></div>${DV_Q.length?'<button class="btn au" onclick="dvRetry()">Retry pending</button>':''}</div><div class="note" style="margin-bottom:8px"><a href="#" onclick="dvOpen();return false">${DVR}</a>${DV_P.map((p,i)=>' / <a href="#" onclick="dvUpTo('+(i+1)+');return false">'+esc(p.name)+'</a>').join('')}</div><div class="row"><div><label>Search by name</label><input id="dvq" onkeydown="if(event.key=='Enter')dvList()" placeholder="type and press Enter"></div><div style="align-self:end;display:flex;gap:8px;flex-wrap:wrap"><button class="btn g" onclick="dvList()">Search / refresh</button><button class="btn g" onclick="dvNew()">New folder</button><label class="btn au" style="margin:0;cursor:pointer">Upload files<input type="file" multiple accept=".pdf,.png,.jpg,.jpeg,.xlsx,.xls,.docx,.doc,.csv,.txt" style="display:none" onchange="dvUpload(this)"></label></div></div><div id="dvl" style="margin-top:12px"></div></div>`;dvList()}
 
-/* ===== invoice letterpad editor (Collections > Generate invoice / Invoice sample) ===== */
+/* ===== invoice letterpad editor v2 (Collections > Generate invoice / Invoice sample) ===== */
 var IE=null;
 const ieE=s=>esc(String(s==null?'':s));
-const ieNo=()=>IE.smp?'SAMPLE':'INV-'+YR+'-'+String(invN).padStart(4,'0');
+const IEF={dflt:'Default format',nbf:'NBF single month',xnbf:'Excel of NBF',xaram:'Excel for Aramco',std:'Plain invoice (personal)'};
+const ieRt=t=>{const U=x=>String(x||'').toUpperCase();return t.type=='Round'&&t.from2?[U(t.from)+' '+U(t.to),U(t.from2)+' '+U(t.to2)]:(!t.from&&!t.to)?['ROUND TRIP','']:[U(t.from),U(t.to)]};
+const ieSer=s=>{const[y,m,d]=String(s).split('-');return(Date.UTC(+y,+m-1,+d)-Date.UTC(1899,11,30))/864e5};
+const ieDD=s=>String(s).slice(8,10)+'-'+String(s).slice(5,7)+'-'+String(s).slice(2,4);
+/* ---- tiny xlsx writer (no library; keeps the app offline-safe) ---- */
+const XS=(()=>{const enc=new TextEncoder(),xe=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+const T=(()=>{const t=[];for(let n=0;n<256;n++){let c=n;for(let k=0;k<8;k++)c=c&1?0xEDB88320^(c>>>1):c>>>1;t[n]=c>>>0}return t})(),crc=b=>{let c=-1;for(let i=0;i<b.length;i++)c=T[(c^b[i])&255]^(c>>>8);return(c^-1)>>>0};
+const u16=n=>[n&255,n>>8&255],u32=n=>[n&255,n>>8&255,n>>16&255,n>>>24&255];
+function zip(fs){const P=[],C=[];let off=0;fs.forEach(([nm,tx])=>{const nb=enc.encode(nm),db=enc.encode(tx),c=crc(db),h=new Uint8Array([0x50,0x4b,3,4,...u16(20),...u16(0),...u16(0),...u16(0),...u16(0x21),...u32(c),...u32(db.length),...u32(db.length),...u16(nb.length),...u16(0)]);
+P.push(h,nb,db);C.push(new Uint8Array([0x50,0x4b,1,2,...u16(20),...u16(20),...u16(0),...u16(0),...u16(0),...u16(0x21),...u32(c),...u32(db.length),...u32(db.length),...u16(nb.length),...u16(0),...u16(0),...u16(0),...u16(0),...u32(0),...u32(off)]),nb);off+=h.length+nb.length+db.length});
+const cs=C.reduce((a,b)=>a+b.length,0);return new Blob([...P,...C,new Uint8Array([0x50,0x4b,5,6,0,0,0,0,...u16(fs.length),...u16(fs.length),...u32(cs),...u32(off),0,0])],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})}
+const cn=s=>{let n=0;for(const ch of s)n=n*26+ch.charCodeAt(0)-64;return n},cA=n=>{let s='';while(n>0){const m=(n-1)%26;s=String.fromCharCode(65+m)+s;n=(n-m-1)/26}return s},sp=a=>{const m=/^([A-Z]+)(\d+)$/.exec(a);return[+m[2],cn(m[1])]};
+function sheet(){const cells={},cols={},rows={},mg=[],W={
+set(a,v,s){const[r,c]=sp(a),o=cells[r+','+c]||{};cells[r+','+c]={r,c,v,s:s||o.s};return W},
+fill(rg,s){const[a,b]=rg.split(':'),[r1,c1]=sp(a),[r2,c2]=sp(b||a);for(let r=r1;r<=r2;r++)for(let c=c1;c<=c2;c++){const k=r+','+c;cells[k]=Object.assign(cells[k]||{r,c,v:null},{r,c,s})}return W},
+merge(rg){mg.push(rg);return W},col(L,w){cols[cn(L)]=w;return W},row(n,h){rows[n]=h;return W},
+blob(){const fo=[],bo=[],nf=[],xf=[],ix=(a,k)=>{let i=a.indexOf(k);if(i<0)i=a.push(k)-1;return i};ix(fo,'<font><sz val="11"/><name val="Calibri"/></font>');ix(bo,'<border><left/><right/><top/><bottom/><diagonal/></border>');ix(xf,'<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>');
+const X=s=>{if(!s)return 0;const f=ix(fo,`<font>${s.b?'<b/>':''}<sz val="${s.sz||11}"/><name val="${s.fn||'Calibri'}"/></font>`),b=ix(bo,'<border>'+[['l','left'],['r','right'],['t','top'],['b','bottom']].map(([k,n])=>s['b'+k]?`<${n} style="${s['b'+k]}"><color auto="1"/></${n}>`:`<${n}/>`).join('')+'<diagonal/></border>'),n=!s.nf?0:s.nf=='d-mmm-yy'?15:s.nf=='@'?49:164+ix(nf,s.nf);
+return ix(xf,`<xf numFmtId="${n}" fontId="${f}" fillId="0" borderId="${b}" xfId="0" applyNumberFormat="1" applyFont="1" applyBorder="1" applyAlignment="1"><alignment${s.h?` horizontal="${s.h}"`:''}${s.v?` vertical="${s.v}"`:''}${s.w?' wrapText="1"':''}/></xf>`)};
+const byR={};Object.values(cells).forEach(c=>(byR[c.r]=byR[c.r]||[]).push(c));
+const sd=Object.keys(byR).map(Number).sort((a,b)=>a-b).map(r=>`<row r="${r}"${rows[r]?` ht="${rows[r]}" customHeight="1"`:''}>`+byR[r].sort((a,b)=>a.c-b.c).map(c=>{const a=cA(c.c)+r,s=X(c.s),v=c.v,st=s?` s="${s}"`:'';return v==null?`<c r="${a}"${st}/>`:typeof v=='number'?`<c r="${a}"${st}><v>${v}</v></c>`:typeof v=='object'?`<c r="${a}"${st}><f>${xe(v.f)}</f><v>${v.v}</v></c>`:`<c r="${a}"${st} t="inlineStr"><is><t xml:space="preserve">${xe(v)}</t></is></c>`}).join('')+'</row>').join('');
+Object.keys(rows).forEach(r=>{if(!byR[r])return});
+const cx=Object.keys(cols).map(Number).sort((a,b)=>a-b).map(c=>`<col min="${c}" max="${c}" width="${cols[c]}" customWidth="1"/>`).join('');
+const ws=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0"/></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cx?'<cols>'+cx+'</cols>':''}<sheetData>${sd}</sheetData>${mg.length?`<mergeCells count="${mg.length}">${mg.map(m=>`<mergeCell ref="${m}"/>`).join('')}</mergeCells>`:''}<pageMargins left="0.5" right="0.5" top="0.6" bottom="0.6" header="0.3" footer="0.3"/><pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="0"/></worksheet>`;
+const st=`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${nf.length?`<numFmts count="${nf.length}">${nf.map((f,i)=>`<numFmt numFmtId="${164+i}" formatCode="${xe(f)}"/>`).join('')}</numFmts>`:''}<fonts count="${fo.length}">${fo.join('')}</fonts><fills count="2"><fill><patternFill patternType="none"/></fill><fill><patternFill patternType="gray125"/></fill></fills><borders count="${bo.length}">${bo.join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xf.length}">${xf.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+const H='<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+return zip([['[Content_Types].xml',H+'<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>'],
+['_rels/.rels',H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>'],
+['xl/workbook.xml',H+'<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheets><sheet name="Sheet1" sheetId="1" r:id="rId1"/></sheets></workbook>'],
+['xl/_rels/workbook.xml.rels',H+'<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>'],
+['xl/styles.xml',st],['xl/worksheets/sheet1.xml',ws]])}};return W}
+return{sheet}})();
+function ieDl(b,fn){const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=fn;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000)}
+/* ---- Excel formats: copies of the uploaded NBF and Aramco sheets ---- */
+function ieXA(R,I){const W=XS.sheet(),B='medium',bx={bl:B,br:B,bt:B,bb:B},n=R.length,tr=8+n+1;
+[['B',13.3],['C',12.6],['D',40.3],['E',31.6],['F',31.3],['G',15.7],['H',14]].forEach(x=>W.col(x[0],x[1]));
+W.fill('B2:H4',{fn:'Arial',sz:16,b:1,h:'center',v:'center',...bx}).set('B2','SAIF NAVAS TRANSPORT').merge('B2:H4');
+W.fill('B5:F6',{fn:'Arial',sz:14,b:1,h:'center',v:'center',...bx}).set('B5',' '+I.head).merge('B5:F6');
+W.fill('G5:H6',{sz:12,h:'center',v:'center',...bx}).set('G5','DATE : '+ieDD(I.date)).merge('G5:H6');
+const hs={sz:12,b:1,h:'center',v:'center',w:1,...bx};W.row(7,16.5);W.fill('B7:H7',hs);[['B7','Date'],['C7','Invoice No '],['D7','Customer Name'],['E7','Rout Details '],['G7','Vehicle'],['H7','Amount']].forEach(x=>W.set(x[0],x[1]));W.merge('E7:F7');
+const ds=(extra)=>({h:'center',v:'center',w:1,...extra});
+for(let r=8;r<=tr-1;r++){const i=r-8,x=R[i],f=(c,s)=>W.fill(c+r,ds(s));
+f('B',{nf:'d-mmm-yy',bl:B});f('C',{bl:B,br:B});f('D');f('E',{bl:B,br:B});f('F');f('G',{bl:B,br:B});f('H',{br:B});
+if(r==8)['B','C','D','E','F','G','H'].forEach(c=>W.fill(c+r,{h:'center',v:'center',w:1,bt:B,...(c=='B'?{nf:'d-mmm-yy',bl:B}:c=='H'?{br:B}:['C','E','G'].includes(c)?{bl:B,br:B}:{})}));
+if(x){W.set('B'+r,ieSer(x.d)).set('C'+r,isNaN(+x.b)||x.b===''?x.b:+x.b).set('D'+r,x.cn).set('E'+r,x.f).set('F'+r,x.t||'').set('G'+r,x.v).set('H'+r,+x.a||0)}}
+W.fill('B'+tr+':G'+tr,{sz:12,b:1,h:'center',v:'center',bl:B,bb:B}).set('B'+tr,'TOTAL').merge('B'+tr+':G'+tr);
+W.fill('H'+tr,{sz:12,b:1,v:'center',w:1,nf:'_(* #,##0_);_(* \\(#,##0\\);_(* "-"??_);_(@_)',bl:B,br:B,bb:B}).set('H'+tr,{f:'SUM(H8:H'+(tr-1)+')',v:sum(R,r=>+r.a||0)});
+return W.blob()}
+function ieXN(R,I){const W=XS.sheet(),T='thin',n=R.length,tr=10+n+2,ar={fn:'Arial',sz:10};
+[['A',10.7],['B',10.1],['C',8.8],['D',46.6],['E',17.1],['F',19.4],['G',23],['H',24.6],['I',12.3],['J',12.6]].forEach(x=>W.col(x[0],x[1]));
+W.row(2,20.25).row(3,20.25).row(5,13.5).row(8,17.25).row(9,15.75);
+W.fill('A2:J2',{fn:'Arial',sz:16,b:1,h:'center',v:'top'}).set('A2','SAIF NAVAS TRANSPORT').merge('A2:J2');
+W.fill('A3:J3',{fn:'Arial',sz:12,b:1,h:'center',v:'top'}).set('A3','INVOICE').merge('A3:J3');
+W.set('A5','Party Name',{...ar,v:'top',w:1});W.fill('C5:D5',{...ar,b:1,h:'left',v:'top',w:1}).set('C5',I.party).merge('C5:D5');
+W.fill('C6:D8',{fn:'Arial',sz:9,h:'left',v:'top',w:1}).set('C6',String(I.block||'').split(/\r?\n/).filter(Boolean).slice(0,3).join('\n')).merge('C6:D8');
+W.set('G5','Date      :',{sz:10,h:'right',v:'top',w:1}).set('H5',ieSer(I.date),{sz:10,h:'left',v:'top',w:1,nf:'d-mmm-yy'});
+const hs={sz:10,b:1,h:'center',v:'top',w:1,bb:T};W.fill('A9:J9',hs);[['A9','Date'],['B9','Invoice No '],['C9','Trip No.'],['D9','Customer Name'],['E9','Staff ID'],['F9','Dept'],['G9','Rout Details '],['I9','Vehicle'],['J9','Amount']].forEach(x=>W.set(x[0],x[1]));W.merge('G9:H9');
+const ds={...ar,v:'center',w:1};R.forEach((x,i)=>{const r=10+i,bn=isNaN(+x.b)||x.b===''?x.b:+x.b;W.row(r,15.75);
+W.set('A'+r,ieSer(x.d),{...ds,nf:'d-mmm-yy'}).set('B'+r,bn,ds).set('C'+r,bn,ds).set('D'+r,x.cn,ds).set('E'+r,String(x.id||''),{...ar,v:'top',nf:'@'}).set('F'+r,x.dp||'',ds).set('G'+r,x.f,ds).set('H'+r,x.t||'',ds).set('I'+r,x.v,ds).set('J'+r,+x.a||0,{...ds,nf:'_(* #,##0.00_);_(* \\(#,##0.00\\);_(* \\-??_);_(@_)'})});
+W.fill('A'+tr+':J'+tr,{fn:'Arial',sz:11,b:1,v:'center',w:1,bb:T}).set('B'+tr,'TOTAL');
+W.fill('J'+tr,{fn:'Arial',sz:12,b:1,v:'center',w:1,nf:'_(* #,##0.00_);_(* \\(#,##0.00\\);_(* \\-??_);_(@_)',bb:T}).set('J'+tr,{f:'SUM(J10:J'+(tr-1)+')',v:sum(R,r=>+r.a||0)});
+return W.blob()}
+/* ---- open editor ---- */
 function invEd(smp){try{
-if(!window.jspdf)return toast('PDF engine not loaded');
 const L=dueL(DQ.k);if(!L.length)return alert('No pending bills for this party');
-const c0=L[0].company,pers=isP(L[0]),f0=pers?null:cfOf(c0),P=CO_P;
-IE={smp:!!smp,k:DQ.k,co:c0,pers,fmt:(f0&&f0.fmt)||'std',date:today(),party:pn(L[0]),addr:'',subj:'Outstanding dues invoice',vat:+g('pv')||0,desc:'',terms:'',sign:P.sign||'Authorised Signatory',
+const c0=L[0].company,pers=isP(L[0]),f0=pers?null:cfOf(c0),P=CO_P,mm=[...new Set(L.map(t=>t.date.slice(0,7)))],
+mon=mm.length==1?MONF[+mm[0].slice(5)-1].toUpperCase()+' '+mm[0].slice(0,4):dMon(L[0].date)+' TO '+dMon(L[L.length-1].date),
+tp=sum(L,t=>+t.rp||0),ext=[{l:'Salik',a:sum(L,t=>+t.salik||0)},{l:'Parking',a:sum(L,t=>+t.parking||0)}];if(tp>0)ext.push({l:'Less: received so far',a:-tp});
+IE={smp:!!smp,k:DQ.k,co:c0,pers,fmt:pers?'std':((CF[c0]||{}).xl||(f0.fmt=='nbf'?'nbf':'dflt')),date:today(),party:pers?pn(L[0]):f0.party,block:pers?'':f0.block,head:mon,
+sub:sum(L,t=>+t.charge||0),desc:mm.length==1?'Transport services provided during the month of '+MONF[+mm[0].slice(5)-1]+' ['+mm[0].slice(0,4)+']':'Transport services provided from '+dMon(L[0].date)+' to '+dMon(L[L.length-1].date),words:'',ext,
+addr:'',subj:'Outstanding dues invoice',vat:+g('pv')||0,terms:'',sign:P.sign||'Authorised Signatory',
 pay:['Payment details',P.bank&&'Bank: '+P.bank,P.acct&&'Account name: '+P.acct,P.iban&&'IBAN / A/C: '+P.iban,'Please quote invoice no. {no} and the bank UTR / transaction ID with your payment.'].filter(Boolean).join('\n'),
+R:L.map(t=>{const rt=ieRt(t);return{src:t.bill,d:t.date,b:String(t.bill),c:String((t.customer||'-')+cdT(t)).toUpperCase().replace(/,\s*/g,', '),cn:String(t.customer||'-').toUpperCase(),f:rt[0],t:rt[1],v:vNm(t.vehicle),a:+t.charge||0,id:t.cid||'',dp:t.dept||''}}),
 rows:L.map(t=>({src:t.bill,b:t.bill,d:t.date,c:cl(t.customer+cdT(t)),v:cl(vN(t.vehicle)),r:cl(route(t)),a:amt(t),p:+t.rp||0,x:bdue(t)}))};
 ieR()}catch(e){console.error(e);toast('Could not open editor: '+e.message)}}
-function ieRow(r,i){const c=(k,w,t)=>`<td style="padding:2px"><input class="ei" ${t?'type="number" step="0.01" style="text-align:right"':''} value="${ieE(r[k])}" oninput="ieCell(${i},'${k}',this.value)"></td>`;
-return`<tr>${c('b')}${c('d')}${c('c')}${c('v')}${c('r')}${c('a',0,1)}${c('p',0,1)}<td id="ixb${i}" style="padding:2px 6px;text-align:right;white-space:nowrap">${fmt(r.x)}</td><td style="padding:2px"><button class="btn g" style="padding:2px 8px" onclick="ieDel(${i})">&times;</button></td></tr>`}
+const ieSub=()=>IE.fmt=='nbf'?+IE.sub||0:sum(IE.R,r=>+r.a||0);
+function ieHave(){const L=dueL(IE.k),h=[...new Set(L.map(t=>t.inv).filter(Boolean))];return h.length==1?h[0]:invS}
+const ieNo=()=>IE.smp?'SAMPLE':IE.fmt=='std'?'INV-'+YR+'-'+String(invN).padStart(4,'0'):ieHave()+' - '+String(IE.date).slice(2,4);
+function ieRowN(r,i,xn){const c=(k,t,w)=>`<td style="padding:2px"><input class="ei" ${t?'type="number" step="0.01" style="text-align:right;width:84px"':w?`style="width:${w}px"`:''} value="${ieE(r[k])}" oninput="ieCellN(${i},'${k}',this.value)"></td>`;
+return`<tr>${c('d',0,104)}${c('b',0,62)}${c(xn?'cn':'c')}${xn?c('id',0,70)+c('dp',0,70):''}${c('f')}${c('t')}${c('v',0,80)}${c('a',1)}<td style="padding:2px"><button class="btn g" style="padding:2px 8px" onclick="ieDelN(${i})">&times;</button></td></tr>`}
+function ieRow(r,i){const c=(k,t)=>`<td style="padding:2px"><input class="ei" ${t?'type="number" step="0.01" style="text-align:right"':''} value="${ieE(r[k])}" oninput="ieCell(${i},'${k}',this.value)"></td>`;
+return`<tr>${c('b')}${c('d')}${c('c')}${c('v')}${c('r')}${c('a',1)}${c('p',1)}<td id="ixb${i}" style="padding:2px 6px;text-align:right;white-space:nowrap">${fmt(r.x)}</td><td style="padding:2px"><button class="btn g" style="padding:2px 8px" onclick="ieDel(${i})">&times;</button></td></tr>`}
 function ieR(){let m=$('#ied');const sc=m?m.scrollTop:0;if(!m){m=document.createElement('div');m.id='ied';m.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(15,23,42,.75);overflow:auto;padding:16px';document.body.appendChild(m)}
-const P=CO_P,I=IE,std=I.fmt=='std',fo=[['std','Standard (dues)'],['nbf','NBF monthly'],['aramco','Aramco per-trip']].filter(x=>!I.pers||x[0]=='std');
-m.innerHTML=`<style>#ied .ei{width:100%;border:1px dashed #cbd5e1;padding:3px 5px;font:inherit;font-size:inherit;background:#fffdf5;color:#111;box-sizing:border-box;border-radius:3px}#ied td .ei{font-size:11px;min-width:54px}</style>
-<div style="max-width:960px;margin:0 auto">
-<div style="background:#fff;color:#111;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:2">
-<b>${I.smp?'Invoice sample':'Generate invoice'} &middot; letterpad</b>
-<label style="margin:0;display:flex;gap:6px;align-items:center">Format <select onchange="ieFmt(this.value)">${fo.map(x=>`<option value="${x[0]}" ${x[0]==I.fmt?'selected':''}>${x[1]}</option>`).join('')}</select></label>
-${std?`<label style="margin:0;display:flex;gap:6px;align-items:center">VAT % <input type="number" value="${I.vat}" style="width:70px" oninput="IE.vat=+this.value||0;ieT()"></label>`:''}
-<span style="flex:1"></span>
-${I.pers?'':'<button class="btn g" onclick="ieDef()">Set as company default</button>'}
-<button class="btn g" onclick="ieX()">Close</button>
-<button class="btn au" onclick="ieGo(1)">Invoice sample</button>
-<button class="btn" onclick="ieGo(0)">Generate invoice</button></div>
+const P=CO_P,I=IE,f=I.fmt,std=f=='std',xl=f=='xnbf'||f=='xaram',tbl=f=='dflt'||xl,fo=(std?['std']:['dflt','nbf','xnbf','xaram']),th=a=>`<thead><tr style="background:#1e2a5a;color:#fff">${a.map(h=>`<th style="padding:5px;text-align:left">${h}</th>`).join('')}</tr></thead>`,lb=(t,x)=>`<div style="margin:12px 0 4px"><b>${t}</b>${x?` <span style="color:#777;font-size:11px">${x}</span>`:''}</div>`;
+const head=`${lb('Party name')}<input class="ei" value="${ieE(I.party)}" oninput="IE.party=this.value">${std?'':lb('Address / TRN lines','(up to 3 lines print on the invoice)')}${std?'':`<textarea class="ei" rows="3" oninput="IE.block=this.value">${ieE(I.block)}</textarea>`}`;
+let body='';
+if(std)body=`<textarea class="ei" rows="2" placeholder="Address / TRN / attention line (optional)" style="margin-top:4px" oninput="IE.addr=this.value">${ieE(I.addr)}</textarea>${lb('Subject')}<input class="ei" value="${ieE(I.subj)}" oninput="IE.subj=this.value">
+<div style="overflow-x:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse;font-size:11px">${th(['Bill','Date','Customer','Vehicle','Route','Amount','Received','Balance',''])}<tbody>${I.rows.map(ieRow).join('')}</tbody></table></div><button class="btn g" style="margin-top:6px" onclick="ieAdd()">+ Add row</button><div id="iet" style="margin:10px 0 0 auto;width:270px"></div>
+${lb('Payment details / notes','({no} = invoice number)')}<textarea class="ei" rows="5" oninput="IE.pay=this.value">${ieE(I.pay)}</textarea>${lb('Terms &amp; extra notes','(optional)')}<textarea class="ei" rows="3" oninput="IE.terms=this.value">${ieE(I.terms)}</textarea>
+<div style="margin:14px 0 0 auto;width:270px;font-size:12px">For ${ieE(P.name)}<div style="height:34px"></div><div style="border-top:1px solid #1e2a5a;padding-top:4px"><input class="ei" value="${ieE(I.sign)}" oninput="IE.sign=this.value"></div></div>`;
+else{if(xl)body+=`${lb('Heading','(month line printed at the top of the Excel sheet)')}<input class="ei" value="${ieE(I.head)}" oninput="IE.head=this.value">`;
+if(tbl)body+=`<div style="overflow-x:auto;margin-top:12px"><table style="width:100%;border-collapse:collapse;font-size:11px">${th(f=='xnbf'?['Date','Trip No.','Customer','Staff ID','Dept','From','To','Vehicle','Amount','']:['Date','Trip No.','Customer','From','To','Vehicle','Charge',''])}<tbody>${I.R.map((r,i)=>ieRowN(r,i,f=='xnbf')).join('')}</tbody></table></div><button class="btn g" style="margin-top:6px" onclick="ieAddN()">+ Add row</button>`;
+if(f=='nbf')body+=`${lb('Description line')}<textarea class="ei" rows="2" oninput="IE.desc=this.value">${ieE(I.desc)}</textarea>${lb('Charge (AED)')}<input class="ei" type="number" step="0.01" style="width:160px;text-align:right" value="${I.sub}" oninput="IE.sub=+this.value||0;ieT()">`;
+if(!xl)body+=`<div style="margin-top:14px;border:1px solid #cbd5e1;border-radius:6px;padding:8px 10px"><div style="display:flex;justify-content:space-between;font-weight:700"><span>Sub Total</span><span id="ies"></span></div>${I.ext.map((x,i)=>`<div style="display:flex;gap:6px;margin-top:4px"><input class="ei" value="${ieE(x.l)}" oninput="IE.ext[${i}].l=this.value"><input class="ei" type="number" step="0.01" style="width:130px;text-align:right" value="${x.a}" oninput="IE.ext[${i}].a=+this.value||0;ieT()"><button class="btn g" style="padding:2px 8px" onclick="ieXd(${i})">&times;</button></div>`).join('')}
+<div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap"><button class="btn g" onclick="ieXa('')">+ Add item</button><button class="btn g" onclick="ieXa('VAT 0%')">+ VAT</button></div><div style="display:flex;justify-content:space-between;font-weight:800;border-top:1.5px solid #c9a227;margin-top:8px;padding-top:4px"><span>TOTAL (AED)</span><span id="iet"></span></div></div>
+${lb('Amount in words','(leave empty for automatic)')}<input class="ei" value="${ieE(I.words)}" oninput="IE.words=this.value">`;
+else body+=`<div id="iet" style="margin:10px 0 0 auto;width:270px;font-weight:800"></div><div style="font-size:11px;color:#777;margin-top:6px">This Excel copies the company's own sheet layout (trip lines and total only). It does not use an invoice number.</div>`}
+const lab=xl?'Excel':'invoice',pb=f=='dflt'||f=='nbf';
+m.innerHTML=`<style>#ied .ei{width:100%;border:1px dashed #cbd5e1;padding:3px 5px;font:inherit;font-size:inherit;background:#fffdf5;color:#111;box-sizing:border-box;border-radius:3px}#ied td .ei{font-size:11px;min-width:54px}</style><div style="max-width:980px;margin:0 auto">
+<div style="background:#fff;color:#111;border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;position:sticky;top:0;z-index:2"><b>Letterpad</b>
+<label style="margin:0;display:flex;gap:6px;align-items:center">Format <select onchange="ieFmt(this.value)">${fo.map(x=>`<option value="${x}" ${x==f?'selected':''}>${IEF[x]}</option>`).join('')}</select></label>
+${std?`<label style="margin:0;display:flex;gap:6px;align-items:center">VAT % <input type="number" value="${I.vat}" style="width:70px" oninput="IE.vat=+this.value||0;ieT()"></label>`:''}<span style="flex:1"></span>
+${I.pers?'':'<button class="btn g" onclick="ieDef()">Set as company default</button>'}<button class="btn g" onclick="ieX()">Close</button><button class="btn au" onclick="ieGo(1)">${xl?'Sample Excel':'Invoice sample'}</button><button class="btn" onclick="ieGo(0)">${xl?'Generate Excel':'Generate invoice'}</button></div>
 <div style="background:#fff;color:#111;padding:30px 36px;box-shadow:0 8px 30px rgba(0,0,0,.35);border-radius:4px;font-size:13px">
 <div style="text-align:center;border-bottom:2px solid #1e2a5a;padding-bottom:10px;margin-bottom:14px"><div style="font-size:20px;font-weight:800;color:#1e2a5a">${ieE(P.name)}</div><div style="font-size:11px;color:#555">${ieE([P.addr,P.phone,P.email,P.web,P.trn&&'TRN '+P.trn].filter(Boolean).join(' | '))}</div></div>
-<div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap"><div style="font-size:18px;font-weight:800;color:#1e2a5a">${I.smp?'INVOICE (SAMPLE)':std&&I.vat>0?'TAX INVOICE':'INVOICE'}</div><div style="text-align:right;font-size:12px">Invoice no: <b>${ieNo()}</b><br>Date: <input type="date" value="${I.date}" oninput="IE.date=this.value" style="border:1px dashed #cbd5e1;padding:2px;background:#fffdf5;color:#111"></div></div>
-<div style="margin:12px 0 4px"><b>Bill to</b></div>
-<input class="ei" value="${ieE(I.party)}" oninput="IE.party=this.value">
-<textarea class="ei" rows="2" placeholder="Address / TRN / attention line (optional)" style="margin-top:4px" oninput="IE.addr=this.value">${ieE(I.addr)}</textarea>
-${std?`<div style="margin:10px 0 4px"><b>Subject</b></div><input class="ei" value="${ieE(I.subj)}" oninput="IE.subj=this.value">
-<div style="overflow-x:auto;margin-top:10px"><table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr style="background:#1e2a5a;color:#fff">${['Bill','Date','Customer','Vehicle','Route','Amount','Received','Balance',''].map(h=>`<th style="padding:5px;text-align:left">${h}</th>`).join('')}</tr></thead><tbody>${I.rows.map(ieRow).join('')}</tbody></table></div>
-<button class="btn g" style="margin-top:6px" onclick="ieAdd()">+ Add row</button>
-<div id="iet" style="margin:10px 0 0 auto;width:270px"></div>`
-:`<div style="margin:12px 0 4px"><b>Description line</b> <span style="color:#777;font-size:11px">(leave empty for automatic wording)</span></div><textarea class="ei" rows="2" oninput="IE.desc=this.value" placeholder="Transport services provided during the month of ...">${ieE(I.desc)}</textarea>
-<div style="font-size:11px;color:#777;margin-top:6px">${I.fmt=='aramco'?'Aramco prints one invoice per trip':'NBF prints one monthly invoice'} in the company's own layout, built from the pending bills.</div>`}
-<div style="margin:14px 0 4px"><b>Payment details / notes</b> <span style="color:#777;font-size:11px">({no} = invoice number)</span></div>
-${std?`<textarea class="ei" rows="5" oninput="IE.pay=this.value">${ieE(I.pay)}</textarea>
-<div style="margin:10px 0 4px"><b>Terms &amp; extra notes</b> <span style="color:#777;font-size:11px">(optional)</span></div><textarea class="ei" rows="3" oninput="IE.terms=this.value">${ieE(I.terms)}</textarea>
-<div style="margin:14px 0 0 auto;width:270px;font-size:12px">For ${ieE(P.name)}<div style="height:34px"></div><div style="border-top:1px solid #1e2a5a;padding-top:4px"><input class="ei" value="${ieE(I.sign)}" oninput="IE.sign=this.value"></div></div>`:'<div style="font-size:11px;color:#777">Uses the standard bank details on the company letterhead.</div>'}
-</div></div>`;if(std)ieT();m.scrollTop=sc}
-function ieT(){const I=IE,e=$('#iet');if(!e)return;const ta=sum(I.rows,r=>+r.a||0),tp=sum(I.rows,r=>+r.p||0),due=Math.round((ta-tp)*100)/100,v=due*I.vat/100,ln=(k,x,b)=>`<div style="display:flex;justify-content:space-between;${b?'font-weight:800;border-top:1.5px solid #c9a227;margin-top:4px;padding-top:4px':''}"><span>${k}</span><span>${fmt(x)}</span></div>`;
-e.innerHTML=ln('Total billed',ta)+ln('Received so far',tp)+(I.vat?ln('VAT '+I.vat+'%',v):'')+ln('Amount due (AED)',due+v,1)}
+<div style="display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap"><div style="font-size:18px;font-weight:800;color:#1e2a5a">${I.smp?'INVOICE (SAMPLE)':std&&I.vat>0?'TAX INVOICE':'INVOICE'}</div><div style="text-align:right;font-size:12px">${xl?'':'Invoice no: <b>'+ieNo()+'</b><br>'}Date: <input type="date" value="${I.date}" oninput="IE.date=this.value" style="border:1px dashed #cbd5e1;padding:2px;background:#fffdf5;color:#111"></div></div>
+${head}${body}</div></div>`;ieT();m.scrollTop=sc}
+function ieT(){const I=IE;if(I.fmt=='std'){const e=$('#iet');if(!e)return;const ta=sum(I.rows,r=>+r.a||0),tp=sum(I.rows,r=>+r.p||0),due=Math.round((ta-tp)*100)/100,v=due*I.vat/100,ln=(k,x,b)=>`<div style="display:flex;justify-content:space-between;${b?'font-weight:800;border-top:1.5px solid #c9a227;margin-top:4px;padding-top:4px':''}"><span>${k}</span><span>${fmt(x)}</span></div>`;e.innerHTML=ln('Total billed',ta)+ln('Received so far',tp)+(I.vat?ln('VAT '+I.vat+'%',v):'')+ln('Amount due (AED)',due+v,1);return}
+const s=ieSub(),t=s+sum(I.ext,x=>+x.a||0),a=$('#ies'),b=$('#iet');if(a)a.textContent=fmt(s);if(b)b.textContent=fmt(I.fmt=='xnbf'||I.fmt=='xaram'?s:t)}
 function ieCell(i,k,v){const r=IE.rows[i];if(!r)return;if(k=='a'||k=='p'){r[k]=+v||0;r.x=Math.round((r.a-r.p)*100)/100;const e=$('#ixb'+i);if(e)e.textContent=fmt(r.x);ieT()}else r[k]=v}
+function ieCellN(i,k,v){const r=IE.R[i];if(!r)return;if(k=='a'){r.a=+v||0;ieT()}else r[k]=v}
 function ieAdd(){IE.rows.push({src:null,b:'',d:today(),c:'',v:'',r:'',a:0,p:0,x:0});ieR()}
 function ieDel(i){IE.rows.splice(i,1);ieR()}
+function ieAddN(){IE.R.push({src:null,d:IE.date,b:'',c:'',cn:'',f:'',t:'',v:'',a:0,id:'',dp:''});ieR()}
+function ieDelN(i){IE.R.splice(i,1);ieR()}
+function ieXa(l){IE.ext.push({l,a:0});ieR()}
+function ieXd(i){IE.ext.splice(i,1);ieR()}
 function ieFmt(v){IE.fmt=v;ieR()}
 function ieX(){const m=$('#ied');if(m)m.remove();IE=null}
-function ieDef(){const I=IE;need(()=>{const o=CF[I.co]=CF[I.co]||{};o.fmt=I.fmt;lg('Company setting',I.co+': invoice format set to '+I.fmt);save();toast('Default format saved for '+I.co)})}
+function ieDef(){const I=IE,v=I.fmt;need(()=>{const o=CF[I.co]=CF[I.co]||{};if(v=='xnbf'||v=='xaram')o.xl=v;else{delete o.xl;o.fmt=v=='nbf'?'nbf':'std'}lg('Company setting',I.co+': invoice format set to '+IEF[v]);save();toast('Default format saved for '+I.co)})}
 function ieWm(d){const n=d.getNumberOfPages();for(let p=1;p<=n;p++){d.setPage(p);try{d.saveGraphicsState();d.setGState(new d.GState({opacity:.1}));d.setFont('helvetica','bold').setFontSize(80).setTextColor(200,0,0);d.text('SAMPLE',d.W/2,d.H/2,{align:'center',angle:35});d.restoreGraphicsState()}catch(e){}}}
-function ieGoF(smp){const I=IE,L=dueL(I.k);if(!L.length)return alert('No pending bills for this party');
-if(!smp){let r;window._sfc={key:I.k,party:I.party};try{r=pFmt(I.fmt,I.co,L,I.date,I.desc)}finally{window._sfc=null}if(r)ieX();return}
-const b=L.map(t=>[t,t.inv,t.invd]),s0=invS,sv=window.save,lo=window.lg,ps=window.pdfSave;
-window.save=()=>{};window.lg=()=>{};window._sfc=null;window.pdfSave=(d,n)=>{ieWm(d);ps(d,'SAMPLE_'+n)};
-try{pFmt(I.fmt,I.co,L,I.date,I.desc)}finally{window.save=sv;window.lg=lo;window.pdfSave=ps;b.forEach(x=>{x[0].inv=x[1];x[0].invd=x[2]});invS=s0}
-toast('Sample PDF downloaded - no invoice number used')}
-function ieGo(smp){try{const I=IE;if(!I)return;I.smp=!!smp;if(I.fmt!='std')return ieGoF(smp);
-const R=I.rows.filter(r=>r.b||r.c||+r.a);if(!R.length)return alert('Add at least one line');
-const no=smp?'SAMPLE':'INV-'+YR+'-'+String(invN).padStart(4,'0'),P=CO_P,h={halign:'right'},ta=sum(R,r=>+r.a||0),tp=sum(R,r=>+r.p||0),due=Math.round((ta-tp)*100)/100,v=due*I.vat/100,dt=new Date(I.date||today()).toLocaleDateString('en-GB');
-const ln=['Invoice no: '+no,'Bill to: '+I.party+(I.pers?' (personal customer)':''),...String(I.addr).split('\n').map(s=>s.trim()).filter(Boolean),'Invoice date: '+dt,I.subj&&'Subject: '+I.subj].filter(Boolean);
+const aramRows=rs=>(d,g)=>{const b=g.bx;rs.forEach((r,i)=>{const y=g.yH+4.4+i*4.8;d.setFont('helvetica','normal').setFontSize(7.5);g.tx(dMon(r.d),b[0]+1.5,y);g.tx(String(r.b),(b[1]+b[2])/2,y,{align:'center'});d.text(d.splitTextToSize(g.cl(String(r.c||'-')),b[3]-b[2]-3)[0]||'',b[2]+1.5,y);const half=(b[4]-b[3])*.48;[r.f,r.t].forEach((s,k)=>{if(!s)return;fitTxt(d,g.cl(s),half,7.5);d.text(g.cl(s),b[3]+1.5+k*(b[4]-b[3])*.51,y);d.setFontSize(7.5)});d.setFontSize(7.5);g.tx(r.v,b[4]+1.5,y);g.tx(fm0(r.a),b[6]-1.5,y,{align:'right'})})};
+/* ---- generate ---- */
+function ieGo(smp){try{const I=IE;if(!I)return;I.smp=!!smp;const f=I.fmt;if(f=='std')return ieGoS(smp);
+if(f=='xnbf'||f=='xaram')return ieGoX(smp);
+if(!window.jspdf)return toast('PDF engine not loaded');
+const L=dueL(I.k);if(!L.length)return alert('No pending bills for this party');
+const dflt=f=='dflt',dt=I.date||today(),R=I.R.filter(r=>r.b||r.c||+r.a);if(dflt&&!R.length)return alert('Add at least one line');
+const have=[...new Set(L.map(t=>t.inv).filter(Boolean))];if(!smp&&have.length>1&&!confirm('These bills were already invoiced under different numbers ('+have.join(', ')+'). Issue one fresh invoice number for all of them?'))return;
+const n=have.length==1?have[0]:invS,noT=smp?'SAMPLE':n+' - '+String(dt).slice(2,4),sub=ieSub(),ex=I.ext.filter(x=>x.l||+x.a),tot=Math.round((sub+sum(ex,x=>+x.a||0))*100)/100,
+words=I.words.trim()||(dflt?NUMW(tot):NUMW(tot,1)),d=pdfNew({ref:'INV'});if(dflt)d.noPg=1;
+const cfg=(body,cont)=>({cols:dflt?ARCOLS:[{h:'Date',w:26.4},{h:'Description',w:140.6},{h:'Charge',w:25}],party:I.party,block:I.block,date:dflt?dMon(dt):dSl(dt),no:noT,body,sub,extras:ex.map(x=>[x.l,+x.a||0]),total:tot,words,big:dflt?0:1,cont});
+if(dflt){const per=Math.floor((219.5-Math.max(0,ex.length-2)*4.2-2.4-88.3)/4.8)+1;for(let i=0;i==0||i<R.length;i+=per){if(i)d.addPage();invPage(d,cfg(aramRows(R.slice(i,i+per)),i+per<R.length))}}
+else invPage(d,cfg(nbfBody(dt,I.desc.trim()||'Transport services',sub),0));
+d.ttl='Invoice';d.qi={no:String(n),party:I.party,amt:tot};
+const fn=(smp?'SAMPLE_':'')+I.co.replace(/\W+/g,'_')+'_Invoice_'+(smp?dt:n);
+if(smp){ieWm(d);pdfSave(d,fn);toast('Sample PDF downloaded - no invoice number used');return}
+const bs=dflt?R.map(r=>r.src).filter(x=>x!=null):L.map(t=>t.bill);L.forEach(t=>{if(bs.includes(t.bill)){t.inv=n;t.invd=dt}});if(have.length!=1)invS++;
+lg('Invoice issued',I.co+' \u00b7 invoice '+n+' - AED '+fm2(tot)+' ('+bs.length+' bills)');save();d._dvHold=1;pdfSave(d,fn);toast('Invoice downloaded');ieX();
+sfcAsk(d,fn,{no:String(n),key:I.k,party:I.party,amt:tot,vat:sum(ex.filter(x=>/vat/i.test(x.l)),x=>+x.a||0),bills:bs})}catch(e){console.error(e);toast('Could not create: '+e.message)}}
+function ieGoX(smp){const I=IE,R=I.R.filter(r=>r.b||r.cn||+r.a);if(!R.length)return alert('Add at least one line');
+const xa=I.fmt=='xaram',bl=xa?ieXA(R,I):ieXN(R,I),fn=(smp?'SAMPLE_':'')+I.co.replace(/\W+/g,'_')+(xa?'_Aramco':'_NBF')+'_Excel_'+I.date+'.xlsx';ieDl(bl,fn);
+if(smp)return toast('Sample Excel downloaded');lg('Excel statement generated',I.co+' \u00b7 '+(xa?'Excel for Aramco':'Excel of NBF')+' \u00b7 '+R.length+' trips \u00b7 AED '+fm2(sum(R,r=>+r.a||0)));save();toast('Excel downloaded')}
+function ieGoS(smp){const I=IE;
+const R=I.rows.filter(r=>r.b||r.c||+r.a);if(!R.length)return alert('Add at least one line');if(!window.jspdf)return toast('PDF engine not loaded');
+const no=smp?'SAMPLE':'INV-'+YR+'-'+String(invN).padStart(4,'0'),h={halign:'right'},ta=sum(R,r=>+r.a||0),tp=sum(R,r=>+r.p||0),due=Math.round((ta-tp)*100)/100,v=due*I.vat/100,dt=new Date(I.date||today()).toLocaleDateString('en-GB');
+const ln=['Invoice no: '+no,'Bill to: '+I.party+' (personal customer)',...String(I.addr).split('\n').map(s=>s.trim()).filter(Boolean),'Invoice date: '+dt,I.subj&&'Subject: '+I.subj].filter(Boolean);
 const d=pdfBase((I.vat>0?'TAX INVOICE':'INVOICE')+(smp?' (SAMPLE)':''),ln,{pre:'INV',ref:no});d.qi={amt:due+v,party:I.party};
 pdfTable(d,['Bill','Date','Customer','Vehicle','Route','Amount','Received','Balance'],R.map(r=>[r.b,r.d,r.c,r.v,r.r,fmt(+r.a||0),fmt(+r.p||0),fmt((+r.a||0)-(+r.p||0))]),{fs:7.5,cs:{5:h,6:h,7:h}});
 pdfSum(d,[['Total billed',fmt(ta)],['Received so far',fmt(tp)],...(I.vat?[['VAT '+I.vat+'%',fmt(v)]]:[]),['Amount due (AED)',fmt(due+v)]]);
-const wr=a=>a.flatMap(t=>d.splitTextToSize(cl(t),d.W-2*d.mx-2)),blk=a=>{if(!a.length)return;if(d.y0+a.length*4.6+8>d.H-d.BOT){d.addPage();d.y0=d.TOP}a.forEach((t,i)=>{d.setFont('helvetica',i?'normal':'bold').setFontSize(8.5).setTextColor(...GY);d.text(t,d.mx,d.y0+i*4.6)});d.y0+=a.length*4.6+4};
-const ls=s=>String(s).split('\n').map(x=>x.trim()).filter(Boolean);
+const wr=a=>a.flatMap(t=>d.splitTextToSize(cl(t),d.W-2*d.mx-2)),blk=a=>{if(!a.length)return;if(d.y0+a.length*4.6+8>d.H-d.BOT){d.addPage();d.y0=d.TOP}a.forEach((t,i)=>{d.setFont('helvetica',i?'normal':'bold').setFontSize(8.5).setTextColor(...GY);d.text(t,d.mx,d.y0+i*4.6)});d.y0+=a.length*4.6+4},ls=s=>String(s).split('\n').map(x=>x.trim()).filter(Boolean);
 blk(wr(ls(String(I.pay).replace(/\{no\}/g,smp?'(invoice no.)':no))));const tm=ls(I.terms);if(tm.length)blk(wr(['Terms & notes',...tm]));
 const P0=d.P;d.P=Object.assign({},P0,{sign:I.sign||P0.sign});pdfSign(d);d.P=P0;
 if(smp){ieWm(d);pdfSave(d,'Invoice_SAMPLE');toast('Sample PDF downloaded - no invoice number used');return}
 invN++;lg('Dues invoice issued',`${no} \u00b7 ${I.party} \u00b7 AED ${fmt(due+v)} \u00b7 ${R.length} bills`);save();
 const bl=R.map(r=>r.src).filter(x=>x!=null);d._dvHold=1;pdfSave(d,'Invoice_'+no);toast('Invoice '+no+' downloaded');ieX();
-sfcAsk(d,'Invoice_'+no,{no,key:I.k,party:I.party,amt:Math.round((due+v)*100)/100,vat:v,bills:bl})}catch(e){console.error(e);toast('Could not create PDF: '+e.message)}}
+sfcAsk(d,'Invoice_'+no,{no,key:I.k,party:I.party,amt:Math.round((due+v)*100)/100,vat:v,bills:bl})}
 </script>
 </body></html>
