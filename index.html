@@ -411,6 +411,55 @@ body .flagrow{background:#fef2f2}
 .cl-bar i{background:var(--acc);border-radius:2px}
 .sk{background:linear-gradient(90deg,#f1f5f9 25%,#e2e8f0 37%,#f1f5f9 63%);background-size:400% 100%;border-radius:8px}.skk{border-radius:10px}
 </style>
+<style id="dark-theme">
+/* ===== Dark theme: near-black + soft white (PDFs stay white) ===== */
+:root{--bg:#0b0d12;--ink:#f1f3f8;--mut:#9aa3b5;--line:#262b36;--navy:#f1f3f8;--navy2:#60a5fa;--gold:#60a5fa;--gold2:#60a5fa;--ok:#34d399;--bad:#f87171;--cy:#60a5fa;--acc:#2563eb;--acc2:#3b82f6;--soft:#14233f;color-scheme:dark}
+html,body{background:#0b0d12;color:var(--ink)}
+::selection{background:#1e40af;color:#fff}*{scrollbar-color:#394152 transparent}
+.card,.k,.lbox,aside,.md,.sum,.tw,.pn,.pill,.chip,.role,.tabs,.mp{background:#14171f;border-color:var(--line);box-shadow:none}
+.md,.mp{box-shadow:0 12px 40px rgba(0,0,0,.6)}
+.pn.co{background:#10201a;border-color:#1f3b2e}.pn.us{background:#25141a;border-color:#43232c}
+.sum{background:#11141b}.k:hover{border-color:#394152;box-shadow:none}
+.nav a:hover{background:#1c212c;color:var(--ink)}.nav a.on{background:var(--soft);color:#93c5fd}.nav a.on .ic{color:#60a5fa}.nav a.on:before{background:#3b82f6}
+.mnb{background:#14171f}.mnb:hover{background:#1c212c}
+.btn.g,.btn.g.w{background:#1a1e28;color:var(--ink);border-color:#2c3340}.btn.g:hover,.btn.g.w:hover{background:#232836}
+input,select,textarea{background:#0f1218;border-color:#2c3340;color:var(--ink)}
+input:hover,select:hover{background:#12161d;border-color:#3d4557}
+input:focus,select:focus,textarea:focus{background:#0f1218;border-color:#3b82f6;box-shadow:0 0 0 3px #3b82f633}
+input::placeholder,textarea::placeholder{color:#6b7488}
+select option{background:#14171f;color:#f1f3f8}
+input[type=date]::-webkit-calendar-picker-indicator,input[type=month]::-webkit-calendar-picker-indicator{filter:invert(1)}
+label,.lbl{color:#b4bccd}
+.role:hover{background:#1a1e28}.role.on,.role.on:hover{background:var(--soft);border-color:#3b82f6}
+.chip{color:#cbd2e0}.chip:hover{background:#1a1e28}
+th{background:#1a1e28;color:#b4bccd}td{border-top-color:#222733}tr:hover td{background:#191d27}
+.tag{background:#222733;color:#cbd2e0}
+.paid,.cashr{background:#123524;color:#6ee7b7}.unp{background:#3b1519;color:#fca5a5}
+.cashp,[style*="background:#fff3df"]{background:#3a2a0c!important;color:#fcd34d!important}.onl{background:#12263f;color:#93c5fd}
+.tabs{background:#0f1218}.sec{color:#aab2c4}
+.stamp,.pill.clock{background:#11141b;border-color:var(--line)}
+.pt{border-top-color:#394152}.bars i:last-child{background:#394152}
+.lerr{background:#3b1519;color:#fca5a5;border-color:#6b2128}.lok{background:#0f2a1d;color:#6ee7b7;border-color:#1f5a3e}
+.llb{background:#13233f;border-color:#244a85}.llb a{color:#93c5fd}
+.draftb{background:#2b230d;border-color:#5c4a14;color:#fde68a}
+.cfw li{background:#2b230d;border-color:#7a5f12}.cfw li.bd2,.cfbig{background:#3b1519;border-color:#7f2a31}
+.ov{background:rgba(0,0,0,.65)}
+.toast,#undo{background:#232836;color:#fff;border:1px solid #394152}
+#splash{background:#0b0d12}
+body #ib{background:#14171f!important;color:var(--ink)!important;border-color:var(--line)!important}
+body #sbar{background:#0f1218;color:var(--mut);border-top-color:var(--line)}
+body .vtag.p{background:#3a2a0c;color:#fcd34d}body .vtag.a{background:#123524;color:#6ee7b7}body .vtag.r{background:#3b1519;color:#fca5a5}
+body .flagrow{background:#2a1317}
+.cl-scene:before{border-color:#2c3340;border-top-color:#3b82f6}.cl-bar{background:#2c3340}
+.sk{background:linear-gradient(90deg,#171b24 25%,#222733 37%,#171b24 63%);background-size:400% 100%}
+img[data-logo],.orbit .mark,aside .lg img,#splash img{background:#f1f3f8;border-radius:10px;padding:5px 8px}
+/* inline colours set inside the app's templates */
+[style*="color:#1e2a5a"],[style*="color:#0f172a"]{color:var(--ink)!important}
+[style*="color:#5d6896"],[style*="color:#64748b"],[style*="color:#555"],[style*="color:#777"]{color:var(--mut)!important}
+[style*="background:#fff;"],[style*="background:#f4f6ff"],[style*="background:#f4f6fb"],[style*="background:#eef2fb"]{background:#1a1e28!important;color:var(--ink)}
+@media print{html,body{background:#fff!important;color:#000!important}}
+</style>
+
 </head><body>
 <div class="aurora"><i></i><i></i><i></i><i></i></div><div class="grid"></div>
 <div id="login"><div class="hero"><div class="orbit"><div class="r r2"></div><div class="r"></div><img class="mark" data-logo alt="Saif Navas Transport"></div><h1>Fleet operations, accounts and payroll in one place.</h1><p>Trip sheets, invoicing, statements, cash and bank, expenses and driver salary for Saif Navas Transport.</p><div class="chips"><div class="chip">Admin &amp; accountant workspaces</div><div class="chip">Company / own expense separation</div><div class="chip">Vehicle-wise records</div><div class="chip">One-way and round-trip routes</div></div></div>
