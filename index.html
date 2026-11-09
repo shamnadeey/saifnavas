@@ -3240,7 +3240,7 @@ window.ptEx=function(i,el){const d=DR[i],want=el.checked;if(!OWNR()){el.checked=
 const R=rnd2,KD={adnoc:{n:'Adnoc',f:'fuel',no:'Bill no.',lb:'fuel'},salik:{n:'Salik',f:'salik',no:'Trip bill no.',lb:'Salik'}},WF={adnoc:{f:'',t:'',q:''},salik:{f:'',t:'',q:''}};
 IC['Adnoc']='<path d="M5 21V5a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v16"/><path d="M4 21h12"/><path d="M15 9h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V9l-3-3"/><path d="M7 8h6"/>';
 IC['Salik']='<path d="M4 20V8l8-4 8 4v12"/><path d="M8 20v-8h8v8"/><path d="M3 20h18"/>';
-['corp','acc'].forEach(r=>{const a=NAV[r],i=a.indexOf('Expenses');if(!a.includes('Adnoc'))a.splice(i<0?a.length:i+1,0,'Adnoc','Salik')});
+const addTabs=()=>['corp','acc'].forEach(r=>{const a=NAV[r],i=a.indexOf('Expenses');if(!a.includes('Adnoc'))a.splice(i<0?a.length:i+1,0,'Adnoc','Salik')});
 const trips=k=>T.filter(t=>+t[KD[k].f]>0).map(t=>({id:'t'+(t._k||t.bill+'_'+(t.cp||'')),date:t.date,no:t.bill,veh:t.vehicle||'',drv:t.driver||'',amt:R(+t[KD[k].f]),note:'Trip sheet',auto:1}));
 const all=k=>trips(k).concat(WAL[k].ent.map(e=>Object.assign({},e,{auto:0}))).sort((a,b)=>(a.date>b.date?1:a.date<b.date?-1:String(a.id)>String(b.id)?1:-1));
 window.walBal=k=>R((+WAL[k].base||0)-sum(all(k),e=>+e.amt||0));
@@ -3257,7 +3257,7 @@ window.walAdd=k=>{const a=+g('wl_a'),dt=g('wl_d'),tp=g('wl_k'),vh=g('wl_v'),dr=g
 window.walDel=(k,id)=>need(()=>{const i=WAL[k].ent.findIndex(e=>e.id==id);if(i<0)return;const e=WAL[k].ent.splice(i,1)[0];lg(KD[k].n+' correction deleted',(e.note||'')+' · AED '+fmt(e.amt));save();cm();view(k)});
 window.walSet=k=>{if(!OWNR())return alert('Only the owner account can set the wallet balance.');const v=+g('wl_b');if(isNaN(v))return alert('Enter the balance');const o=walBal(k);WAL[k].base=R(v+sum(all(k),e=>+e.amt||0));lg(KD[k].n+' wallet balance set','AED '+fmt(o)+' → AED '+fmt(v));save();toast('Wallet balance updated');view(k)};
 window.walPdf=k=>{try{if(!window.jspdf)return toast('PDF engine not loaded');const D=KD[k],F=WF[k],rs=rowsOf(k),d=pdfBase(D.n+' statement',[(F.f||F.t)?'Period: '+(F.f?dmy(F.f):'start')+' to '+(F.t?dmy(F.t):'today'):'Period: all records','Wallet balance: AED '+fmt(walBal(k))],{pre:k=='adnoc'?'ADN':'SLK'});pdfTable(d,['Date',D.no,'Vehicle','Driver','Details','Amount (AED)','Balance (AED)'],rs.map(e=>[dmy(e.date),e.no||'-',e.veh||'-',e.drv||'-',e.note||'',(e.amt<0?'+':'')+fmt(Math.abs(e.amt)),fmt(e.run)]),{fs:8,cs:{5:{halign:'right'},6:{halign:'right'}},foot:['','','','','Total deducted',fmt(sum(rs,e=>+e.amt||0)),fmt(walBal(k))]});pdfSave(d,D.n+'_Statement_'+today())}catch(e){console.error(e);alert('Could not create statement')}};
-try{window.ownerNav&&window.ownerNav()}catch(e){}
+{const _on=window.ownerNav;window.ownerNav=function(){try{_on&&_on.apply(this,arguments)}catch(e){console.error(e)}addTabs()};try{window.ownerNav()}catch(e){addTabs()}}
 })();
 </script>
 </body></html>
