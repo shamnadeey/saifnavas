@@ -1,97 +1,143 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com; frame-src https://*.firebaseapp.com; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#060918"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#ffffff"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><meta name="apple-mobile-web-app-title" content="Driver App">
+<meta name="apple-mobile-web-app-status-bar-style" content="default"><meta name="apple-mobile-web-app-title" content="Driver App">
 <link rel="manifest" href="driver-manifest.json"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="apple-touch-icon.png">
 <title>Driver App</title>
 <style>
-:root{--bg:#060918;--card:#101531;--line:#232a52;--txt:#eef1ff;--mut:#8f98c8;--acc:#4f8cff;--ok:#2ecc8f;--bad:#ff6b7a;color-scheme:dark}
-@media(prefers-color-scheme:light){:root{--bg:#f2f4fb;--card:#fff;--line:#dde2f2;--txt:#12172f;--mut:#5d668f;color-scheme:light}}
+:root{--bg:#f6f7f9;--ink:#0f172a;--mut:#64748b;--line:#e2e8f0;--acc:#2563eb;--acc2:#1d4ed8;--soft:#eff6ff;--ok:#15803d;--bad:#b91c1c;--warn:#b45309;color-scheme:light}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--txt);font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);-webkit-text-size-adjust:100%;overscroll-behavior:none}
-.wrap{max-width:460px;margin:0 auto;padding:20px 18px 40px;min-height:100%;display:flex;flex-direction:column}
+body{background:var(--bg);color:var(--ink);font:14px/1.45 Inter,"Segoe UI",system-ui,-apple-system,Roboto,sans-serif;-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%;overscroll-behavior:none;font-variant-numeric:tabular-nums}
 .hide{display:none!important}
-.brand{display:flex;align-items:center;gap:12px;margin:18px 0 26px}
-.brand img{width:44px;height:44px;border-radius:11px}
-.brand b{font-size:18px;display:block}.brand span{font-size:13px;color:var(--mut)}
-.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
-label{display:block;font-size:13px;color:var(--mut);margin:14px 0 6px}
-input{width:100%;font:inherit;font-size:16px;color:var(--txt);background:transparent;border:1px solid var(--line);border-radius:12px;padding:13px 14px;outline:none}
-input:focus{border-color:var(--acc)}
-.pw{position:relative}.pw button{position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--mut);font-size:13px;padding:10px}
-.btn{width:100%;margin-top:20px;background:var(--acc);color:#fff;border:0;border-radius:12px;padding:14px;font:inherit;font-weight:600;cursor:pointer}
-.btn:disabled{opacity:.6}.btn.g{background:transparent;color:var(--mut);border:1px solid var(--line);margin-top:12px}
-.err{color:var(--bad);font-size:14px;margin-top:14px;min-height:20px}
-.hero{text-align:center;padding:26px 20px}
-.ph{width:132px;height:132px;border-radius:50%;object-fit:cover;border:3px solid var(--line);margin:0 auto 14px;display:flex;align-items:center;justify-content:center;font-size:44px;font-weight:700;color:var(--mut);background:var(--bg)}
-.hero h2{margin:0;font-size:22px}.hero p{margin:4px 0 0;color:var(--mut);font-size:14px}
-.live{display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--mut);margin-top:12px}
-.live i{width:8px;height:8px;border-radius:50%;background:var(--bad)}.live.on i{background:var(--ok)}
-.rows{margin-top:14px}.row{display:flex;justify-content:space-between;gap:14px;padding:14px 0;border-bottom:1px solid var(--line)}
-.row:last-child{border:0}.row span{color:var(--mut);font-size:14px}.row b{font-weight:600;text-align:right;word-break:break-word}
-.note{font-size:13px;color:var(--mut);text-align:center;margin-top:18px}
-#inst{margin-top:14px}
-.spin{margin:auto;width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:s .8s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+.top{position:fixed;top:0;left:0;right:0;z-index:5;background:#fff;border-bottom:1px solid var(--line);padding:env(safe-area-inset-top) 0 0}
+.top>div{max-width:560px;margin:0 auto;height:56px;display:flex;align-items:center;gap:10px;padding:0 16px}
+.top img.lg{width:32px;height:32px;border-radius:8px}
+.top h1{font-size:17px;font-weight:650;margin:0;letter-spacing:-.2px;flex:1}
+.top small{display:block;font-size:11px;color:var(--mut);font-weight:400;letter-spacing:0}
+.av{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--soft) center/cover;color:var(--acc2);font-weight:650;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;position:relative}
+.av i{position:absolute;right:-1px;bottom:-1px;width:10px;height:10px;border-radius:50%;background:var(--bad);border:2px solid #fff}.av.on i{background:var(--ok)}
+main{max-width:560px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 72px) 16px calc(env(safe-area-inset-bottom) + 92px)}
+h2{font-size:12px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.6px;margin:20px 2px 8px}
+.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px;box-shadow:0 1px 2px rgba(15,23,42,.04);margin-bottom:10px}
+.kpi small{font-size:12px;color:var(--mut)}.kpi b{display:block;font-size:28px;font-weight:650;letter-spacing:-.5px;margin-top:2px}.kpi span{font-size:12px;color:var(--mut)}
+.it{display:flex;justify-content:space-between;gap:12px}.it b{font-weight:600}.it .r{text-align:right;white-space:nowrap}
+.sub{font-size:12px;color:var(--mut);margin-top:3px}.rt{margin-top:8px;font-size:13px}
+.pill{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--soft);color:var(--acc2)}
+.pill.w{background:#fffbeb;color:var(--warn)}.pill.g{background:#f0fdf4;color:var(--ok)}
+.emp{text-align:center;color:var(--mut);padding:38px 10px}.emp svg{width:38px;height:38px;stroke:#cbd5e1;margin-bottom:8px}
+.tabs{position:fixed;bottom:0;left:0;right:0;z-index:5;background:#fff;border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs>div{max-width:560px;margin:0 auto;display:flex}
+.tabs button{flex:1;background:none;border:0;padding:9px 4px 8px;color:var(--mut);font:inherit;font-size:11px;font-weight:550;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;cursor:pointer}
+.tabs svg{width:23px;height:23px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.tabs button.on{color:var(--acc)}.tabs button.on:before{content:"";position:absolute;top:0;left:28%;right:28%;height:2px;background:var(--acc);border-radius:0 0 2px 2px}
+.bd{position:absolute;top:4px;left:calc(50% + 6px);min-width:17px;height:17px;border-radius:9px;background:var(--acc);color:#fff;font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.wrap{max-width:440px;margin:0 auto;padding:calc(env(safe-area-inset-top) + 40px) 20px 40px}
+.brand{text-align:center;margin-bottom:26px}.brand img{width:64px;height:64px;border-radius:16px}.brand h1{font-size:22px;font-weight:650;margin:12px 0 2px;letter-spacing:-.3px}.brand span{color:var(--mut)}
+label{display:block;font-size:12px;font-weight:550;color:var(--mut);margin:14px 0 6px}
+input{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:9px;padding:12px 13px;outline:none}input:focus{border-color:var(--acc);box-shadow:0 0 0 3px var(--soft)}
+.pw{position:relative}.pw button{position:absolute;right:4px;top:50%;transform:translateY(-50%);background:none;border:0;color:var(--mut);font-size:13px;padding:10px}
+.btn{width:100%;margin-top:18px;background:var(--acc);color:#fff;border:0;border-radius:9px;padding:13px;font:inherit;font-size:15px;font-weight:600;cursor:pointer}.btn:active{background:var(--acc2)}.btn:disabled{opacity:.6}
+.btn.g{background:#fff;color:var(--ink);border:1px solid var(--line)}
+.err{color:var(--bad);font-size:13px;margin-top:12px;min-height:18px}
+.note{font-size:12px;color:var(--mut);text-align:center;margin-top:16px}
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.sheet .bar{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);z-index:2}.sheet .bar>div{max-width:560px;margin:0 auto;height:56px;display:flex;align-items:center;padding:0 8px}
+.sheet .bar button{background:none;border:0;color:var(--acc);font:inherit;font-size:15px;padding:10px 12px;cursor:pointer}.sheet .bar b{flex:1;text-align:center;font-size:16px;margin-right:56px}
+.sheet main{padding-top:20px}
+.ph{width:112px;height:112px;border-radius:50%;border:1px solid var(--line);margin:4px auto 12px;background:var(--soft) center/cover;display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:650;color:var(--acc2)}
+.hero{text-align:center}.hero h3{margin:0;font-size:20px;font-weight:650}.hero p{margin:2px 0 0;color:var(--mut)}
+.row{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}.row span{color:var(--mut)}.row b{font-weight:600;text-align:right;word-break:break-word}
+.spin{margin:40vh auto 0;width:30px;height:30px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:s .8s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
 </style></head><body>
-<div class="wrap">
- <div id="boot" class="spin"></div>
+<div id="boot" class="spin"></div>
 
- <div id="login" class="hide">
-  <div class="brand"><img src="icon-192.png" alt=""><div><b>Driver App</b><span>Sign in to see your details</span></div></div>
-  <div class="card">
-   <label for="u">Username</label><input id="u" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
-   <label for="p">Password</label><div class="pw"><input id="p" type="password" autocomplete="current-password"><button type="button" id="sh">Show</button></div>
-   <div class="err" id="e"></div>
-   <button class="btn" id="go">Sign in</button>
-  </div>
-  <div class="note">Your username and password are given by the office.</div>
-  <div id="inst" class="card hide" style="font-size:14px"></div>
+<div id="login" class="hide"><div class="wrap">
+ <div class="brand"><img src="icon-192.png" alt=""><h1>Driver App</h1><span>Sign in to continue</span></div>
+ <div class="card">
+  <label for="u" style="margin-top:0">Username</label><input id="u" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false">
+  <label for="p">Password</label><div class="pw"><input id="p" type="password" autocomplete="current-password"><button type="button" id="sh">Show</button></div>
+  <div class="err" id="e"></div><button class="btn" id="go" style="margin-top:6px">Sign in</button>
  </div>
+ <div class="note">Your username and password are given by the office.</div>
+ <div id="inst" class="card hide" style="font-size:13px;margin-top:16px"></div>
+</div></div>
 
- <div id="home" class="hide">
-  <div class="brand"><img src="icon-192.png" alt=""><div><b>Driver App</b><span>My details</span></div></div>
-  <div class="card hero"><div id="ph" class="ph"></div><h2 id="nm"></h2><p id="sub"></p><div class="live" id="lv"><i></i><span>Connecting…</span></div></div>
-  <div class="card rows" style="margin-top:14px" id="rows"></div>
+<div id="home" class="hide">
+ <div class="top"><div><img class="lg" src="icon-192.png" alt=""><h1 id="ttl">Trips<small id="upd"></small></h1><button class="av" id="avb" aria-label="Profile"><span id="avt"></span><i></i></button></div></div>
+ <main id="pg"></main>
+ <nav class="tabs"><div>
+  <button data-t="trips"><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg>Trips<span class="bd hide" id="b_trips"></span></button>
+  <button data-t="cash"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg>Cash<span class="bd hide" id="b_cash"></span></button>
+  <button data-t="appr"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>Approvals<span class="bd hide" id="b_appr"></span></button>
+ </div></nav>
+</div>
+
+<div id="prof" class="sheet hide">
+ <div class="bar"><div><button id="pc">Close</button><b>Profile</b></div></div>
+ <main>
+  <div class="card hero"><div class="ph" id="ph"></div><h3 id="nm"></h3><p id="sub"></p><div class="pill g" id="lv" style="margin-top:10px">Connecting…</div></div>
+  <div class="card" id="rows" style="padding:4px 16px"></div>
+  <div id="inst2" class="card hide" style="font-size:13px"></div>
   <button class="btn g" id="out">Sign out</button>
- </div>
+ </main>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script>
 const FB={apiKey:"AIzaSyDjIdRU9ZheXDQYmE-8onjE3Vow_cX7t44",authDomain:"saifnavastransportation.firebaseapp.com",projectId:"saifnavastransportation",storageBucket:"saifnavastransportation.firebasestorage.app",messagingSenderId:"858865289383",appId:"1:858865289383:web:750474764d16a68ec7f382"};
-const DOMAIN='driver.saifnavas.app';           // username -> username@DOMAIN (must match the logins the owner creates)
-const HIDDEN=['username','name','phone','photo','updated','basic','allow','salary','wps','pays','leaves','pt','pi','pe','pxo']; // never shown as extra rows
+const DOMAIN='driver.saifnavas.app';
+const HIDDEN=['username','name','phone','photo','updated','trips','cash','approvals','basic','allow','salary','wps','pays','leaves','pt','pi','pe','pxo'];
 firebase.initializeApp(FB);
 const auth=firebase.auth(),db=firebase.firestore(),$=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let unsub=null;
+const fmt=n=>(+n||0).toLocaleString('en-AE',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fdt=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return esc(s||'');return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
+let unsub=null,D=null,TAB='trips';
 const show=id=>['boot','login','home'].forEach(x=>$('#'+x).classList.toggle('hide',x!==id));
+const EMP=t=>'<div class="emp"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg><div>'+t+'</div></div>';
 
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 auth.onAuthStateChanged(u=>{
   if(unsub){unsub();unsub=null}
-  if(!u){show('login');return}
-  show('home');live(false,'Connecting…');
+  if(!u){D=null;$('#prof').classList.add('hide');show('login');return}
+  show('home');live(false,'Connecting…');paint();
   unsub=db.collection('driverapp').doc(u.uid).onSnapshot(s=>{
-    if(!s.exists){render(null);live(true,'Signed in · no profile published yet');return}
-    render(s.data());live(!s.metadata.fromCache,s.metadata.fromCache?'Offline · showing saved copy':'Live');
+    D=s.exists?s.data():null;paint();live(!s.metadata.fromCache,s.exists?(s.metadata.fromCache?'Offline · saved copy':'Live'):'No profile published yet');
   },e=>{live(false,e.code=='permission-denied'?'Not allowed to read this profile':'Connection problem')});
 });
-function live(on,t){const l=$('#lv');l.classList.toggle('on',on);l.querySelector('span').textContent=t}
-function render(d){
-  if(!d){$('#nm').textContent='Welcome';$('#sub').textContent='';$('#ph').textContent='?';$('#rows').innerHTML='<div class="row"><span>Your profile has not been published by the office yet.</span></div>';return}
-  const nm=d.name||'Driver';$('#nm').textContent=nm;$('#sub').textContent=d.phone||'';
-  const ph=$('#ph');
-  if(d.photo){ph.innerHTML='';ph.style.background='url("'+String(d.photo).replace(/"/g,'')+'") center/cover'}else{ph.style.background='';ph.textContent=nm.trim().charAt(0).toUpperCase()}
-  const rows=[['Name',nm],['Phone',d.phone]];
-  const extra=d.details&&typeof d.details=='object'?d.details:d;
-  Object.keys(extra).forEach(k=>{if(extra===d&&HIDDEN.indexOf(k)>=0)return;if(extra===d.details&&HIDDEN.indexOf(k.toLowerCase())>=0)return;const v=extra[k];if(v==null||typeof v=='object'||v==='')return;rows.push([k.replace(/_/g,' ').replace(/^./,c=>c.toUpperCase()),v])});
+function live(on,t){const l=$('#lv');l.className='pill '+(on?'g':'w');l.textContent=t;$('.av').classList.toggle('on',on)}
+function trip(t){return '<div class="card"><div class="it"><div><b>'+esc(t.customer||'Trip')+'</b><div class="sub">Bill '+esc(t.bill)+' · '+fdt(t.date)+'</div></div><div class="r">'+(t.type?'<span class="pill">'+esc(t.type)+'</span>':'')+'</div></div>'+((t.from||t.to)?'<div class="rt">'+esc(t.from||'—')+' → '+esc(t.to||'—')+'</div>':'')+'</div>'}
+function paint(){
+  const nm=(D&&D.name)||'Driver';$('#avt').textContent=nm.trim().charAt(0).toUpperCase();
+  const av=$('#avb');av.style.backgroundImage=D&&D.photo?'url("'+String(D.photo).replace(/["\\]/g,'')+'")':'';if(D&&D.photo)$('#avt').textContent='';
+  const tr=(D&&D.trips)||{},up=tr.up||[],rc=tr.recent||[],cs=(D&&D.cash)||{},ci=cs.items||[],ap=(D&&D.approvals)||[];
+  const bd=(id,n)=>{const e=$('#'+id);e.textContent=n;e.classList.toggle('hide',!n)};bd('b_trips',up.length);bd('b_cash',ci.length);bd('b_appr',ap.length);
+  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t==TAB));
+  $('#ttl').firstChild.textContent={trips:'Scheduled trips',cash:'Cash to deposit',appr:'Approvals'}[TAB];
+  $('#upd').textContent=D&&D.updated?'Updated '+new Date(D.updated).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
+  let h='';
+  if(!D)h=EMP('Your profile has not been published by the office yet.');
+  else if(TAB=='trips'){
+    h='<h2 style="margin-top:4px">Scheduled</h2>'+(up.length?up.map(trip).join(''):EMP('No scheduled trips'))+(rc.length?'<h2>Recent trips</h2>'+rc.map(trip).join(''):'');
+  }else if(TAB=='cash'){
+    h='<div class="card kpi"><small>Pending to deposit</small><b>AED '+fmt(cs.total)+'</b><span>'+ci.length+' trip'+(ci.length==1?'':'s')+' with cash not yet handed over</span></div>'+
+      (ci.length?'<h2>Cash trips</h2>'+ci.map(t=>'<div class="card"><div class="it"><div><b>'+esc(t.customer||'Trip')+'</b><div class="sub">Bill '+esc(t.bill)+' · '+fdt(t.date)+'</div></div><div class="r"><b>AED '+fmt(t.pend)+'</b><div class="sub">of '+fmt(t.amt)+'</div></div></div>'+(+t.rcv>0?'<div class="rt"><span class="pill g">Received '+fmt(t.rcv)+'</span></div>':'')+'</div>').join('')+'<div class="note">Hand the cash to the office. The accountant updates this list when it is received.</div>':EMP('No cash is waiting to be deposited'));
+  }else h=ap.length?ap.map(a=>'<div class="card"><div class="it"><div><b>'+esc(a.title||'Approval')+'</b><div class="sub">'+esc(a.note||'')+'</div></div><div class="r"><span class="pill w">'+esc(a.status||'Pending')+'</span></div></div></div>').join(''):EMP('No approvals pending');
+  $('#pg').innerHTML=h;
+  // profile sheet
+  $('#nm').textContent=nm;$('#sub').textContent=(D&&D.phone)||'';
+  const ph=$('#ph');if(D&&D.photo){ph.textContent='';ph.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")'}else{ph.style.backgroundImage='';ph.textContent=nm.trim().charAt(0).toUpperCase()}
+  const rows=[['Name',nm],['Phone',D&&D.phone],['Username',D&&D.username]];
+  const ex=D&&D.details&&typeof D.details=='object'?D.details:{};
+  Object.keys(ex).forEach(k=>{if(HIDDEN.indexOf(k.toLowerCase())>=0)return;const v=ex[k];if(v==null||typeof v=='object'||v==='')return;rows.push([k.replace(/_/g,' ').replace(/^./,c=>c.toUpperCase()),v])});
   $('#rows').innerHTML=rows.filter(r=>r[1]).map(r=>'<div class="row"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('');
 }
+document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;paint();scrollTo(0,0)});
+$('#avb').onclick=()=>{$('#prof').classList.remove('hide')};$('#pc').onclick=()=>$('#prof').classList.add('hide');
 async function login(){
   const u=$('#u').value.trim().toLowerCase().replace(/\s+/g,''),p=$('#p').value;$('#e').textContent='';
   if(!u||!p){$('#e').textContent='Enter your username and password.';return}
@@ -103,9 +149,8 @@ async function login(){
 $('#go').onclick=login;$('#p').onkeydown=e=>{if(e.key=='Enter')login()};
 $('#sh').onclick=()=>{const p=$('#p'),h=p.type=='password';p.type=h?'text':'password';$('#sh').textContent=h?'Hide':'Show'};
 $('#out').onclick=()=>auth.signOut();
-// install help (Android prompt / iOS instructions)
-const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;
-let dip=null;
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;if(!standalone){const b=$('#inst');b.classList.remove('hide');b.innerHTML='<b>Install this app</b><br><span style="color:var(--mut)">Add it to your home screen for quick access.</span><button class="btn" id="ib" style="margin-top:12px">Install</button>';$('#ib').onclick=async()=>{dip.prompt();await dip.userChoice;dip=null;b.classList.add('hide')}}});
-if(!standalone&&/iphone|ipad|ipod/i.test(navigator.userAgent)){const b=$('#inst');b.classList.remove('hide');b.innerHTML='<b>Install on iPhone</b><br><span style="color:var(--mut)">Tap the Share button in Safari, then “Add to Home Screen”.</span>'}
+const standalone=matchMedia('(display-mode: standalone)').matches||navigator.standalone;let dip=null;
+function inst(html,cb){['#inst','#inst2'].forEach(s=>{const b=$(s);b.classList.remove('hide');b.innerHTML=html});if(cb)cb()}
+window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;if(!standalone)inst('<b>Install this app</b><div class="sub">Add it to your home screen for quick access.</div><button class="btn" data-i style="margin-top:12px">Install</button>',()=>document.querySelectorAll('[data-i]').forEach(b=>b.onclick=async()=>{dip.prompt();await dip.userChoice;dip=null;['#inst','#inst2'].forEach(s=>$(s).classList.add('hide'))}))});
+if(!standalone&&/iphone|ipad|ipod/i.test(navigator.userAgent))inst('<b>Install on iPhone</b><div class="sub">Tap the Share button in Safari, then “Add to Home Screen”.</div>');
 </script></body></html>
