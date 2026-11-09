@@ -1453,7 +1453,7 @@ window.sbar=function(){
   const on=navigator.onLine,ap=E('app'),appOn=!!ap&&!ap.classList.contains('hide');
   let h='';
   if(appOn){
-    h='<span class="sd '+(on?(PEND>0||PREV?'w':'g'):'r')+'"></span><b>'+(on?'Online':'No signal')+'</b>';
+    h='<span class="sd '+(on?(PEND>0||PREV?'w':'g'):'r')+'"></span>'+(window.__BR?window.__BR.GC.replace('<svg','<svg class="gcl" style="width:17px;height:17px;vertical-align:-4px;margin:0 6px 0 2px"'):'')+'<b>'+(on?'Online':'No signal')+'</b>';
     h+=' · '+(LASTSYNC?'Last sync '+new Date(LASTSYNC).toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'}):'Not synced yet');
     if(PEND>0)h+=' · <b class="pw">'+PEND+' change'+(PEND>1?'s':'')+' waiting to upload</b>';
     else if(PREV)h+=' · <b class="pw">Earlier changes are waiting to upload</b>';
@@ -3221,7 +3221,7 @@ const FB='<svg viewBox="0 0 24 24"><path d="M4.6 18.6 7 3.9a.5.5 0 0 1 .9-.2l2.4
 window.__BR={FB,GC,GD,GH,CP};
 const L=document.getElementById('login');
 if(L&&!L.querySelector('.lg-foot'))L.insertAdjacentHTML('beforeend',`<div class="lg-foot"><div class="brands"><span>${FB}Firebase</span><span>${GC}Google Cloud</span><span>${GD}Google Drive</span><span>${GH}GitHub</span></div>${secPill()}<div class="cp">${CP}</div></div>`);
-const A=document.querySelector('aside');if(A&&!A.querySelector('.app-copy'))A.insertAdjacentHTML('beforeend',`<div class="app-copy">${secPill('Secured')}<div class="cp" style="margin-top:6px">${CP}</div></div>`);
+const A=document.querySelector('aside');if(A&&!A.querySelector('.app-copy'))A.insertAdjacentHTML('beforeend',`<div class="app-copy">${secPill('Secured')}</div>`);
 /* secured badge on sensitive tabs */
 const SEN=['Salary','Partners Share','Bank Balance','Bank','Company Documents','Cash','Cheques'];
 const og=window.go;if(typeof og=='function'&&!og.__sec){const w=function(i){try{window.__cur=(NAV[role]||[])[i]}catch(e){}const r=og.apply(this,arguments);setTimeout(()=>{try{const n=(NAV[role]||[])[i],v=document.getElementById('view');if(v&&SEN.includes(n)&&!v.querySelector('.sec-row'))v.insertAdjacentHTML('afterbegin',`<div class="sec-row" style="display:flex;justify-content:flex-end;margin-bottom:8px">${secPill()}</div>`)}catch(e){}},80);return r};w.__sec=1;window.go=w}
