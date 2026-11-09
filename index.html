@@ -3187,4 +3187,31 @@ const od=window.drvPV;window.drvPV=function(){const r=od.apply(this,arguments);t
 const op=window.payOne;if(typeof op=='function')window.payOne=function(i){const d=DR[i];if(d&&!isOut(d)&&!(DI[d]&&DI[d].photo&&DI[d].photo.thumb))return alert('Passport size photo is mandatory for '+d+'. Upload it in the Drivers tab before initiating salary.');return op.apply(this,arguments)};
 })();
 </script>
+<style>
+.sec-pill{display:inline-flex;align-items:center;gap:6px;padding:4px 10px;border-radius:999px;border:1px solid var(--ok);color:var(--ok);font-size:11.5px;font-weight:600;background:transparent;white-space:nowrap}
+.sec-pill svg{width:14px;height:14px}
+#login .lg-foot{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:14px 22px;align-items:center;justify-content:center;padding:14px 18px;border-top:1px solid var(--line);position:relative;z-index:2;color:var(--mut);font-size:12px}
+#login .lg-foot .brands{display:flex;gap:16px;align-items:center;flex-wrap:wrap}
+#login .lg-foot .brands span{display:inline-flex;align-items:center;gap:6px;color:var(--ink);font-weight:600;font-size:12px}
+#login .lg-foot .brands svg{width:20px;height:20px}
+.app-copy{padding:10px 12px;font-size:10.5px;line-height:1.4;color:var(--mut);border-top:1px solid var(--line)}
+</style>
+<script id="badges">
+(function(){
+const SH='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l8 3v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-5"/></svg>';
+const https=location.protocol==='https:';
+const secTxt=https?'Secured · Encrypted connection (HTTPS)':'Secured · Password-protected, role-based access';
+const secPill=(t)=>`<span class="sec-pill" title="Access is password protected and limited by user role${https?'. This page is loaded over an encrypted HTTPS connection.':'.'}">${SH}${t||secTxt}</span>`;
+const yr=new Date().getFullYear(),CP='© '+yr+' Mohammed Shamnad Cheripurath. All rights reserved.';
+const GD='<svg viewBox="0 0 87.3 78"><path d="m6.6 66.85 3.85 6.65c.8 1.4 1.95 2.5 3.3 3.3l13.75-23.8h-27.5c0 1.55.4 3.1 1.2 4.5z" fill="#0066da"/><path d="m43.65 25-13.75-23.8c-1.35.8-2.5 1.9-3.3 3.3l-25.4 44a9.06 9.06 0 0 0-1.2 4.5h27.5z" fill="#00ac47"/><path d="m73.55 76.8c1.35-.8 2.5-1.9 3.3-3.3l1.6-2.75 7.65-13.25c.8-1.4 1.2-2.95 1.2-4.5h-27.5l5.85 11.5z" fill="#ea4335"/><path d="m43.65 25 13.75-23.8c-1.35-.8-2.9-1.2-4.5-1.2h-18.5c-1.6 0-3.15.45-4.5 1.2z" fill="#00832d"/><path d="m59.8 53h-32.3l-13.75 23.8c1.35.8 2.9 1.2 4.5 1.2h50.8c1.6 0 3.15-.45 4.5-1.2z" fill="#2684fc"/><path d="m73.4 26.5-12.7-22c-.8-1.4-1.95-2.5-3.3-3.3l-13.75 23.8 16.15 28h27.45c0-1.55-.4-3.1-1.2-4.5z" fill="#ffba00"/></svg>';
+const GH='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg>';
+const GC='<svg viewBox="0 0 24 24"><path d="M7 19a5 5 0 0 1-.6-9.96A6 6 0 0 1 12 5c1.6 0 3 .6 4.1 1.6" fill="none" stroke="#ea4335" stroke-width="2.2" stroke-linecap="round"/><path d="M16.1 6.6A5.5 5.5 0 0 1 17.6 17" fill="none" stroke="#fbbc04" stroke-width="2.2" stroke-linecap="round"/><path d="M7 19h10.6" fill="none" stroke="#34a853" stroke-width="2.2" stroke-linecap="round"/><path d="M6.4 9.04A5 5 0 0 0 7 19" fill="none" stroke="#4285f4" stroke-width="2.2" stroke-linecap="round"/></svg>';
+const L=document.getElementById('login');
+if(L&&!L.querySelector('.lg-foot'))L.insertAdjacentHTML('beforeend',`<div class="lg-foot"><div class="brands"><span>${GC}Google Cloud</span><span>${GD}Google Drive</span><span>${GH}GitHub</span></div>${secPill()}<div>${CP}</div></div>`);
+const A=document.querySelector('aside');if(A&&!A.querySelector('.app-copy'))A.insertAdjacentHTML('beforeend',`<div class="app-copy">${secPill('Secured')}<div style="margin-top:6px">${CP}</div></div>`);
+/* secured badge on sensitive tabs */
+const SEN=['Salary','Partners Share','Bank Balance','Bank','Company Documents','Cash','Cheques'];
+const og=window.go;if(typeof og=='function'&&!og.__sec){const w=function(i){const r=og.apply(this,arguments);setTimeout(()=>{try{const n=(NAV[role]||[])[i],v=document.getElementById('view');if(v&&SEN.includes(n)&&!v.querySelector('.sec-row'))v.insertAdjacentHTML('afterbegin',`<div class="sec-row" style="display:flex;justify-content:flex-end;margin-bottom:8px">${secPill()}</div>`)}catch(e){}},80);return r};w.__sec=1;window.go=w}
+})();
+</script>
 </body></html>
