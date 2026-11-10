@@ -95,6 +95,8 @@ if (!app.requestSingleInstanceLock()) { app.quit() } else {
       try { return new Response(await fs.promises.readFile(f), { headers: { 'content-type': MIME[path.extname(f).toLowerCase()] || 'application/octet-stream' } }) }
       catch (e) { return new Response('Not found', { status: 404 }) }
     });
+    // Google API keys are restricted to the website's address; the desktop app has none, so present the same one for Firebase/Google requests
+    session.defaultSession.webRequest.onBeforeSendHeaders({ urls: ['https://*.googleapis.com/*', 'https://*.firebaseio.com/*', 'https://*.firebaseapp.com/*'] }, (d, cb) => { d.requestHeaders['Referer'] = 'https://shamnadeey.github.io/saifnavas/'; cb({ requestHeaders: d.requestHeaders }) });
     session.defaultSession.setPermissionRequestHandler((wc, perm, cb) => cb(['clipboard-sanitized-write', 'fullscreen'].includes(perm)));
     if (app.isPackaged && cfg.autoStart === undefined) { cfg.autoStart = true; saveCfg(); app.setLoginItemSettings({ openAtLogin: true, args: ['--hidden'] }) }
     setupMenu(); setupTray(); setupUpdates();
