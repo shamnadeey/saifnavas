@@ -62,6 +62,16 @@ input{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;bo
 .chips{display:flex;gap:6px;flex-wrap:wrap}.chips button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:8px 14px;font:inherit;font-size:13px;font-weight:550;color:var(--mut);cursor:pointer}.chips button.on{background:var(--soft);border-color:var(--acc);color:var(--acc2)}
 select,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:9px;padding:12px 13px;outline:none}
 .pill.b{background:#dbeafe;color:var(--acc2)}
+@keyframes up{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes sheetIn{from{transform:translateY(28px);opacity:0}to{transform:none;opacity:1}}
+@keyframes pop{50%{transform:scale(1.18)}}
+.enter>*{animation:up .32s cubic-bezier(.2,.7,.2,1) both}.enter>:nth-child(2){animation-delay:.04s}.enter>:nth-child(3){animation-delay:.08s}.enter>:nth-child(4){animation-delay:.12s}.enter>:nth-child(5){animation-delay:.16s}.enter>:nth-child(n+6){animation-delay:.2s}
+.sheet:not(.hide){animation:sheetIn .26s cubic-bezier(.2,.7,.2,1)}#login .wrap{animation:up .4s both}
+.btn,.sm,.chips button,.seg button,.cal-g .d,.tabs button,.tabs svg{transition:transform .12s,background-color .15s,color .15s,border-color .15s,opacity .15s}
+.btn:active,.sm:active,.chips button:active,.seg button:active{transform:scale(.97)}.tabs button:active svg{transform:scale(.86)}.tabs button.on svg{animation:pop .3s}
+.foot{text-align:center;padding:22px 0 4px;color:var(--mut);font-size:10px;line-height:1.5}.foot .lg{display:flex;justify-content:center;align-items:center;gap:8px;margin-bottom:5px}.foot img{height:20px;width:20px;border-radius:5px;opacity:.85}
+.pin{width:100%;font:700 24px monospace;letter-spacing:8px;text-align:center}
+@media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style></head><body>
 <div id="boot" class="spin"></div>
 
@@ -74,6 +84,7 @@ select,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);backgrou
  </div>
  <div class="note">Your username and password are given by the office.</div>
  <div id="inst" class="card hide" style="font-size:13px;margin-top:16px"></div>
+ <div class="foot" data-foot></div>
 </div></div>
 
 <div id="home" class="hide">
@@ -87,14 +98,17 @@ select,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);backgrou
  <main>
   <div class="card hero"><div class="ph" id="ph"></div><h3 id="nm"></h3><p id="sub"></p><div class="pill g" id="lv" style="margin-top:10px">Connecting…</div></div>
   <div class="card" id="rows" style="padding:4px 16px"></div>
+  <div id="pex"></div>
   <div id="inst2" class="card hide" style="font-size:13px"></div>
   <button class="btn g" id="out">Sign out</button>
+  <div class="foot" data-foot></div>
  </main>
 </div>
 
 <div id="dlg" class="sheet hide" style="z-index:30">
  <div class="bar"><div><button id="dx">Cancel</button><b id="dt"></b></div></div>
  <main id="dgb"></main>
+ <div class="foot" data-foot style="padding-bottom:30px"></div>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -113,7 +127,7 @@ const stt=s=>{const m=String(s.date||'').split('-'),t=String(s.time||'00:00').sp
 const stat=s=>s.status=='posted'?{c:'g',t:'Completed · verified'}:s.status=='completed'?{c:'w',t:'Completed · pending verification'}:(Date.now()>=stt(s)?{c:'b',t:'Ongoing'}:{c:'',t:'Upcoming'});
 const TYPES=['One Way','Round','Others'],CATS=['Company','Personal','Local'];let FC='Company',ADQ=[],OTPS={};
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-let U=null,CD=false,CV=true,TB=[],ME={},D=null,SCHD=[],SCHA=[],LK=null,UNS=[],TAB='trips',DV='cal',SEL=ymd(new Date()),CM=new Date(new Date().getFullYear(),new Date().getMonth(),1),FE=null,FT='One Way',DN=null;
+let DEPQ=[],DF={};let U=null,CD=false,CV=true,TB=[],ME={},D=null,SCHD=[],SCHA=[],LK=null,UNS=[],TAB='trips',DV='cal',SEL=ymd(new Date()),CM=new Date(new Date().getFullYear(),new Date().getMonth(),1),FE=null,FT='One Way',DN=null;
 const TODAY=ymd(new Date());
 const show=id=>['boot','login','home'].forEach(x=>$('#'+x).classList.toggle('hide',x!==id));
 const EMP=t=>'<div class="emp"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg><div>'+t+'</div></div>';
@@ -122,7 +136,7 @@ const ICON={trips:'<svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circl
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 auth.onAuthStateChanged(async u=>{
   UNS.forEach(f=>{try{f()}catch(e){}});UNS=[];$('#dlg').classList.add('hide');
-  if(!u){U=null;D=null;SCHD=[];SCHA=[];LK=null;$('#prof').classList.add('hide');show('login');return}
+  if(!u){U=null;D=null;SCHD=[];SCHA=[];LK=null;DEPQ=[];DF={};$('#prof').classList.add('hide');show('login');return}
   U=u;show('boot');ME={};CD=false;CV=true;
   try{const s=await db.collection('users').doc(u.uid).get();if(s.exists)ME=s.data()}catch(e){ME={_err:e.code||'error'}}
   if(ME.role=='dispatcher'){
@@ -135,6 +149,7 @@ auth.onAuthStateChanged(async u=>{
   if(CV){
     UNS.push(db.collection('driverapp').doc(u.uid).onSnapshot(s=>{D=s.exists?s.data():null;paint();live(!s.metadata.fromCache,s.exists?(s.metadata.fromCache?'Offline · saved copy':'Live'):(CD?'Live':'No profile published yet'))},err));
     UNS.push(db.collection('advreq').where('uid','==',u.uid).onSnapshot(s=>{ADQ=s.docs.map(x=>Object.assign({id:x.id},x.data())).sort((a,b)=>(b.at||0)-(a.at||0));paint()},()=>{}));
+    UNS.push(db.collection('depreq').where('uid','==',u.uid).onSnapshot(s=>{DEPQ=s.docs.map(x=>Object.assign({id:x.id},x.data())).sort((a,b)=>(b.at||0)-(a.at||0));paint()},()=>{}));
     UNS.push(db.collection('schedule').where('uid','==',u.uid).onSnapshot(s=>{SCHD=s.docs.map(x=>Object.assign({id:x.id},x.data()));paint()},err));
   }
   if(CD){
@@ -183,18 +198,22 @@ function paint(quiet){
     h=(on.length?'<h2 style="margin-top:4px">Ongoing</h2>'+on.map(s=>sc(s)).join(''):'')+'<h2'+(on.length?'':' style="margin-top:4px"')+'>Upcoming</h2>'+(up.length?up.map(s=>sc(s)).join(''):EMP('No upcoming trips'))+(dn.length?'<h2>Completed</h2>'+dn.map(s=>sc(s)).join(''):'');
   }else if(!D)h=EMP('Your profile has not been published by the office yet.');
   else if(TAB=='cash'){const cs=D.cash||{};
-    h='<div class="card kpi"><small>Pending to deposit</small><b>AED '+fmt(cs.total)+'</b><span>'+ci.length+' trip'+(ci.length==1?'':'s')+' with cash not yet handed over</span></div>'+
+    h='<div class="card kpi"><small>Pending to deposit</small><b>AED '+fmt(cs.total)+'</b><span>'+ci.length+' trip'+(ci.length==1?'':'s')+' with cash not yet handed over</span></div>'+depHtml(ci,cs)+
       (ci.length?'<h2>Cash trips</h2>'+ci.map(t=>'<div class="card"><div class="it"><div><b>'+esc(t.customer||'Trip')+'</b><div class="sub">Bill '+esc(t.bill)+' · '+fdt(t.date)+'</div></div><div class="r"><b>AED '+fmt(t.pend)+'</b><div class="sub">of '+fmt(t.amt)+'</div></div></div>'+(+t.rcv>0?'<div class="rt"><span class="pill g">Received '+fmt(t.rcv)+'</span></div>':'')+'</div>').join('')+'<div class="note">Hand the cash to the office. The accountant updates this list when it is received.</div>':EMP('No cash is waiting to be deposited'));
   }else h=ap.length?ap.map(a=>'<div class="card"><div class="it"><div><b>'+esc(a.title||'Approval')+'</b><div class="sub">'+esc(a.note||'')+'</div></div><div class="r"><span class="pill w">'+esc(a.status||'Pending')+'</span></div></div></div>').join(''):'';h=advHtml()+h;if(!h)h=EMP('No approvals pending');
-  $('#pg').innerHTML=h;
+  const fi=$('#dep_in'),fv=fi&&fi.value,ff=fi&&document.activeElement===fi,K=TAB+'|'+DV,pg=$('#pg');
+  if(K!==window._pk){window._pk=K;pg.classList.remove('enter');void pg.offsetWidth;pg.classList.add('enter');clearTimeout(window._pt);window._pt=setTimeout(()=>pg.classList.remove('enter'),700)}
+  pg.innerHTML=h+FOOT();
+  if(fv){const n=$('#dep_in');if(n){n.value=fv;if(ff)n.focus()}}
 }
 function paintProfile(nm){
   $('#nm').textContent=nm||'Driver';$('#sub').textContent=(CD&&!CV)?'Dispatcher':(D&&D.phone)||'';
   const ph=$('#ph');if(D&&D.photo){ph.textContent='';ph.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")'}else{ph.style.backgroundImage='';ph.textContent=(nm||'?').trim().charAt(0).toUpperCase()}
   const rows=(CD&&!CV)?[['Name',ME.name],['Role','Dispatcher'],['Username',ME.username]]:[['Name',nm],['Phone',D&&D.phone],['Username',D&&D.username]].concat(CD?[['Role','Driver & dispatcher']]:[]);
-  if(ME._err)rows.push(['Access check','Could not read ('+ME._err+')']);else if(ME.role=='dispatcher'&&ME.disabled)rows.push(['Dispatcher access','Off']);rows.push(['Access record',ME.role||'none found']);rows.push(['Login ID',U?U.uid.slice(0,8):'']);rows.push(['App version','v3 · 4 tabs']);
+  if(ME._err)rows.push(['Access check','Could not read ('+ME._err+')']);else if(ME.role=='dispatcher'&&ME.disabled)rows.push(['Dispatcher access','Off']);rows.push(['Access record',ME.role||'none found']);rows.push(['Login ID',U?U.uid.slice(0,8):'']);rows.push(['App version','v4']);
   const ex=D&&D.details&&typeof D.details=='object'?D.details:{};
   Object.keys(ex).forEach(k=>{if(HIDDEN.indexOf(k.toLowerCase())>=0)return;const v=ex[k];if(v==null||typeof v=='object'||v==='')return;rows.push([k.replace(/_/g,' ').replace(/^./,c=>c.toUpperCase()),v])});
+  $('#pex').innerHTML=profExtra();
   $('#rows').innerHTML=rows.filter(r=>r[1]).map(r=>'<div class="row"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('');
 }
 
@@ -308,6 +327,37 @@ async function advDecline(id){
   if(!confirm('Decline this advance? Nothing will be paid or recorded.'))return;
   try{await db.collection('advreq').doc(id).update({status:'declined',decAt:Date.now()})}catch(e){alert('Could not decline. Check your connection.')}}
 
+
+/* ---------- footer, profile extras, cash deposit ---------- */
+const FOOT=()=>'<div class="foot"><div class="lg"><img src="icon-192.png" alt=""></div>© '+new Date().getFullYear()+' Saif Navas Transportation LLC · All rights reserved<br>Driver App v4</div>';
+document.querySelectorAll('[data-foot]').forEach(e=>e.innerHTML=FOOT());
+function profExtra(){
+  if(!D)return '';let h='';const de=D.docsExp||[],w=D.work,f=D.fines,lv=D.leaves||[];
+  if(de.length)h+='<h2>Documents expiring soon</h2><div class="card" style="padding:4px 16px">'+de.map(x=>'<div class="row"><span>'+esc(x.l)+'<div class="sub">'+fdt(x.exp)+'</div></span><b><span class="pill '+(x.n<0?'':'w')+'" style="'+(x.n<0?'background:#fef2f2;color:var(--bad)':'')+'">'+(x.n<0?'Expired '+(-x.n)+' d ago':x.n==0?'Expires today':x.n+' day'+(x.n==1?'':'s')+' left')+'</span></b></div>').join('')+'</div><div class="note" style="margin-top:6px">Please contact the office to renew.</div>';
+  if(w)h+='<h2>Work &amp; leave · '+new Date(w.month+'-01T00:00:00').toLocaleDateString('en-GB',{month:'long',year:'numeric'})+'</h2><div class="card" style="padding:4px 16px"><div class="row"><span>Working days so far</span><b>'+w.worked+' of '+w.days+'</b></div><div class="row"><span>Leave taken this month</span><b>'+w.leave+' day'+(w.leave==1?'':'s')+'</b></div><div class="row"><span>Leave records (all time)</span><b>'+(D.leaveTot||0)+'</b></div></div>'+(lv.length?'<div class="card" style="padding:4px 16px">'+lv.map(l=>'<div class="row"><span>'+esc(l.t)+'<div class="sub">'+fdt(l.f)+(l.e?' → '+fdt(l.e):' → ongoing')+'</div></span><b>'+(l.paid?'Paid':'Unpaid')+'</b></div>').join('')+'</div>':'');
+  if(f)h+='<h2>Fines deducted</h2><div class="card kpi"><small>Total fines deducted</small><b'+(f.total>0?' style="color:var(--bad)"':'')+'>AED '+fmt(f.total)+'</b><span>'+f.n+' fine'+(f.n==1?'':'s')+' on record</span></div>'+(f.items&&f.items.length?'<div class="card" style="padding:4px 16px">'+f.items.map(x=>'<div class="row"><span>'+esc(x.t)+(x.bill?'<div class="sub">Bill '+esc(x.bill)+'</div>':'')+'</span><b>AED '+fmt(x.amt)+'</b></div>').join('')+'</div>':'');
+  return h}
+function depSt(r){const t=r.status=='approved'?(r.apAt||0):(r.at||0);return (r.status=='pending'||r.status=='approved')&&Date.now()-t>AEXP?'expired':r.status}
+function depHtml(ci,cs){
+  const A=DEPQ.find(r=>['pending','approved','confirmed'].indexOf(depSt(r))>=0);
+  if(A){const st=depSt(A);
+    if(st=='pending')return '<div class="card"><div class="it"><div><b>Deposit request sent</b><div class="sub">Waiting for the accountant to approve · AED '+fmt(A.amt)+'</div></div><span class="pill w">Pending</span></div><button class="sm d" data-a="depx" data-id="'+A.id+'">Cancel request</button></div>';
+    if(st=='approved')return '<div class="card"><b>Enter the PIN</b><div class="sub" style="margin:2px 0 10px">The accountant received AED '+fmt(A.rcv)+'. Enter the 6-digit PIN they give you to complete this deposit.</div><input class="pin" id="dep_in" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="······">'+(DF[A.id]?'<div class="err">Wrong PIN. '+(5-DF[A.id])+' tries left.</div>':'<div class="err" id="dep_er"></div>')+'<button class="btn" data-a="depok" data-id="'+A.id+'" style="margin-top:4px">Confirm deposit</button><button class="sm d" data-a="depx" data-id="'+A.id+'">Cancel</button></div>';
+    return '<div class="card"><div class="it"><div><b>PIN verified</b><div class="sub">The office is updating your cash now.</div></div><span class="pill g">Done</span></div></div>'}
+  const L=DEPQ[0],ln=L&&L.status=='posted'?'<div class="sub" style="margin:0 0 10px">Last deposit: AED '+fmt(L.rcv)+' recorded '+fdt(ymd(new Date(L.postAt||L.cfAt||L.at)))+'</div>':L&&L.status=='rejected'?'<div class="sub" style="margin:0 0 10px">Your last deposit request was rejected by the accountant.</div>':'';
+  return (ci.length?'<button class="sm p" data-a="dep" style="margin:0 0 12px">Deposit now</button>':'')+ln}
+async function depReq(){const cs=(D&&D.cash)||{};if(!(cs.total>0)||DEPQ.some(r=>['pending','approved','confirmed'].indexOf(depSt(r))>=0))return;
+  if(!confirm('Send a deposit request for AED '+fmt(cs.total)+' to the accountant?'))return;
+  try{const now=Date.now();await db.collection('depreq').add({uid:U.uid,driver:(D&&D.name)||ME.name||'',amt:Math.round(cs.total*100)/100,bills:(cs.items||[]).slice(0,60).map(t=>t.bill),status:'pending',at:now,_ts:now})}
+  catch(e){alert(e.code=='permission-denied'?'Not allowed yet. The office must publish the latest Firestore rules.':'Could not send. Check your connection.')}}
+async function depVerify(id){const r=DEPQ.find(x=>x.id==id),v=($('#dep_in')||{}).value||'',er=$('#dep_er');if(!r||depSt(r)!='approved')return;
+  if(!/^\d{6}$/.test(v)){if(er)er.textContent='Enter the 6-digit PIN.';return}
+  const b=document.querySelector('[data-a="depok"]');if(b)b.disabled=true;
+  try{const h=await otpHash(v,id,r.uid);
+    if(h!==r.otpH){const n=DF[id]=(DF[id]||0)+1;if(n>=5){await db.collection('depreq').doc(id).update({status:'cancelled',decAt:Date.now()});alert('Too many wrong PINs. The request was cancelled. Send a new one.')}paint();return}
+    await db.collection('depreq').doc(id).update({status:'confirmed',cfAt:Date.now()})}
+  catch(e){if(er)er.textContent='Could not complete. Check your connection.';if(b)b.disabled=false}}
+
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v,id=b.dataset.id;
@@ -321,6 +371,9 @@ document.addEventListener('click',e=>{
   else if(a=='cpy'){DN.copy=v=='1';drawCopy()}
   else if(a=='ty'){FT=v;document.querySelectorAll('#f_ty button').forEach(x=>x.classList.toggle('on',x.dataset.v==v))}
   else if(a=='save')saveForm();
+  else if(a=='dep')depReq();
+  else if(a=='depok')depVerify(id);
+  else if(a=='depx'){if(confirm('Cancel this deposit request?'))db.collection('depreq').doc(id).update({status:'cancelled',decAt:Date.now()}).catch(()=>alert('Could not cancel.'))}
   else if(a=='aok')advApprove(id);
   else if(a=='ano')advDecline(id);
   else if(a=='done')openDone(id);
