@@ -111,7 +111,7 @@ const P=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+P(d.getMonth()+1
 const fdt=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return esc(s||'');return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})};
 const stt=s=>{const m=String(s.date||'').split('-'),t=String(s.time||'00:00').split(':');return m.length<3?0:new Date(+m[0],+m[1]-1,+m[2],+t[0]||0,+t[1]||0).getTime()};
 const stat=s=>s.status=='posted'?{c:'g',t:'Completed · verified'}:s.status=='completed'?{c:'w',t:'Completed · pending verification'}:(Date.now()>=stt(s)?{c:'b',t:'Ongoing'}:{c:'',t:'Upcoming'});
-const TYPES=['One Way','Round','Others'],CATS=['Company','Personal','Local'];let FC='Company';
+const TYPES=['One Way','Round','Others'],CATS=['Company','Personal','Local'];let FC='Company',ADQ=[],OTPS={};
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 let U=null,CD=false,CV=true,TB=[],ME={},D=null,SCHD=[],SCHA=[],LK=null,UNS=[],TAB='trips',DV='cal',SEL=ymd(new Date()),CM=new Date(new Date().getFullYear(),new Date().getMonth(),1),FE=null,FT='One Way',DN=null;
 const TODAY=ymd(new Date());
@@ -134,6 +134,7 @@ auth.onAuthStateChanged(async u=>{
   const err=e=>live(false,e.code=='permission-denied'?'Not allowed to read this data':'Connection problem');
   if(CV){
     UNS.push(db.collection('driverapp').doc(u.uid).onSnapshot(s=>{D=s.exists?s.data():null;paint();live(!s.metadata.fromCache,s.exists?(s.metadata.fromCache?'Offline · saved copy':'Live'):(CD?'Live':'No profile published yet'))},err));
+    UNS.push(db.collection('advreq').where('uid','==',u.uid).onSnapshot(s=>{ADQ=s.docs.map(x=>Object.assign({id:x.id},x.data())).sort((a,b)=>(b.at||0)-(a.at||0));paint()},()=>{}));
     UNS.push(db.collection('schedule').where('uid','==',u.uid).onSnapshot(s=>{SCHD=s.docs.map(x=>Object.assign({id:x.id},x.data()));paint()},err));
   }
   if(CD){
@@ -170,7 +171,7 @@ function paint(quiet){
   if(D&&D.photo){av.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")';$('#avt').textContent=''}
   const bd=(id,n)=>{const e=$('#'+id);if(e){e.textContent=n;e.classList.toggle('hide',!n)}};
   const ci=((D&&D.cash)||{}).items||[],ap=(D&&D.approvals)||[];
-  bd('b_trips',CV?act().length:0);bd('b_cash',ci.length);bd('b_appr',ap.length);bd('b_sched',0);
+  bd('b_trips',CV?act().length:0);bd('b_cash',ci.length);bd('b_appr',ap.length+ADQ.filter(a=>advSt(a)=='pending').length);bd('b_sched',0);
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==TAB));
   $('#ttl').firstChild.textContent={trips:'My trips',cash:'Cash to deposit',appr:'Approvals',sched:'Schedule'}[TAB];
   $('#upd').textContent=D&&D.updated&&TAB=='cash'?'Updated '+new Date(D.updated).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
@@ -184,7 +185,7 @@ function paint(quiet){
   else if(TAB=='cash'){const cs=D.cash||{};
     h='<div class="card kpi"><small>Pending to deposit</small><b>AED '+fmt(cs.total)+'</b><span>'+ci.length+' trip'+(ci.length==1?'':'s')+' with cash not yet handed over</span></div>'+
       (ci.length?'<h2>Cash trips</h2>'+ci.map(t=>'<div class="card"><div class="it"><div><b>'+esc(t.customer||'Trip')+'</b><div class="sub">Bill '+esc(t.bill)+' · '+fdt(t.date)+'</div></div><div class="r"><b>AED '+fmt(t.pend)+'</b><div class="sub">of '+fmt(t.amt)+'</div></div></div>'+(+t.rcv>0?'<div class="rt"><span class="pill g">Received '+fmt(t.rcv)+'</span></div>':'')+'</div>').join('')+'<div class="note">Hand the cash to the office. The accountant updates this list when it is received.</div>':EMP('No cash is waiting to be deposited'));
-  }else h=ap.length?ap.map(a=>'<div class="card"><div class="it"><div><b>'+esc(a.title||'Approval')+'</b><div class="sub">'+esc(a.note||'')+'</div></div><div class="r"><span class="pill w">'+esc(a.status||'Pending')+'</span></div></div></div>').join(''):EMP('No approvals pending');
+  }else h=ap.length?ap.map(a=>'<div class="card"><div class="it"><div><b>'+esc(a.title||'Approval')+'</b><div class="sub">'+esc(a.note||'')+'</div></div><div class="r"><span class="pill w">'+esc(a.status||'Pending')+'</span></div></div></div>').join(''):'';h=advHtml()+h;if(!h)h=EMP('No approvals pending');
   $('#pg').innerHTML=h;
 }
 function paintProfile(nm){
@@ -283,6 +284,30 @@ async function saveDone(){
   catch(e){E(e.code=='permission-denied'?'Not allowed. This trip may already be verified, or the office must update the Firestore rules.':'Could not save. Check your connection.');$('#d_s').disabled=false}
 }
 
+/* ---------- advance OTP approvals ---------- */
+const AEXP=30*60*1000;
+async function otpHash(otp,id,uid){const k=await crypto.subtle.importKey('raw',new TextEncoder().encode(otp),'PBKDF2',false,['deriveBits']),b=await crypto.subtle.deriveBits({name:'PBKDF2',salt:new TextEncoder().encode(id+'|'+uid),iterations:150000,hash:'SHA-256'},k,256);return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,'0')).join('')}
+function advSt(a){if(a.status=='pending'&&Date.now()-(a.at||0)>AEXP)return 'expired';if(a.status=='approved'&&Date.now()-(a.apAt||0)>AEXP)return 'expired';return a.status}
+function advHtml(){
+  const L=ADQ.filter(a=>Date.now()-(a.at||0)<7*864e5);if(!L.length)return '';
+  const P=L.filter(a=>advSt(a)=='pending'),R=L.filter(a=>advSt(a)!='pending');let h='';
+  const det=a=>'<div class="sub">For: '+esc(a.purpose||'Salary advance')+' · given on '+fdt(a.date)+'</div><div class="sub">Paid by: '+esc(a.mode||'')+' · requested by '+esc(a.byName||'the office')+'</div>'+(a.note?'<div class="sub">Note: '+esc(a.note)+'</div>':'');
+  if(P.length)h+='<h2 style="margin-top:4px">Advance requests</h2>'+P.map(a=>'<div class="card"><div class="it"><div><b>Salary advance</b>'+det(a)+'</div><div class="r"><b>AED '+fmt(a.amt)+'</b></div></div><div class="note">Approve only if you are receiving this advance right now. Approving gives you a 6-digit PIN that you tell the accountant. If you did not ask for it, decline.</div><div style="display:flex;gap:8px;margin-top:10px"><button class="btn" style="flex:1;margin:0" data-a="aok" data-id="'+a.id+'">Approve and get PIN</button><button class="sm d" data-a="ano" data-id="'+a.id+'">Decline</button></div></div>').join('');
+  if(R.length)h+='<h2>Recent advances</h2>'+R.map(a=>{const st=advSt(a);let b='';
+    if(st=='approved'){const o=OTPS[a.id]||(function(){try{return localStorage.getItem('otp_'+a.id)}catch(e){return null}})();b=o?'<div class="note">Tell this PIN to the accountant. It works once and expires 30 minutes after you approved.</div><div style="font:700 34px/1.2 monospace;letter-spacing:8px;text-align:center;margin:8px 0">'+esc(o)+'</div>':'<div class="note">Approved. The PIN was shown on the device where you approved.</div>'}
+    const pl={approved:['w','Approved · waiting for accountant'],used:['g','Advance given'],declined:['','Declined'],cancelled:['','Cancelled by office'],expired:['','Expired']}[st]||['',esc(st)];
+    return '<div class="card"><div class="it"><div><b>Salary advance</b>'+det(a)+'</div><div class="r"><b>AED '+fmt(a.amt)+'</b><div><span class="pill '+pl[0]+'">'+pl[1]+'</span></div></div></div>'+b+'</div>'}).join('');
+  return h}
+async function advApprove(id){
+  const a=ADQ.find(x=>x.id==id);if(!a||advSt(a)!='pending')return;const btn=document.querySelector('[data-a="aok"][data-id="'+id+'"]');if(btn)btn.disabled=true;
+  try{const otp=String(100000+(crypto.getRandomValues(new Uint32Array(1))[0]%900000)),h=await otpHash(otp,id,a.uid);
+    OTPS[id]=otp;try{localStorage.setItem('otp_'+id,otp)}catch(e){}
+    await db.collection('advreq').doc(id).update({status:'approved',otpH:h,apAt:Date.now()})}
+  catch(e){delete OTPS[id];alert(e.code=='permission-denied'?'This request is no longer open.':'Could not approve. Check your connection.');if(btn)btn.disabled=false}}
+async function advDecline(id){
+  if(!confirm('Decline this advance? Nothing will be paid or recorded.'))return;
+  try{await db.collection('advreq').doc(id).update({status:'declined',decAt:Date.now()})}catch(e){alert('Could not decline. Check your connection.')}}
+
 /* ---------- events ---------- */
 document.addEventListener('click',e=>{
   const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v,id=b.dataset.id;
@@ -296,6 +321,8 @@ document.addEventListener('click',e=>{
   else if(a=='cpy'){DN.copy=v=='1';drawCopy()}
   else if(a=='ty'){FT=v;document.querySelectorAll('#f_ty button').forEach(x=>x.classList.toggle('on',x.dataset.v==v))}
   else if(a=='save')saveForm();
+  else if(a=='aok')advApprove(id);
+  else if(a=='ano')advDecline(id);
   else if(a=='done')openDone(id);
   else if(a=='pay'){DN.paid=v=='true';if(!DN.paid)DN.pm='';drawPay()}
   else if(a=='pm'){DN.pm=v;drawPay()}
