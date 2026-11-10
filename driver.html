@@ -112,33 +112,37 @@ const fdt=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)retu
 const stt=s=>{const m=String(s.date||'').split('-'),t=String(s.time||'00:00').split(':');return m.length<3?0:new Date(+m[0],+m[1]-1,+m[2],+t[0]||0,+t[1]||0).getTime()};
 const stat=s=>s.status=='posted'?{c:'g',t:'Completed · verified'}:s.status=='completed'?{c:'w',t:'Completed · pending verification'}:(Date.now()>=stt(s)?{c:'b',t:'Ongoing'}:{c:'',t:'Upcoming'});
 const TYPES=['One Way','Round','Others'];
-let U=null,ROLE='drv',ME={},D=null,SCHD=[],LK=null,UNS=[],TAB='trips',DV='cal',SEL=ymd(new Date()),CM=new Date(new Date().getFullYear(),new Date().getMonth(),1),FE=null,FT='One Way',DN=null;
+let U=null,CD=false,CV=true,TB=[],ME={},D=null,SCHD=[],SCHA=[],LK=null,UNS=[],TAB='trips',DV='cal',SEL=ymd(new Date()),CM=new Date(new Date().getFullYear(),new Date().getMonth(),1),FE=null,FT='One Way',DN=null;
 const TODAY=ymd(new Date());
 const show=id=>['boot','login','home'].forEach(x=>$('#'+x).classList.toggle('hide',x!==id));
 const EMP=t=>'<div class="emp"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg><div>'+t+'</div></div>';
 const ICON={trips:'<svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg>',cash:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg>',appr:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>',sched:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>'};
-const TABS={drv:[['trips','Trips'],['cash','Cash'],['appr','Approvals']],disp:[['sched','Schedule']]};
 
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 auth.onAuthStateChanged(async u=>{
   UNS.forEach(f=>{try{f()}catch(e){}});UNS=[];$('#dlg').classList.add('hide');
-  if(!u){U=null;D=null;SCHD=[];LK=null;$('#prof').classList.add('hide');show('login');return}
-  U=u;show('boot');ME={};ROLE='drv';
+  if(!u){U=null;D=null;SCHD=[];SCHA=[];LK=null;$('#prof').classList.add('hide');show('login');return}
+  U=u;show('boot');ME={};CD=false;CV=true;
   try{const s=await db.collection('users').doc(u.uid).get();if(s.exists)ME=s.data()}catch(e){}
-  if(ME.role=='dispatcher'){if(ME.disabled){await auth.signOut();alert('This dispatcher access is switched off. Contact the office.');return}ROLE='disp';TAB='sched'}else TAB='trips';
+  if(ME.role=='dispatcher'){
+    if(!ME.disabled){CD=true;CV=!!ME.drv}
+    else if(!ME.drv){await auth.signOut();alert('This dispatcher access is switched off. Contact the office.');return}
+  }
+  TB=[];if(CD)TB.push(['sched','Schedule']);if(CV)TB.push(['trips','Trips'],['cash','Cash'],['appr','Approvals']);TAB=TB[0][0];
   buildNav();show('home');live(false,'Connecting…');paint();
   const err=e=>live(false,e.code=='permission-denied'?'Not allowed to read this data':'Connection problem');
-  if(ROLE=='drv'){
-    UNS.push(db.collection('driverapp').doc(u.uid).onSnapshot(s=>{D=s.exists?s.data():null;paint();live(!s.metadata.fromCache,s.exists?(s.metadata.fromCache?'Offline · saved copy':'Live'):'No profile published yet')},err));
+  if(CV){
+    UNS.push(db.collection('driverapp').doc(u.uid).onSnapshot(s=>{D=s.exists?s.data():null;paint();live(!s.metadata.fromCache,s.exists?(s.metadata.fromCache?'Offline · saved copy':'Live'):(CD?'Live':'No profile published yet'))},err));
     UNS.push(db.collection('schedule').where('uid','==',u.uid).onSnapshot(s=>{SCHD=s.docs.map(x=>Object.assign({id:x.id},x.data()));paint()},err));
-  }else{
+  }
+  if(CD){
     const since=ymd(new Date(Date.now()-60*864e5));
-    UNS.push(db.collection('schedule').where('date','>=',since).onSnapshot(s=>{SCHD=s.docs.map(x=>Object.assign({id:x.id},x.data()));live(!s.metadata.fromCache,s.metadata.fromCache?'Offline · saved copy':'Live');paint()},err));
-    UNS.push(db.collection('lookup').doc('dispatch').onSnapshot(s=>{LK=s.exists?s.data():{};}, ()=>{}));
+    UNS.push(db.collection('schedule').where('date','>=',since).onSnapshot(s=>{SCHA=s.docs.map(x=>Object.assign({id:x.id},x.data()));live(!s.metadata.fromCache,s.metadata.fromCache?'Offline · saved copy':'Live');paint()},err));
+    UNS.push(db.collection('lookup').doc('dispatch').onSnapshot(s=>{LK=s.exists?s.data():{}},()=>{}));
   }
   if(!window._iv)window._iv=setInterval(()=>{if(U)paint(true)},60000);
 });
-function buildNav(){$('#nav').innerHTML=TABS[ROLE].map(t=>'<button data-t="'+t[0]+'">'+ICON[t[0]]+t[1]+'<span class="bd hide" id="b_'+t[0]+'"></span></button>').join('');document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;paint();scrollTo(0,0)})}
+function buildNav(){$('#nav').innerHTML=TB.map(t=>'<button data-t="'+t[0]+'">'+ICON[t[0]]+t[1]+'<span class="bd hide" id="b_'+t[0]+'"></span></button>').join('');document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;paint();scrollTo(0,0)})}
 function live(on,t){const l=$('#lv');l.className='pill '+(on?'g':'w');l.textContent=t;$('.av').classList.toggle('on',on)}
 
 /* ---------- cards ---------- */
@@ -155,23 +159,23 @@ function sc(s,who){
   }else if(s.status=='scheduled'||!s.status)h+='<button class="sm" data-a="edit" data-id="'+s.id+'">Edit</button><button class="sm d" data-a="del" data-id="'+s.id+'">Cancel trip</button>';
   return h+'</div>';
 }
-const act=a=>SCHD.filter(s=>s.status!='completed'&&s.status!='posted').sort((p,q)=>stt(p)-stt(q));
-const don=a=>SCHD.filter(s=>s.status=='completed'||s.status=='posted').sort((p,q)=>stt(q)-stt(p)).slice(0,60);
+const act=a=>(a||SCHD).filter(s=>s.status!='completed'&&s.status!='posted').sort((p,q)=>stt(p)-stt(q));
+const don=a=>(a||SCHD).filter(s=>s.status=='completed'||s.status=='posted').sort((p,q)=>stt(q)-stt(p)).slice(0,60);
 
 function paint(quiet){
-  const nm=(ROLE=='disp'?ME.name:D&&D.name)||'';const av=$('#avb');
+  const nm=(D&&D.name)||ME.name||'';const av=$('#avb');
   $('#avt').textContent=(nm||'?').trim().charAt(0).toUpperCase();av.style.backgroundImage='';
-  if(ROLE=='drv'&&D&&D.photo){av.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")';$('#avt').textContent=''}
+  if(D&&D.photo){av.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")';$('#avt').textContent=''}
   const bd=(id,n)=>{const e=$('#'+id);if(e){e.textContent=n;e.classList.toggle('hide',!n)}};
   const ci=((D&&D.cash)||{}).items||[],ap=(D&&D.approvals)||[];
-  bd('b_trips',ROLE=='drv'?act().length:0);bd('b_cash',ci.length);bd('b_appr',ap.length);bd('b_sched',0);
+  bd('b_trips',CV?act().length:0);bd('b_cash',ci.length);bd('b_appr',ap.length);bd('b_sched',0);
   document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==TAB));
   $('#ttl').firstChild.textContent={trips:'My trips',cash:'Cash to deposit',appr:'Approvals',sched:'Schedule'}[TAB];
-  $('#upd').textContent=ROLE=='drv'&&D&&D.updated&&TAB=='cash'?'Updated '+new Date(D.updated).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
+  $('#upd').textContent=D&&D.updated&&TAB=='cash'?'Updated '+new Date(D.updated).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
   paintProfile(nm);
   if(quiet&&!$('#dlg').classList.contains('hide'))return;
   let h='';
-  if(ROLE=='disp')h=dispView();
+  if(TAB=='sched')h=dispView();
   else if(TAB=='trips'){const a=act(),on=a.filter(s=>Date.now()>=stt(s)),up=a.filter(s=>Date.now()<stt(s)),dn=don();
     h=(on.length?'<h2 style="margin-top:4px">Ongoing</h2>'+on.map(s=>sc(s)).join(''):'')+'<h2'+(on.length?'':' style="margin-top:4px"')+'>Upcoming</h2>'+(up.length?up.map(s=>sc(s)).join(''):EMP('No upcoming trips'))+(dn.length?'<h2>Completed</h2>'+dn.map(s=>sc(s)).join(''):'');
   }else if(!D)h=EMP('Your profile has not been published by the office yet.');
@@ -182,10 +186,10 @@ function paint(quiet){
   $('#pg').innerHTML=h;
 }
 function paintProfile(nm){
-  $('#nm').textContent=nm||'Driver';$('#sub').textContent=ROLE=='disp'?'Dispatcher':(D&&D.phone)||'';
-  const ph=$('#ph');if(ROLE=='drv'&&D&&D.photo){ph.textContent='';ph.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")'}else{ph.style.backgroundImage='';ph.textContent=(nm||'?').trim().charAt(0).toUpperCase()}
-  const rows=ROLE=='disp'?[['Name',ME.name],['Role','Dispatcher'],['Username',ME.username]]:[['Name',nm],['Phone',D&&D.phone],['Username',D&&D.username]];
-  const ex=ROLE=='drv'&&D&&D.details&&typeof D.details=='object'?D.details:{};
+  $('#nm').textContent=nm||'Driver';$('#sub').textContent=(CD&&!CV)?'Dispatcher':(D&&D.phone)||'';
+  const ph=$('#ph');if(D&&D.photo){ph.textContent='';ph.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")'}else{ph.style.backgroundImage='';ph.textContent=(nm||'?').trim().charAt(0).toUpperCase()}
+  const rows=(CD&&!CV)?[['Name',ME.name],['Role','Dispatcher'],['Username',ME.username]]:[['Name',nm],['Phone',D&&D.phone],['Username',D&&D.username]].concat(CD?[['Role','Driver & dispatcher']]:[]);
+  const ex=D&&D.details&&typeof D.details=='object'?D.details:{};
   Object.keys(ex).forEach(k=>{if(HIDDEN.indexOf(k.toLowerCase())>=0)return;const v=ex[k];if(v==null||typeof v=='object'||v==='')return;rows.push([k.replace(/_/g,' ').replace(/^./,c=>c.toUpperCase()),v])});
   $('#rows').innerHTML=rows.filter(r=>r[1]).map(r=>'<div class="row"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('');
 }
@@ -194,10 +198,10 @@ function paintProfile(nm){
 function dispView(){
   const seg='<div class="seg">'+[['cal','Calendar'],['up','Upcoming'],['done','Completed']].map(x=>'<button data-a="seg" data-v="'+x[0]+'" class="'+(DV==x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
   const add='<button class="btn" data-a="new" style="margin:0 0 14px">+ Schedule a trip</button>';
-  if(DV=='up'){const a=act();let last='',h='';a.forEach(s=>{if(s.date!=last){last=s.date;h+='<h2>'+fdt(s.date)+'</h2>'}h+=sc(s,1)});return seg+add+(h||EMP('No upcoming trips scheduled'))}
-  if(DV=='done'){const a=don();return seg+(a.length?a.map(s=>sc(s,1)).join(''):EMP('No completed trips yet'))}
+  if(DV=='up'){const a=act(SCHA);let last='',h='';a.forEach(s=>{if(s.date!=last){last=s.date;h+='<h2>'+fdt(s.date)+'</h2>'}h+=sc(s,1)});return seg+add+(h||EMP('No upcoming trips scheduled'))}
+  if(DV=='done'){const a=don(SCHA);return seg+(a.length?a.map(s=>sc(s,1)).join(''):EMP('No completed trips yet'))}
   const y=CM.getFullYear(),m=CM.getMonth(),first=new Date(y,m,1),lead=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate(),by={};
-  SCHD.forEach(s=>{(by[s.date]=by[s.date]||[]).push(s)});
+  SCHA.forEach(s=>{(by[s.date]=by[s.date]||[]).push(s)});
   let g='<div class="card"><div class="cal-h"><button data-a="mon" data-v="-1">‹</button><b>'+first.toLocaleDateString('en-GB',{month:'long',year:'numeric'})+'</b><button data-a="mon" data-v="1">›</button></div><div class="cal-g">'+['Mo','Tu','We','Th','Fr','Sa','Su'].map(x=>'<span class="dw">'+x+'</span>').join('');
   for(let i=0;i<lead;i++)g+='<i></i>';
   for(let d=1;d<=days;d++){const k=y+'-'+P(m+1)+'-'+P(d),n=(by[k]||[]).length;g+='<button class="d'+(k==SEL?' sel':'')+(k==TODAY?' td':'')+'" data-a="day" data-v="'+k+'">'+d+(n?'<em>'+n+'</em>':'')+'</button>'}
@@ -206,7 +210,7 @@ function dispView(){
   return seg+add+g+'<h2>'+fdt(SEL)+'</h2>'+(L.length?L.map(s=>sc(s,1)).join(''):EMP('Nothing scheduled on this day'));
 }
 function openForm(id){
-  const e=id?SCHD.find(x=>x.id==id):null;FE=id||null;const v=e||{date:SEL<TODAY?TODAY:SEL,time:'09:00',type:'One Way'};FT=v.type||'One Way';
+  const e=id?SCHA.find(x=>x.id==id):null;FE=id||null;const v=e||{date:SEL<TODAY?TODAY:SEL,time:'09:00',type:'One Way'};FT=v.type||'One Way';
   const L=LK||{},dr=L.drivers||[],opt=a=>(a||[]).map(x=>'<option value="'+esc(x)+'">').join('');
   $('#dt').textContent=id?'Edit trip':'Schedule a trip';
   $('#dgb').innerHTML='<div class="card"><div style="display:flex;gap:10px"><div style="flex:1"><label style="margin-top:0">Date</label><input id="f_d" type="date" value="'+esc(v.date)+'"></div><div style="flex:1"><label style="margin-top:0">Time</label><input id="f_t" type="time" value="'+esc(v.time||'09:00')+'"></div></div>'+
@@ -223,7 +227,7 @@ async function saveForm(){
   const g=i=>$('#'+i).value.trim(),E=m=>{$('#f_e').textContent=m},uid=g('f_dr'),dr=((LK||{}).drivers||[]).find(x=>x.uid==uid);E('');
   if(!g('f_d')||!g('f_t'))return E('Choose the date and time.');if(!dr)return E('Select the driver.');if(!g('f_c'))return E('Enter the customer name.');
   if(FT!='Round'&&(!g('f_f')||!g('f_to')))return E('Enter the From and To locations.');
-  if(SCHD.some(x=>x.id!=FE&&x.uid==uid&&x.date==g('f_d')&&x.time==g('f_t')&&x.status!='posted')&&!confirm('This driver already has a trip at that date and time. Schedule anyway?'))return;
+  if(SCHA.some(x=>x.id!=FE&&x.uid==uid&&x.date==g('f_d')&&x.time==g('f_t')&&x.status!='posted')&&!confirm('This driver already has a trip at that date and time. Schedule anyway?'))return;
   const f={uid:uid,driver:dr.name,date:g('f_d'),time:g('f_t'),customer:g('f_c'),company:g('f_co'),from:g('f_f'),to:g('f_to'),type:FT,note:g('f_n')};
   $('#f_s').disabled=true;
   try{
