@@ -51,6 +51,17 @@ input{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;bo
 .hero{text-align:center}.hero h3{margin:0;font-size:20px;font-weight:650}.hero p{margin:2px 0 0;color:var(--mut)}
 .row{display:flex;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid var(--line)}.row:last-child{border:0}.row span{color:var(--mut)}.row b{font-weight:600;text-align:right;word-break:break-word}
 .spin{margin:40vh auto 0;width:30px;height:30px;border:3px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:s .8s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+
+.seg{display:flex;gap:6px;margin:0 0 12px}.seg button{flex:1;background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 6px;font:inherit;font-size:13px;font-weight:550;color:var(--mut);cursor:pointer}.seg button.on{background:var(--soft);border-color:var(--acc);color:var(--acc2)}
+.cal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}.cal-h b{font-size:15px}.cal-h button{background:none;border:0;font-size:22px;color:var(--acc);padding:2px 12px;cursor:pointer}
+.cal-g{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.cal-g .dw{font-size:11px;color:var(--mut);padding:4px 0}
+.cal-g .d{position:relative;aspect-ratio:1;border:1px solid transparent;border-radius:9px;background:none;font:inherit;font-size:14px;color:var(--ink);cursor:pointer;padding:0}
+.cal-g .d.td{border-color:var(--line);font-weight:650}.cal-g .d.sel{background:var(--acc);color:#fff}
+.cal-g .d em{position:absolute;right:3px;top:2px;font-style:normal;font-size:9px;font-weight:700;min-width:14px;height:14px;line-height:14px;border-radius:7px;background:var(--soft);color:var(--acc2)}.cal-g .d.sel em{background:#fff}
+.sm{background:none;border:1px solid var(--line);border-radius:8px;padding:7px 12px;font:inherit;font-size:13px;font-weight:550;color:var(--ink);cursor:pointer;margin:10px 8px 0 0}.sm.p{background:var(--acc);border-color:var(--acc);color:#fff}.sm.d{color:var(--bad)}
+.chips{display:flex;gap:6px;flex-wrap:wrap}.chips button{border:1px solid var(--line);background:#fff;border-radius:99px;padding:8px 14px;font:inherit;font-size:13px;font-weight:550;color:var(--mut);cursor:pointer}.chips button.on{background:var(--soft);border-color:var(--acc);color:var(--acc2)}
+select,textarea{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:9px;padding:12px 13px;outline:none}
+.pill.b{background:#dbeafe;color:var(--acc2)}
 </style></head><body>
 <div id="boot" class="spin"></div>
 
@@ -68,11 +79,7 @@ input{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;bo
 <div id="home" class="hide">
  <div class="top"><div><img class="lg" src="icon-192.png" alt=""><h1 id="ttl">Trips<small id="upd"></small></h1><button class="av" id="avb" aria-label="Profile"><span id="avt"></span><i></i></button></div></div>
  <main id="pg"></main>
- <nav class="tabs"><div>
-  <button data-t="trips"><svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg>Trips<span class="bd hide" id="b_trips"></span></button>
-  <button data-t="cash"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg>Cash<span class="bd hide" id="b_cash"></span></button>
-  <button data-t="appr"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>Approvals<span class="bd hide" id="b_appr"></span></button>
- </div></nav>
+ <nav class="tabs"><div id="nav"></div></nav>
 </div>
 
 <div id="prof" class="sheet hide">
@@ -83,6 +90,11 @@ input{width:100%;font:inherit;font-size:16px;color:var(--ink);background:#fff;bo
   <div id="inst2" class="card hide" style="font-size:13px"></div>
   <button class="btn g" id="out">Sign out</button>
  </main>
+</div>
+
+<div id="dlg" class="sheet hide" style="z-index:30">
+ <div class="bar"><div><button id="dx">Cancel</button><b id="dt"></b></div></div>
+ <main id="dgb"></main>
 </div>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
@@ -95,48 +107,171 @@ firebase.initializeApp(FB);
 const auth=firebase.auth(),db=firebase.firestore(),$=s=>document.querySelector(s);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>(+n||0).toLocaleString('en-AE',{minimumFractionDigits:2,maximumFractionDigits:2});
-const fdt=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return esc(s||'');return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'})};
-let unsub=null,D=null,TAB='trips';
+const P=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+P(d.getMonth()+1)+'-'+P(d.getDate());
+const fdt=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return esc(s||'');return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})};
+const stt=s=>{const m=String(s.date||'').split('-'),t=String(s.time||'00:00').split(':');return m.length<3?0:new Date(+m[0],+m[1]-1,+m[2],+t[0]||0,+t[1]||0).getTime()};
+const stat=s=>s.status=='posted'?{c:'g',t:'Completed · verified'}:s.status=='completed'?{c:'w',t:'Completed · pending verification'}:(Date.now()>=stt(s)?{c:'b',t:'Ongoing'}:{c:'',t:'Upcoming'});
+const TYPES=['One Way','Round','Others'];
+let U=null,ROLE='drv',ME={},D=null,SCHD=[],LK=null,UNS=[],TAB='trips',DV='cal',SEL=ymd(new Date()),CM=new Date(new Date().getFullYear(),new Date().getMonth(),1),FE=null,FT='One Way',DN=null;
+const TODAY=ymd(new Date());
 const show=id=>['boot','login','home'].forEach(x=>$('#'+x).classList.toggle('hide',x!==id));
 const EMP=t=>'<div class="emp"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg><div>'+t+'</div></div>';
+const ICON={trips:'<svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg>',cash:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg>',appr:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>',sched:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>'};
+const TABS={drv:[['trips','Trips'],['cash','Cash'],['appr','Approvals']],disp:[['sched','Schedule']]};
 
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
-auth.onAuthStateChanged(u=>{
-  if(unsub){unsub();unsub=null}
-  if(!u){D=null;$('#prof').classList.add('hide');show('login');return}
-  show('home');live(false,'Connecting…');paint();
-  unsub=db.collection('driverapp').doc(u.uid).onSnapshot(s=>{
-    D=s.exists?s.data():null;paint();live(!s.metadata.fromCache,s.exists?(s.metadata.fromCache?'Offline · saved copy':'Live'):'No profile published yet');
-  },e=>{live(false,e.code=='permission-denied'?'Not allowed to read this profile':'Connection problem')});
+auth.onAuthStateChanged(async u=>{
+  UNS.forEach(f=>{try{f()}catch(e){}});UNS=[];$('#dlg').classList.add('hide');
+  if(!u){U=null;D=null;SCHD=[];LK=null;$('#prof').classList.add('hide');show('login');return}
+  U=u;show('boot');ME={};ROLE='drv';
+  try{const s=await db.collection('users').doc(u.uid).get();if(s.exists)ME=s.data()}catch(e){}
+  if(ME.role=='dispatcher'){if(ME.disabled){await auth.signOut();alert('This dispatcher access is switched off. Contact the office.');return}ROLE='disp';TAB='sched'}else TAB='trips';
+  buildNav();show('home');live(false,'Connecting…');paint();
+  const err=e=>live(false,e.code=='permission-denied'?'Not allowed to read this data':'Connection problem');
+  if(ROLE=='drv'){
+    UNS.push(db.collection('driverapp').doc(u.uid).onSnapshot(s=>{D=s.exists?s.data():null;paint();live(!s.metadata.fromCache,s.exists?(s.metadata.fromCache?'Offline · saved copy':'Live'):'No profile published yet')},err));
+    UNS.push(db.collection('schedule').where('uid','==',u.uid).onSnapshot(s=>{SCHD=s.docs.map(x=>Object.assign({id:x.id},x.data()));paint()},err));
+  }else{
+    const since=ymd(new Date(Date.now()-60*864e5));
+    UNS.push(db.collection('schedule').where('date','>=',since).onSnapshot(s=>{SCHD=s.docs.map(x=>Object.assign({id:x.id},x.data()));live(!s.metadata.fromCache,s.metadata.fromCache?'Offline · saved copy':'Live');paint()},err));
+    UNS.push(db.collection('lookup').doc('dispatch').onSnapshot(s=>{LK=s.exists?s.data():{};}, ()=>{}));
+  }
+  if(!window._iv)window._iv=setInterval(()=>{if(U)paint(true)},60000);
 });
+function buildNav(){$('#nav').innerHTML=TABS[ROLE].map(t=>'<button data-t="'+t[0]+'">'+ICON[t[0]]+t[1]+'<span class="bd hide" id="b_'+t[0]+'"></span></button>').join('');document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;paint();scrollTo(0,0)})}
 function live(on,t){const l=$('#lv');l.className='pill '+(on?'g':'w');l.textContent=t;$('.av').classList.toggle('on',on)}
-function trip(t){return '<div class="card"><div class="it"><div><b>'+esc(t.customer||'Trip')+'</b><div class="sub">Bill '+esc(t.bill)+' · '+fdt(t.date)+'</div></div><div class="r">'+(t.type?'<span class="pill">'+esc(t.type)+'</span>':'')+'</div></div>'+((t.from||t.to)?'<div class="rt">'+esc(t.from||'—')+' → '+esc(t.to||'—')+'</div>':'')+'</div>'}
-function paint(){
-  const nm=(D&&D.name)||'Driver';$('#avt').textContent=nm.trim().charAt(0).toUpperCase();
-  const av=$('#avb');av.style.backgroundImage=D&&D.photo?'url("'+String(D.photo).replace(/["\\]/g,'')+'")':'';if(D&&D.photo)$('#avt').textContent='';
-  const tr=(D&&D.trips)||{},up=tr.up||[],rc=tr.recent||[],cs=(D&&D.cash)||{},ci=cs.items||[],ap=(D&&D.approvals)||[];
-  const bd=(id,n)=>{const e=$('#'+id);e.textContent=n;e.classList.toggle('hide',!n)};bd('b_trips',up.length);bd('b_cash',ci.length);bd('b_appr',ap.length);
-  document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t==TAB));
-  $('#ttl').firstChild.textContent={trips:'Scheduled trips',cash:'Cash to deposit',appr:'Approvals'}[TAB];
-  $('#upd').textContent=D&&D.updated?'Updated '+new Date(D.updated).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
+
+/* ---------- cards ---------- */
+function sc(s,who){
+  const st=stat(s);
+  let h='<div class="card"><div class="it"><div><b>'+esc(s.customer||'Trip')+'</b>'+(s.company?'<div class="sub">'+esc(s.company)+'</div>':'')+'<div class="sub">'+fdt(s.date)+(s.time?' · '+esc(s.time):'')+(who?' · '+esc(s.driver||''):'')+'</div></div><div class="r"><span class="pill '+st.c+'">'+esc(st.t)+'</span></div></div>';
+  h+='<div class="rt">'+esc(s.from||'—')+(s.type=='Round'?' ⇄ ':' → ')+esc(s.to||'—')+' <span class="pill" style="margin-left:6px">'+esc(s.type||'')+'</span></div>';
+  if(s.note)h+='<div class="sub" style="margin-top:6px">'+esc(s.note)+'</div>';
+  if(s.status=='completed'||s.status=='posted')h+='<div class="rt sub">Bill '+esc(s.bill||'—')+' · '+(s.paid?'Paid ('+esc(s.pm||'')+')':'Not paid')+'</div>';
+  if(!who){
+    if(s.status=='posted'){h+=''}
+    else if(s.status=='completed')h+='<button class="sm" data-a="done" data-id="'+s.id+'">Edit details</button>';
+    else if(Date.now()>=stt(s))h+='<button class="sm p" data-a="done" data-id="'+s.id+'">Mark completed</button>';
+  }else if(s.status=='scheduled'||!s.status)h+='<button class="sm" data-a="edit" data-id="'+s.id+'">Edit</button><button class="sm d" data-a="del" data-id="'+s.id+'">Cancel trip</button>';
+  return h+'</div>';
+}
+const act=a=>SCHD.filter(s=>s.status!='completed'&&s.status!='posted').sort((p,q)=>stt(p)-stt(q));
+const don=a=>SCHD.filter(s=>s.status=='completed'||s.status=='posted').sort((p,q)=>stt(q)-stt(p)).slice(0,60);
+
+function paint(quiet){
+  const nm=(ROLE=='disp'?ME.name:D&&D.name)||'';const av=$('#avb');
+  $('#avt').textContent=(nm||'?').trim().charAt(0).toUpperCase();av.style.backgroundImage='';
+  if(ROLE=='drv'&&D&&D.photo){av.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")';$('#avt').textContent=''}
+  const bd=(id,n)=>{const e=$('#'+id);if(e){e.textContent=n;e.classList.toggle('hide',!n)}};
+  const ci=((D&&D.cash)||{}).items||[],ap=(D&&D.approvals)||[];
+  bd('b_trips',ROLE=='drv'?act().length:0);bd('b_cash',ci.length);bd('b_appr',ap.length);bd('b_sched',0);
+  document.querySelectorAll('#nav button').forEach(b=>b.classList.toggle('on',b.dataset.t==TAB));
+  $('#ttl').firstChild.textContent={trips:'My trips',cash:'Cash to deposit',appr:'Approvals',sched:'Schedule'}[TAB];
+  $('#upd').textContent=ROLE=='drv'&&D&&D.updated&&TAB=='cash'?'Updated '+new Date(D.updated).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}):'';
+  paintProfile(nm);
+  if(quiet&&!$('#dlg').classList.contains('hide'))return;
   let h='';
-  if(!D)h=EMP('Your profile has not been published by the office yet.');
-  else if(TAB=='trips'){
-    h='<h2 style="margin-top:4px">Scheduled</h2>'+(up.length?up.map(trip).join(''):EMP('No scheduled trips'))+(rc.length?'<h2>Recent trips</h2>'+rc.map(trip).join(''):'');
-  }else if(TAB=='cash'){
+  if(ROLE=='disp')h=dispView();
+  else if(TAB=='trips'){const a=act(),on=a.filter(s=>Date.now()>=stt(s)),up=a.filter(s=>Date.now()<stt(s)),dn=don();
+    h=(on.length?'<h2 style="margin-top:4px">Ongoing</h2>'+on.map(s=>sc(s)).join(''):'')+'<h2'+(on.length?'':' style="margin-top:4px"')+'>Upcoming</h2>'+(up.length?up.map(s=>sc(s)).join(''):EMP('No upcoming trips'))+(dn.length?'<h2>Completed</h2>'+dn.map(s=>sc(s)).join(''):'');
+  }else if(!D)h=EMP('Your profile has not been published by the office yet.');
+  else if(TAB=='cash'){const cs=D.cash||{};
     h='<div class="card kpi"><small>Pending to deposit</small><b>AED '+fmt(cs.total)+'</b><span>'+ci.length+' trip'+(ci.length==1?'':'s')+' with cash not yet handed over</span></div>'+
       (ci.length?'<h2>Cash trips</h2>'+ci.map(t=>'<div class="card"><div class="it"><div><b>'+esc(t.customer||'Trip')+'</b><div class="sub">Bill '+esc(t.bill)+' · '+fdt(t.date)+'</div></div><div class="r"><b>AED '+fmt(t.pend)+'</b><div class="sub">of '+fmt(t.amt)+'</div></div></div>'+(+t.rcv>0?'<div class="rt"><span class="pill g">Received '+fmt(t.rcv)+'</span></div>':'')+'</div>').join('')+'<div class="note">Hand the cash to the office. The accountant updates this list when it is received.</div>':EMP('No cash is waiting to be deposited'));
   }else h=ap.length?ap.map(a=>'<div class="card"><div class="it"><div><b>'+esc(a.title||'Approval')+'</b><div class="sub">'+esc(a.note||'')+'</div></div><div class="r"><span class="pill w">'+esc(a.status||'Pending')+'</span></div></div></div>').join(''):EMP('No approvals pending');
   $('#pg').innerHTML=h;
-  // profile sheet
-  $('#nm').textContent=nm;$('#sub').textContent=(D&&D.phone)||'';
-  const ph=$('#ph');if(D&&D.photo){ph.textContent='';ph.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")'}else{ph.style.backgroundImage='';ph.textContent=nm.trim().charAt(0).toUpperCase()}
-  const rows=[['Name',nm],['Phone',D&&D.phone],['Username',D&&D.username]];
-  const ex=D&&D.details&&typeof D.details=='object'?D.details:{};
+}
+function paintProfile(nm){
+  $('#nm').textContent=nm||'Driver';$('#sub').textContent=ROLE=='disp'?'Dispatcher':(D&&D.phone)||'';
+  const ph=$('#ph');if(ROLE=='drv'&&D&&D.photo){ph.textContent='';ph.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")'}else{ph.style.backgroundImage='';ph.textContent=(nm||'?').trim().charAt(0).toUpperCase()}
+  const rows=ROLE=='disp'?[['Name',ME.name],['Role','Dispatcher'],['Username',ME.username]]:[['Name',nm],['Phone',D&&D.phone],['Username',D&&D.username]];
+  const ex=ROLE=='drv'&&D&&D.details&&typeof D.details=='object'?D.details:{};
   Object.keys(ex).forEach(k=>{if(HIDDEN.indexOf(k.toLowerCase())>=0)return;const v=ex[k];if(v==null||typeof v=='object'||v==='')return;rows.push([k.replace(/_/g,' ').replace(/^./,c=>c.toUpperCase()),v])});
   $('#rows').innerHTML=rows.filter(r=>r[1]).map(r=>'<div class="row"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('');
 }
-document.querySelectorAll('.tabs button').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;paint();scrollTo(0,0)});
+
+/* ---------- dispatcher schedule tab ---------- */
+function dispView(){
+  const seg='<div class="seg">'+[['cal','Calendar'],['up','Upcoming'],['done','Completed']].map(x=>'<button data-a="seg" data-v="'+x[0]+'" class="'+(DV==x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
+  const add='<button class="btn" data-a="new" style="margin:0 0 14px">+ Schedule a trip</button>';
+  if(DV=='up'){const a=act();let last='',h='';a.forEach(s=>{if(s.date!=last){last=s.date;h+='<h2>'+fdt(s.date)+'</h2>'}h+=sc(s,1)});return seg+add+(h||EMP('No upcoming trips scheduled'))}
+  if(DV=='done'){const a=don();return seg+(a.length?a.map(s=>sc(s,1)).join(''):EMP('No completed trips yet'))}
+  const y=CM.getFullYear(),m=CM.getMonth(),first=new Date(y,m,1),lead=(first.getDay()+6)%7,days=new Date(y,m+1,0).getDate(),by={};
+  SCHD.forEach(s=>{(by[s.date]=by[s.date]||[]).push(s)});
+  let g='<div class="card"><div class="cal-h"><button data-a="mon" data-v="-1">‹</button><b>'+first.toLocaleDateString('en-GB',{month:'long',year:'numeric'})+'</b><button data-a="mon" data-v="1">›</button></div><div class="cal-g">'+['Mo','Tu','We','Th','Fr','Sa','Su'].map(x=>'<span class="dw">'+x+'</span>').join('');
+  for(let i=0;i<lead;i++)g+='<i></i>';
+  for(let d=1;d<=days;d++){const k=y+'-'+P(m+1)+'-'+P(d),n=(by[k]||[]).length;g+='<button class="d'+(k==SEL?' sel':'')+(k==TODAY?' td':'')+'" data-a="day" data-v="'+k+'">'+d+(n?'<em>'+n+'</em>':'')+'</button>'}
+  g+='</div></div>';
+  const L=(by[SEL]||[]).sort((p,q)=>stt(p)-stt(q));
+  return seg+add+g+'<h2>'+fdt(SEL)+'</h2>'+(L.length?L.map(s=>sc(s,1)).join(''):EMP('Nothing scheduled on this day'));
+}
+function openForm(id){
+  const e=id?SCHD.find(x=>x.id==id):null;FE=id||null;const v=e||{date:SEL<TODAY?TODAY:SEL,time:'09:00',type:'One Way'};FT=v.type||'One Way';
+  const L=LK||{},dr=L.drivers||[],opt=a=>(a||[]).map(x=>'<option value="'+esc(x)+'">').join('');
+  $('#dt').textContent=id?'Edit trip':'Schedule a trip';
+  $('#dgb').innerHTML='<div class="card"><div style="display:flex;gap:10px"><div style="flex:1"><label style="margin-top:0">Date</label><input id="f_d" type="date" value="'+esc(v.date)+'"></div><div style="flex:1"><label style="margin-top:0">Time</label><input id="f_t" type="time" value="'+esc(v.time||'09:00')+'"></div></div>'+
+  '<label>Driver</label><select id="f_dr"><option value="">'+(dr.length?'Select driver':'No drivers available yet')+'</option>'+dr.map(x=>'<option value="'+esc(x.uid)+'"'+(v.uid==x.uid?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select>'+
+  '<label>Customer name</label><input id="f_c" list="dlC" autocomplete="off" value="'+esc(v.customer||'')+'"><datalist id="dlC">'+(L.customers||[]).map(x=>'<option value="'+esc(x.n)+'">').join('')+'</datalist>'+
+  '<label>Company name</label><input id="f_co" list="dlCo" autocomplete="off" value="'+esc(v.company||'')+'"><datalist id="dlCo">'+opt(L.companies)+'</datalist>'+
+  '<label>From</label><input id="f_f" list="dlP" autocomplete="off" value="'+esc(v.from||'')+'"><label>To</label><input id="f_to" list="dlP" autocomplete="off" value="'+esc(v.to||'')+'"><datalist id="dlP">'+opt(L.places)+'</datalist>'+
+  '<label>Trip type</label><div class="chips" id="f_ty">'+TYPES.map(t=>'<button type="button" data-a="ty" data-v="'+t+'" class="'+(FT==t?'on':'')+'">'+(t=='Round'?'Round trip':t)+'</button>').join('')+'</div>'+
+  '<label>Note (optional)</label><textarea id="f_n" rows="2">'+esc(v.note||'')+'</textarea><div class="err" id="f_e"></div><button class="btn" id="f_s" data-a="save" style="margin-top:6px">'+(id?'Save changes':'Schedule trip')+'</button></div>';
+  $('#f_c').oninput=()=>{const c=(L.customers||[]).find(x=>x.n==$('#f_c').value);if(c&&c.co)$('#f_co').value=c.co};
+  $('#dlg').classList.remove('hide');
+}
+async function saveForm(){
+  const g=i=>$('#'+i).value.trim(),E=m=>{$('#f_e').textContent=m},uid=g('f_dr'),dr=((LK||{}).drivers||[]).find(x=>x.uid==uid);E('');
+  if(!g('f_d')||!g('f_t'))return E('Choose the date and time.');if(!dr)return E('Select the driver.');if(!g('f_c'))return E('Enter the customer name.');
+  if(FT!='Round'&&(!g('f_f')||!g('f_to')))return E('Enter the From and To locations.');
+  if(SCHD.some(x=>x.id!=FE&&x.uid==uid&&x.date==g('f_d')&&x.time==g('f_t')&&x.status!='posted')&&!confirm('This driver already has a trip at that date and time. Schedule anyway?'))return;
+  const f={uid:uid,driver:dr.name,date:g('f_d'),time:g('f_t'),customer:g('f_c'),company:g('f_co'),from:g('f_f'),to:g('f_to'),type:FT,note:g('f_n')};
+  $('#f_s').disabled=true;
+  try{
+    if(FE)await db.collection('schedule').doc(FE).update(f);
+    else await db.collection('schedule').add(Object.assign(f,{status:'scheduled',by:U.uid,byName:ME.name||'',at:Date.now(),_ts:Date.now()}));
+    SEL=f.date;CM=new Date(+f.date.slice(0,4),+f.date.slice(5,7)-1,1);$('#dlg').classList.add('hide');DV='cal';paint();
+  }catch(e){E(e.code=='permission-denied'?'Not allowed. This trip may already be completed.':'Could not save. Check your connection.');$('#f_s').disabled=false}
+}
+
+/* ---------- driver: complete a trip ---------- */
+function openDone(id){
+  const s=SCHD.find(x=>x.id==id);if(!s)return;DN={id:id,paid:s.paid===undefined?null:s.paid,pm:s.pm||''};
+  $('#dt').textContent='Complete trip';
+  $('#dgb').innerHTML='<div class="card"><b>'+esc(s.customer||'Trip')+'</b><div class="sub">'+fdt(s.date)+(s.time?' · '+esc(s.time):'')+'</div><div class="rt">'+esc(s.from||'—')+(s.type=='Round'?' ⇄ ':' → ')+esc(s.to||'—')+'</div></div>'+
+  '<div class="card"><label style="margin-top:0">Bill number</label><input id="d_b" inputmode="numeric" maxlength="12" autocomplete="off" value="'+esc(s.bill||'')+'">'+
+  '<label>Payment</label><div class="chips" id="d_p"></div><div id="d_m"></div><div class="err" id="d_e"></div><button class="btn" id="d_s" data-a="dsave" style="margin-top:6px">Mark as completed</button>'+
+  '<div class="note">The office checks your trip when the bill is entered in the system. Until then it shows as pending verification.</div></div>';
+  drawPay();$('#dlg').classList.remove('hide');
+}
+function drawPay(){
+  $('#d_p').innerHTML=[[true,'Paid'],[false,'Not paid']].map(x=>'<button type="button" data-a="pay" data-v="'+x[0]+'" class="'+(DN.paid===x[0]?'on':'')+'">'+x[1]+'</button>').join('');
+  $('#d_m').innerHTML=DN.paid===true?'<label>Paid by</label><div class="chips">'+['Cash','Bank'].map(m=>'<button type="button" data-a="pm" data-v="'+m+'" class="'+(DN.pm==m?'on':'')+'">'+m+'</button>').join('')+'</div>':'';
+}
+async function saveDone(){
+  const b=$('#d_b').value.trim(),E=m=>{$('#d_e').textContent=m};E('');
+  if(!/^\d{1,12}$/.test(b))return E('Enter the bill number (digits only).');if(DN.paid===null)return E('Select Paid or Not paid.');if(DN.paid&&!DN.pm)return E('Select Cash or Bank.');
+  $('#d_s').disabled=true;
+  try{await db.collection('schedule').doc(DN.id).update({status:'completed',bill:b,paid:DN.paid,pm:DN.paid?DN.pm:'',doneAt:Date.now()});$('#dlg').classList.add('hide');paint()}
+  catch(e){E(e.code=='permission-denied'?'Not allowed. This trip may already be verified.':'Could not save. Check your connection.');$('#d_s').disabled=false}
+}
+
+/* ---------- events ---------- */
+document.addEventListener('click',e=>{
+  const b=e.target.closest('[data-a]');if(!b)return;const a=b.dataset.a,v=b.dataset.v,id=b.dataset.id;
+  if(a=='seg'){DV=v;paint()}
+  else if(a=='mon'){CM=new Date(CM.getFullYear(),CM.getMonth()+(+v),1);paint()}
+  else if(a=='day'){SEL=v;paint()}
+  else if(a=='new')openForm();
+  else if(a=='edit')openForm(id);
+  else if(a=='del'){if(confirm('Cancel this scheduled trip?'))db.collection('schedule').doc(id).delete().catch(()=>alert('Could not cancel. The trip may already be completed.'))}
+  else if(a=='ty'){FT=v;document.querySelectorAll('#f_ty button').forEach(x=>x.classList.toggle('on',x.dataset.v==v))}
+  else if(a=='save')saveForm();
+  else if(a=='done')openDone(id);
+  else if(a=='pay'){DN.paid=v=='true';if(!DN.paid)DN.pm='';drawPay()}
+  else if(a=='pm'){DN.pm=v;drawPay()}
+  else if(a=='dsave')saveDone();
+});
+$('#dx').onclick=()=>$('#dlg').classList.add('hide');
 $('#avb').onclick=()=>{$('#prof').classList.remove('hide')};$('#pc').onclick=()=>$('#prof').classList.add('hide');
 async function login(){
   const u=$('#u').value.trim().toLowerCase().replace(/\s+/g,''),p=$('#p').value;$('#e').textContent='';
