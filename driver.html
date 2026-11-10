@@ -111,7 +111,8 @@ const P=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+P(d.getMonth()+1
 const fdt=s=>{const m=String(s||'').match(/^(\d{4})-(\d{2})-(\d{2})/);if(!m)return esc(s||'');return new Date(+m[1],+m[2]-1,+m[3]).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})};
 const stt=s=>{const m=String(s.date||'').split('-'),t=String(s.time||'00:00').split(':');return m.length<3?0:new Date(+m[0],+m[1]-1,+m[2],+t[0]||0,+t[1]||0).getTime()};
 const stat=s=>s.status=='posted'?{c:'g',t:'Completed · verified'}:s.status=='completed'?{c:'w',t:'Completed · pending verification'}:(Date.now()>=stt(s)?{c:'b',t:'Ongoing'}:{c:'',t:'Upcoming'});
-const TYPES=['One Way','Round','Others'];
+const TYPES=['One Way','Round','Others'],CATS=['Company','Personal','Local'];let FC='Company';
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
 let U=null,CD=false,CV=true,TB=[],ME={},D=null,SCHD=[],SCHA=[],LK=null,UNS=[],TAB='trips',DV='cal',SEL=ymd(new Date()),CM=new Date(new Date().getFullYear(),new Date().getMonth(),1),FE=null,FT='One Way',DN=null;
 const TODAY=ymd(new Date());
 const show=id=>['boot','login','home'].forEach(x=>$('#'+x).classList.toggle('hide',x!==id));
@@ -149,9 +150,10 @@ function live(on,t){const l=$('#lv');l.className='pill '+(on?'g':'w');l.textCont
 function sc(s,who){
   const st=stat(s);
   let h='<div class="card"><div class="it"><div><b>'+esc(s.customer||'Trip')+'</b>'+(s.company?'<div class="sub">'+esc(s.company)+'</div>':'')+'<div class="sub">'+fdt(s.date)+(s.time?' · '+esc(s.time):'')+(who?' · '+esc(s.driver||''):'')+'</div></div><div class="r"><span class="pill '+st.c+'">'+esc(st.t)+'</span></div></div>';
-  h+='<div class="rt">'+esc(s.from||'—')+(s.type=='Round'?' ⇄ ':' → ')+esc(s.to||'—')+' <span class="pill" style="margin-left:6px">'+esc(s.type||'')+'</span></div>';
+  h+='<div class="rt">'+esc(s.from||'—')+(s.type=='Round'?' ⇄ ':' → ')+esc(s.to||'—')+' <span class="pill" style="margin-left:6px">'+esc(s.type||'')+'</span>'+(s.cat?'<span class="pill" style="margin-left:6px">'+esc(s.cat)+'</span>':'')+'</div>';
+  if(s.veh)h+='<div class="sub" style="margin-top:6px">Vehicle '+esc(s.veh)+(s.vname?' ('+esc(s.vname)+')':'')+'</div>';
   if(s.note)h+='<div class="sub" style="margin-top:6px">'+esc(s.note)+'</div>';
-  if(s.status=='completed'||s.status=='posted')h+='<div class="rt sub">Bill '+esc(s.bill||'—')+' · '+(s.paid?'Paid ('+esc(s.pm||'')+')':'Not paid')+'</div>';
+  if(s.status=='completed'||s.status=='posted')h+='<div class="rt sub">Bill '+esc(s.bill||'—')+(s.copy&&s.cbill?' · Copy '+esc(s.cbill):'')+(s.veh?' · '+esc(s.veh):'')+(s.charge!=null?' · Charge '+fmt(s.charge)+' · Fuel '+fmt(s.fuel)+' · Salik '+fmt(s.salik):'')+((s.cat||'Company')=='Company'?' · Company outstanding':' · '+(s.paid?'Paid ('+esc(s.pm||'')+')':'Not paid'))+'</div>';
   if(!who){
     if(s.status=='posted'){h+=''}
     else if(s.status=='completed')h+='<button class="sm" data-a="done" data-id="'+s.id+'">Edit details</button>';
@@ -211,17 +213,19 @@ function dispView(){
   return seg+add+g+'<h2>'+fdt(SEL)+'</h2>'+(L.length?L.map(s=>sc(s,1)).join(''):EMP('Nothing scheduled on this day'));
 }
 function openForm(id){
-  const e=id?SCHA.find(x=>x.id==id):null;FE=id||null;const v=e||{date:SEL<TODAY?TODAY:SEL,time:'09:00',type:'One Way'};FT=v.type||'One Way';
+  const e=id?SCHA.find(x=>x.id==id):null;FE=id||null;const v=e||{date:SEL<TODAY?TODAY:SEL,time:'09:00',type:'One Way'};FT=v.type||'One Way';FC=v.cat||(v.company=='PERSONAL'?'Personal':(e?'Company':'Company'));
   const L=LK||{},dr=L.drivers||[],opt=a=>(a||[]).map(x=>'<option value="'+esc(x)+'">').join('');
   $('#dt').textContent=id?'Edit trip':'Schedule a trip';
-  $('#dgb').innerHTML='<div class="card"><div style="display:flex;gap:10px"><div style="flex:1"><label style="margin-top:0">Date</label><input id="f_d" type="date" value="'+esc(v.date)+'"></div><div style="flex:1"><label style="margin-top:0">Time</label><input id="f_t" type="time" value="'+esc(v.time||'09:00')+'"></div></div>'+
+  $('#dgb').innerHTML='<div class="card"><label style="margin-top:0">Trip category</label><div class="chips" id="f_cat">'+CATS.map(t=>'<button type="button" data-a="cat" data-v="'+t+'" class="'+(FC==t?'on':'')+'">'+t+'</button>').join('')+'</div><div style="display:flex;gap:10px"><div style="flex:1"><label>Date</label><input id="f_d" type="date" value="'+esc(v.date)+'"></div><div style="flex:1"><label style="margin-top:0">Time</label><input id="f_t" type="time" value="'+esc(v.time||'09:00')+'"></div></div>'+
   '<label>Driver</label><select id="f_dr"><option value="">'+(dr.length?'Select driver':'No drivers available yet')+'</option>'+dr.map(x=>'<option value="'+esc(x.uid)+'"'+(v.uid==x.uid?' selected':'')+'>'+esc(x.name)+'</option>').join('')+'</select>'+
+  '<label>Vehicle number (optional)</label><input id="f_v" list="dlV" autocomplete="off" value="'+esc(v.veh||'')+'"><datalist id="dlV">'+opt(L.vs)+'</datalist><label>Vehicle name (optional)</label><input id="f_vn" list="dlVN" autocomplete="off" value="'+esc(v.vname||'')+'"><datalist id="dlVN">'+opt(L.ns)+'</datalist>'+
   '<label>Customer name</label><input id="f_c" list="dlC" autocomplete="off" value="'+esc(v.customer||'')+'"><datalist id="dlC">'+(L.customers||[]).map(x=>'<option value="'+esc(x.n)+'">').join('')+'</datalist>'+
-  '<label>Company name</label><input id="f_co" list="dlCo" autocomplete="off" value="'+esc(v.company||'')+'"><datalist id="dlCo">'+opt(L.companies)+'</datalist>'+
+  '<div id="f_cow" class="'+(FC=='Company'?'':'hide')+'"><label>Company name</label><input id="f_co" list="dlCo" autocomplete="off" value="'+esc(v.company=='PERSONAL'?'':(v.company||''))+'"><datalist id="dlCo">'+opt(L.companies)+'</datalist></div>'+
   '<label>From</label><input id="f_f" list="dlP" autocomplete="off" value="'+esc(v.from||'')+'"><label>To</label><input id="f_to" list="dlP" autocomplete="off" value="'+esc(v.to||'')+'"><datalist id="dlP">'+opt(L.places)+'</datalist>'+
   '<label>Trip type</label><div class="chips" id="f_ty">'+TYPES.map(t=>'<button type="button" data-a="ty" data-v="'+t+'" class="'+(FT==t?'on':'')+'">'+(t=='Round'?'Round trip':t)+'</button>').join('')+'</div>'+
   '<label>Note (optional)</label><textarea id="f_n" rows="2">'+esc(v.note||'')+'</textarea><div class="err" id="f_e"></div><button class="btn" id="f_s" data-a="save" style="margin-top:6px">'+(id?'Save changes':'Schedule trip')+'</button></div>';
-  $('#f_c').oninput=()=>{const c=(L.customers||[]).find(x=>x.n==$('#f_c').value);if(c&&c.co)$('#f_co').value=c.co};
+  $('#f_c').oninput=()=>{const c=(L.customers||[]).find(x=>x.n==$('#f_c').value);if(c&&c.co&&FC=='Company')$('#f_co').value=c.co};
+  {const fv=$('#f_v'),fn=$('#f_vn'),fill=()=>{const d=((L.drivers||[]).find(x=>x.uid==$('#f_dr').value)||{}).name,r=((L.dv||{})[d])||null;if(!r)return;if(!fv.value||fv.dataset.auto=='1'){fv.value=r.v||'';fv.dataset.auto='1'}if(!fn.value||fn.dataset.auto=='1'){fn.value=r.n||'';fn.dataset.auto='1'}};fv.oninput=()=>{fv.dataset.auto=''};fn.oninput=()=>{fn.dataset.auto=''};$('#f_dr').onchange=fill;if(!id)fill()}
   $('#dlg').classList.remove('hide');
 }
 async function saveForm(){
@@ -229,7 +233,7 @@ async function saveForm(){
   if(!g('f_d')||!g('f_t'))return E('Choose the date and time.');if(!dr)return E('Select the driver.');if(!g('f_c'))return E('Enter the customer name.');
   if(FT!='Round'&&(!g('f_f')||!g('f_to')))return E('Enter the From and To locations.');
   if(SCHA.some(x=>x.id!=FE&&x.uid==uid&&x.date==g('f_d')&&x.time==g('f_t')&&x.status!='posted')&&!confirm('This driver already has a trip at that date and time. Schedule anyway?'))return;
-  const f={uid:uid,driver:dr.name,date:g('f_d'),time:g('f_t'),customer:g('f_c'),company:g('f_co'),from:g('f_f'),to:g('f_to'),type:FT,note:g('f_n')};
+  const f={uid:uid,driver:dr.name,date:g('f_d'),time:g('f_t'),customer:g('f_c'),veh:g('f_v'),vname:g('f_vn'),cat:FC,company:FC=='Company'?g('f_co'):(FC=='Personal'?'PERSONAL':''),from:g('f_f'),to:g('f_to'),type:FT,note:g('f_n')};
   $('#f_s').disabled=true;
   try{
     if(FE)await db.collection('schedule').doc(FE).update(f);
@@ -240,24 +244,43 @@ async function saveForm(){
 
 /* ---------- driver: complete a trip ---------- */
 function openDone(id){
-  const s=SCHD.find(x=>x.id==id);if(!s)return;DN={id:id,paid:s.paid===undefined?null:s.paid,pm:s.pm||''};
+  const s=SCHD.find(x=>x.id==id);if(!s)return;const cat=s.cat||(s.company=='PERSONAL'?'Personal':'Company');
+  DN={id:id,cat:cat,copy:!!s.copy,paid:s.paid===undefined?null:s.paid,pm:s.pm||''};
   $('#dt').textContent='Complete trip';
-  $('#dgb').innerHTML='<div class="card"><b>'+esc(s.customer||'Trip')+'</b><div class="sub">'+fdt(s.date)+(s.time?' · '+esc(s.time):'')+'</div><div class="rt">'+esc(s.from||'—')+(s.type=='Round'?' ⇄ ':' → ')+esc(s.to||'—')+'</div></div>'+
-  '<div class="card"><label style="margin-top:0">Bill number</label><input id="d_b" inputmode="numeric" maxlength="12" autocomplete="off" value="'+esc(s.bill||'')+'">'+
-  '<label>Payment</label><div class="chips" id="d_p"></div><div id="d_m"></div><div class="err" id="d_e"></div><button class="btn" id="d_s" data-a="dsave" style="margin-top:6px">Mark as completed</button>'+
+  $('#dgb').innerHTML='<div class="card"><b>'+esc(s.customer||'Trip')+'</b> <span class="pill">'+esc(cat)+'</span><div class="sub">'+fdt(s.date)+(s.time?' · '+esc(s.time):'')+'</div><div class="rt">'+esc(s.from||'—')+(s.type=='Round'?' ⇄ ':' → ')+esc(s.to||'—')+'</div></div>'+
+  '<div class="card"><label style="margin-top:0">Bill type</label><div class="chips" id="d_cp"></div>'+
+  '<label id="d_bl">Bill number *</label><input id="d_b" inputmode="numeric" maxlength="12" autocomplete="off" value="'+esc(s.bill||'')+'">'+
+  '<div id="d_cw"><label>Copy bill number *</label><input id="d_cb" inputmode="numeric" maxlength="12" autocomplete="off" value="'+esc(s.cbill||'')+'"></div>'+
+  '<label>Vehicle number *</label><input id="d_v" list="dlDV" autocomplete="off" value="'+esc(s.veh||((D&&D.veh)||{}).v||'')+'"><datalist id="dlDV">'+(((D&&D.veh)||{}).vs||[]).map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist>'+
+  '<label>Vehicle name *</label><input id="d_vn" list="dlDN" autocomplete="off" value="'+esc(s.vname||((D&&D.veh)||{}).n||'')+'"><datalist id="dlDN">'+(((D&&D.veh)||{}).ns||[]).map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist>'+
+  '<label>Charge (AED) *</label><input id="d_ch" inputmode="decimal" autocomplete="off" value="'+(s.charge!=null?esc(s.charge):'')+'">'+
+  '<div style="display:flex;gap:10px"><div style="flex:1"><label>Fuel (AED)</label><input id="d_fu" inputmode="decimal" autocomplete="off" placeholder="0" value="'+(s.fuel?esc(s.fuel):'')+'"></div><div style="flex:1"><label>Salik (AED)</label><input id="d_sl" inputmode="decimal" autocomplete="off" placeholder="0" value="'+(s.salik?esc(s.salik):'')+'"></div></div>'+
+  '<div id="d_pw"><label>Payment</label><div class="chips" id="d_p"></div><div id="d_m"></div></div><div class="err" id="d_e"></div><button class="btn" id="d_s" data-a="dsave" style="margin-top:6px">Mark as completed</button>'+
   '<div class="note">The office checks your trip when the bill is entered in the system. Until then it shows as pending verification.</div></div>';
-  drawPay();$('#dlg').classList.remove('hide');
+  drawCopy();drawPay();$('#dlg').classList.remove('hide');
+}
+function drawCopy(){
+  $('#d_cp').innerHTML=[[0,'Normal bill'],[1,'Copy bill']].map(x=>'<button type="button" data-a="cpy" data-v="'+x[0]+'" class="'+((DN.copy?1:0)==x[0]?'on':'')+'">'+x[1]+'</button>').join('');
+  $('#d_cw').classList.toggle('hide',!DN.copy);$('#d_bl').textContent=DN.copy?'Original bill number *':'Bill number *';
 }
 function drawPay(){
+  $('#d_pw').classList.toggle('hide',DN.cat=='Company');
+  if(DN.cat=='Company')return;
   $('#d_p').innerHTML=[[true,'Paid'],[false,'Not paid']].map(x=>'<button type="button" data-a="pay" data-v="'+x[0]+'" class="'+(DN.paid===x[0]?'on':'')+'">'+x[1]+'</button>').join('');
   $('#d_m').innerHTML=DN.paid===true?'<label>Paid by</label><div class="chips">'+['Cash','Bank'].map(m=>'<button type="button" data-a="pm" data-v="'+m+'" class="'+(DN.pm==m?'on':'')+'">'+m+'</button>').join('')+'</div>':'';
 }
 async function saveDone(){
-  const b=$('#d_b').value.trim(),E=m=>{$('#d_e').textContent=m};E('');
-  if(!/^\d{1,12}$/.test(b))return E('Enter the bill number (digits only).');if(DN.paid===null)return E('Select Paid or Not paid.');if(DN.paid&&!DN.pm)return E('Select Cash or Bank.');
+  const b=$('#d_b').value.trim(),cb=$('#d_cb').value.trim(),n=i=>{const v=$('#'+i).value.trim();return v===''?0:+v},E=m=>{$('#d_e').textContent=m};E('');
+  const ch=n('d_ch'),fu=n('d_fu'),sl=n('d_sl'),co=DN.cat=='Company';
+  if(!/^\d{1,12}$/.test(b))return E('Enter the bill number (digits only).');
+  if(DN.copy){if(!/^\d{1,12}$/.test(cb))return E('Enter the copy bill number (digits only).');if(cb===b)return E('Copy bill number must be different from the original bill number.')}
+  const vh=$('#d_v').value.trim(),vn=$('#d_vn').value.trim();
+  if(!vh)return E('Enter the vehicle number.');if(!vn)return E('Enter the vehicle name.');if(vh.length>40||vn.length>40)return E('Vehicle number or name is too long.');
+  if(!(ch>0))return E('Enter the charge amount.');if(isNaN(fu)||fu<0||isNaN(sl)||sl<0)return E('Fuel and Salik must be 0 or more.');
+  if(!co){if(DN.paid===null)return E('Select Paid or Not paid.');if(DN.paid&&!DN.pm)return E('Select Cash or Bank.')}
   $('#d_s').disabled=true;
-  try{await db.collection('schedule').doc(DN.id).update({status:'completed',bill:b,paid:DN.paid,pm:DN.paid?DN.pm:'',doneAt:Date.now()});$('#dlg').classList.add('hide');paint()}
-  catch(e){E(e.code=='permission-denied'?'Not allowed. This trip may already be verified.':'Could not save. Check your connection.');$('#d_s').disabled=false}
+  try{await db.collection('schedule').doc(DN.id).update({status:'completed',bill:b,veh:vh,vname:vn,copy:!!DN.copy,cbill:DN.copy?cb:'',charge:ch,fuel:fu,salik:sl,paid:co?false:DN.paid,pm:(!co&&DN.paid)?DN.pm:'',doneAt:Date.now()});$('#dlg').classList.add('hide');paint()}
+  catch(e){E(e.code=='permission-denied'?'Not allowed. This trip may already be verified, or the office must update the Firestore rules.':'Could not save. Check your connection.');$('#d_s').disabled=false}
 }
 
 /* ---------- events ---------- */
@@ -269,6 +292,8 @@ document.addEventListener('click',e=>{
   else if(a=='new')openForm();
   else if(a=='edit')openForm(id);
   else if(a=='del'){if(confirm('Cancel this scheduled trip?'))db.collection('schedule').doc(id).delete().catch(()=>alert('Could not cancel. The trip may already be completed.'))}
+  else if(a=='cat'){FC=v;document.querySelectorAll('#f_cat button').forEach(x=>x.classList.toggle('on',x.dataset.v==v));$('#f_cow').classList.toggle('hide',v!='Company')}
+  else if(a=='cpy'){DN.copy=v=='1';drawCopy()}
   else if(a=='ty'){FT=v;document.querySelectorAll('#f_ty button').forEach(x=>x.classList.toggle('on',x.dataset.v==v))}
   else if(a=='save')saveForm();
   else if(a=='done')openDone(id);
