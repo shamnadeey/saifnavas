@@ -3355,10 +3355,10 @@ window.advReq=async function(uid,d,a,P){
   try{await db.collection('advreq').doc(id).set(doc)}catch(e){return alert('Could not send the request to the driver: '+(e.code||e.message))}
   let ov=document.getElementById('otpov');if(ov)ov.remove();
   ov=document.createElement('div');ov.id='otpov';ov.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px';document.body.appendChild(ov);
-  let fails=0,unsub=null,done=false;
-  const close=()=>{done=true;if(unsub)unsub();ov.remove()},
+  let fails=0,unsub=null,done=false,lastSt='pending';
+  const close=skip=>{done=true;if(unsub)unsub();ov.remove();if(!skip&&lastSt!='used')db.collection('advreq').doc(id).delete().catch(()=>{})},
   box=h=>{ov.innerHTML='<div class="card" style="max-width:420px;width:100%;margin:0">'+h+'</div>'},
-  cancel=async()=>{try{await db.collection('advreq').doc(id).update({status:'cancelled',canAt:Date.now()})}catch(e){}close()};
+  cancel=async()=>{try{await db.collection('advreq').doc(id).delete()}catch(e){}close(true)};
   window._otpCancel=cancel;window._otpClose=close;
   window._otpVerify=async function(){
     const v=(document.getElementById('otp_in').value||'').trim(),er=document.getElementById('otp_er'),snap=await db.collection('advreq').doc(id).get(),x=snap.data()||{};
@@ -3367,14 +3367,14 @@ window.advReq=async function(uid,d,a,P){
     const h=await otpHash(v,id,uid);
     if(h!==x.otpH){fails++;if(fails>=5){await cancel();return alert('Too many wrong PINs. The request was cancelled and nothing was recorded. Start again.')}er.textContent='Wrong PIN. '+(5-fails)+' tries left.';return}
     try{await db.collection('advreq').doc(id).update({status:'used',usedAt:Date.now()})}catch(e){er.textContent='Could not complete: '+(e.code||e.message);return}
-    close();lg('Advance OTP verified',d+' · AED '+a+' · approved by the driver in the Driver App');
+    lastSt='used';close();lg('Advance OTP verified',d+' · AED '+a+' · approved by the driver in the Driver App');
     Object.keys(F).forEach(k=>{const e=document.getElementById(k);if(e)e.value=F[k]});window._otpGo=1;window.addAdv()};
-  const draw=x=>{if(done)return;const st=x.status,exp=Date.now()-(st=='approved'?(x.apAt||0):(x.at||0))>1800000,hd='<h3 style="margin-bottom:6px">Advance · '+esc(d)+' · AED '+fmt(a)+'</h3>';
+  const draw=x=>{if(done)return;const st=x.status,exp=Date.now()-(st=='approved'?(x.apAt||0):(x.at||0))>1800000;lastSt=exp&&st!='used'?'expired':st;const hd='<h3 style="margin-bottom:6px">Advance · '+esc(d)+' · AED '+fmt(a)+'</h3>';
     if(st=='declined')return box(hd+'<p style="margin:10px 0"><b>Declined by the driver.</b> This advance was not paid and nothing was recorded.</p><button class="btn au" onclick="_otpClose()">Close</button>');
     if(st=='cancelled'||exp)return box(hd+'<p style="margin:10px 0">This request has '+(exp?'expired':'been cancelled')+'. Nothing was recorded. Start again if needed.</p><button class="btn au" onclick="_otpClose()">Close</button>');
     if(st=='approved')return box(hd+'<p class="note" style="margin:8px 0">The driver approved it in the Driver App. Ask the driver for the 6-digit PIN shown there and enter it to complete this advance.</p><input id="otp_in" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="6-digit PIN" style="font-size:22px;letter-spacing:6px;text-align:center"><div id="otp_er" style="color:#b91c1c;min-height:20px;margin:6px 0"></div><div style="display:flex;gap:8px"><button class="btn au" onclick="_otpVerify()">Verify and post advance</button><button class="btn g" onclick="_otpCancel()">Cancel</button></div>');
     box(hd+'<p style="margin:10px 0">Waiting for '+esc(d)+' to approve this advance in the Driver App. It appears under Approvals and expires in 30 minutes.</p><button class="btn g" onclick="_otpCancel()">Cancel request</button>')};
   draw(doc);
-  unsub=db.collection('advreq').doc(id).onSnapshot(sn=>{if(sn.exists)draw(sn.data())},()=>{})};
+  unsub=db.collection('advreq').doc(id).onSnapshot(sn=>{draw(sn.exists?sn.data():{status:'cancelled'})},()=>{})};
 </script>
 </body></html>
