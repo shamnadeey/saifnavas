@@ -104,7 +104,7 @@ const FB={apiKey:"AIzaSyDjIdRU9ZheXDQYmE-8onjE3Vow_cX7t44",authDomain:"saifnavas
 const DOMAIN='driver.saifnavas.app';
 const HIDDEN=['username','name','phone','photo','updated','trips','cash','approvals','basic','allow','salary','wps','pays','leaves','pt','pi','pe','pxo'];
 firebase.initializeApp(FB);
-const auth=firebase.auth(),db=firebase.firestore(),$=s=>document.querySelector(s);
+const auth=firebase.auth(),db=firebase.firestore(),$=s=>document.querySelector(s);try{db.enablePersistence({synchronizeTabs:true}).catch(()=>{})}catch(e){}
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const fmt=n=>(+n||0).toLocaleString('en-AE',{minimumFractionDigits:2,maximumFractionDigits:2});
 const P=n=>String(n).padStart(2,'0'),ymd=d=>d.getFullYear()+'-'+P(d.getMonth()+1)+'-'+P(d.getDate());
