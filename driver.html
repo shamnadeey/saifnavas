@@ -189,7 +189,7 @@ function paintProfile(nm){
   $('#nm').textContent=nm||'Driver';$('#sub').textContent=(CD&&!CV)?'Dispatcher':(D&&D.phone)||'';
   const ph=$('#ph');if(D&&D.photo){ph.textContent='';ph.style.backgroundImage='url("'+String(D.photo).replace(/["\\]/g,'')+'")'}else{ph.style.backgroundImage='';ph.textContent=(nm||'?').trim().charAt(0).toUpperCase()}
   const rows=(CD&&!CV)?[['Name',ME.name],['Role','Dispatcher'],['Username',ME.username]]:[['Name',nm],['Phone',D&&D.phone],['Username',D&&D.username]].concat(CD?[['Role','Driver & dispatcher']]:[]);
-  if(ME._err)rows.push(['Access check','Could not read ('+ME._err+')']);else if(ME.role=='dispatcher'&&ME.disabled)rows.push(['Dispatcher access','Off']);rows.push(['App version','v3 · 4 tabs']);
+  if(ME._err)rows.push(['Access check','Could not read ('+ME._err+')']);else if(ME.role=='dispatcher'&&ME.disabled)rows.push(['Dispatcher access','Off']);rows.push(['Access record',ME.role||'none found']);rows.push(['Login ID',U?U.uid.slice(0,8):'']);rows.push(['App version','v3 · 4 tabs']);
   const ex=D&&D.details&&typeof D.details=='object'?D.details:{};
   Object.keys(ex).forEach(k=>{if(HIDDEN.indexOf(k.toLowerCase())>=0)return;const v=ex[k];if(v==null||typeof v=='object'||v==='')return;rows.push([k.replace(/_/g,' ').replace(/^./,c=>c.toUpperCase()),v])});
   $('#rows').innerHTML=rows.filter(r=>r[1]).map(r=>'<div class="row"><span>'+esc(r[0])+'</span><b>'+esc(r[1])+'</b></div>').join('');
