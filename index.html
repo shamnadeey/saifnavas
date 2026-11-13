@@ -1197,7 +1197,7 @@ function bankV(){try{bkFixDates()}catch(e){console.error(e)}const bs=BL.filter(x
 $('#view').innerHTML=`<div class="kp">${K('Available bank balance',bal(BL),'#2563eb','AED ')}${K('Total credits',sum(BL.filter(x=>x.k=='in'&&!x.pc),x=>x.amt),'var(--ok)','AED ')}${K('Total debits',sum(BL.filter(x=>x.k=='out'&&!x.pc),x=>x.amt),'var(--bad)','AED ')}${K('Bank charges deducted',sum(bs,x=>x.amt),'var(--gold)','AED ')}${K('Received, not confirmed',sum(BL.filter(x=>x.pc&&x.k=='in'),x=>x.amt),'var(--gold)','AED ')}${K('Paid, not confirmed',sum(BL.filter(x=>x.pc&&x.k=='out'),x=>x.amt),'var(--bad)','AED ')}</div>
 <div class="two"><div class="card"><h3 style="margin-bottom:4px">Record a bank transaction</h3><div class="note" style="margin-bottom:12px">Record bank transfers received or paid. Entries without a UTR are accepted but stay under <b>Pending bank confirmation</b> and reach the available balance only after the UTR is entered.</div><div class="row"><div><label>Type</label><select id="bt_t" onchange="btUi()"><option value="in">Credit (received)</option><option value="out">Debit (paid)</option></select></div><div><label>Date</label><input id="bt_d" type="date" value="${today()}"></div><div><label>Amount (AED)</label><input id="bt_a" type="number"></div><div><label>Mode</label><select id="bt_m" onchange="btUi()"><option value="T">Bank transfer</option><option value="D">Card</option><option value="C">Cheque</option></select></div></div><div class="row"><div id="bt_cw" class="hide"><label id="bt_cl">Cheque number *</label><input id="bt_c" autocomplete="off"></div><div id="bt_rw"><label id="bt_rl">Bank txn ID / UTR (add later if not available)</label><input id="bt_r"></div><div><label>For</label><select id="bt_p" onchange="btUi()"><option value="O">Other</option><option value="B">Bill payment</option><option value="I">Invoice payment</option></select></div><div id="bt_nw" class="hide"><label id="bt_nl">Bill number *</label><input id="bt_no" autocomplete="off"></div></div><div class="row"><div><label id="bt_dl">Description *</label><input id="bt_n" placeholder="e.g. VTTI payment, vendor"></div></div><div class="note" style="margin:6px 0 10px">A cheque always needs its cheque number and always waits under <b>Pending bank confirmation</b> until the admin enters the bank UTR / txn ID. A bill or invoice payment always needs the bill or invoice number.</div><button class="btn au" onclick="addBankTx()">Record transaction</button></div>
 <div class="card"><h3 style="margin-bottom:4px">Bank charges &amp; corrections</h3><div class="note" style="margin-bottom:12px">Bank charges can be added by the admin. Opening balance, corrections and interest/refund credits can be added by the <b>owner account only</b> (admin password is asked every time).</div><div class="row"><div><label>Entry</label><select id="bc_t"><option value="0">Bank charge (debit)</option><option value="1">Interest / refund (credit)</option><option value="2">Opening balance (credit)</option><option value="3">Correction – add (credit)</option><option value="4">Correction – deduct (debit)</option></select></div><div><label>Date</label><input id="bc_d" type="date" value="${today()}"></div><div><label>Amount (AED)</label><input id="bc_a" type="number"></div><div><label>Bank reference (optional)</label><input id="bc_r"></div></div><div class="f"><label>Description *</label><input id="bc_n" placeholder="e.g. monthly account fee, SMS charges"></div><button class="btn au" style="margin-top:12px" onclick="addBankAdj()">Add with admin password</button></div></div>
-${bkSyncCard()}${bankConfCard()}${bankPendCard()}${window.pwPendCard?pwPendCard():""}${chqCard()}<div class="card"><div class="top" style="margin-bottom:12px"><div><h3>Bank statement</h3><div class="note">Every credit and debit with its transaction ID and running balance.</div></div><button class="btn" onclick="smpDoc('bank')">Sample PDF</button> <button class="btn g" onclick="pdfDoc('bank')">Download PDF</button></div>${ledF('bank')}</div>`;drawLed('bank');try{btUi()}catch(e){}}
+${window.stmCards?stmCards():''}${bkSyncCard()}${bankConfCard()}${bankPendCard()}${window.pwPendCard?pwPendCard():""}${chqCard()}<div class="card"><div class="top" style="margin-bottom:12px"><div><h3>Bank statement</h3><div class="note">Every credit and debit with its transaction ID and running balance.</div></div><button class="btn" onclick="smpDoc('bank')">Sample PDF</button> <button class="btn g" onclick="pdfDoc('bank')">Download PDF</button></div>${ledF('bank')}</div>`;drawLed('bank');try{btUi()}catch(e){}try{window.stmAfter&&stmAfter()}catch(e){console.error(e)}}
 function bankConfCard(){const P=BL.filter(x=>x.pc).sort((a,b)=>a.ts-b.ts);if(!P.length)return'';return`<div class="card"><h3 style="margin-bottom:4px">Pending bank confirmation</h3><div class="note" style="margin-bottom:12px">Bank receipts and payments recorded elsewhere in the app without a UTR wait here. They are <b>not</b> in the available bank balance until the admin enters the bank UTR / txn ID and confirms (admin password is asked).</div>`+tb(['Date','Type','Bill no.','Source','Details','Amount','UTR / txn ID',''],P.map(x=>`<tr><td>${esc(x.date)}</td><td>${x.k=='in'?'Received':'Paid'}</td><td><b>${String(x.lk||'')[0]=='T'?esc(String(x.lk).split('#')[0].slice(1)):'—'}</b></td><td>${esc(x.src)}</td><td>${esc(x.note||'')}</td><td class="num">${fmt(x.amt)}</td><td><input id="bcu_${x.id}" placeholder="Bank UTR / txn ID" style="min-width:170px"></td><td><button class="btn au" onclick="bankConf(${x.id})">Confirm</button></td></tr>`),[5])+`</div>`}
 function bankTx(lk,r){const k=String(lk||'').split('#')[0],t=k[0],i=k.slice(1),set=A=>{const o=A.find(x=>String(x.id)==i);if(o)o.tx=r};if(t=='T'){const o=T.find(x=>String(x.bill)==i);if(o)o.tx=r}else if(t=='A')set(ADV);else if(t=='E')set(EXP);else if(t=='L')set(LP);else if(t=='P')set(PAY);else if(t=='O')Object.values(DI).forEach(d=>set(d.pays||[]))}
 function bankConf(id){const x=BL.find(e=>e.id==id&&e.pc);if(!x)return;const r=((document.getElementById('bcu_'+id)||{}).value||'').trim();if(!r)return alert('Enter the bank UTR / txn ID to confirm this entry');if(txnUsed(r))return alert('This bank transaction ID is already recorded');needAlways(()=>{x.ref=r;x.pc=0;bankTx(x.lk,r);if(x.wk){const q=x.wk.split('|'),w=WAL[q[0]]&&WAL[q[0]].ent.find(e=>String(e.id)==q[1]);if(w)w.no=r}lg('Bank entry confirmed',`${x.src} \u00b7 AED ${x.amt} \u00b7 ${r}`);save();toast('Confirmed \u00b7 '+(x.k=='in'?'added to':'deducted from')+' the available bank balance');bankV()})}
@@ -3720,6 +3720,169 @@ const e=lpEd();e.innerHTML=lpClean(c.html);if(ed){try{document.execCommand('defa
 window.lpV=async function(){document.getElementById('view').innerHTML='<div class="lp-wrap" id="lpw"><div class="card" id="lpl"></div><div id="lpm"></div></div>';await LPD.ready;if(LPD.pendOpen){const r=LPD.L.find(x=>x.id==LPD.pendOpen);LPD.pendOpen=null;if(r)LPD.cur=r.st=='draft'?r:JSON.parse(JSON.stringify(r))}if(!LPD.cur)LPD.cur=lpMk('off');lpSide();lpDraw();lpSync().then(()=>{lpSide();lpRetry()})};
 /* ---- Invoice tab: "Letters issued" register (official record next to Generated invoices) ---- */
 (function(){const o=window.invLog;window.invLog=function(){try{o&&o.apply(this,arguments)}catch(e){console.error(e)}const B=document.getElementById('ilog');if(!B)return;LPD.ready.then(()=>{const draw=()=>{const L=LPD.L.filter(r=>r.st!='draft').slice(0,200),h='<h3 style="margin:18px 0 4px">Letters issued</h3><div class="note" style="margin-bottom:10px">Every letter issued from the Letterpad tab: reference number, authenticity code and Drive file. Newest first, last 200.</div>'+(L.length?tb(['Reference','Date','Type','Addressed to','Subject','Authenticity code','Status','Drive file',''],L.map(r=>'<tr><td><b>'+esc(r.ref)+'</b></td><td>'+esc(r.date)+'</td><td>'+esc(r.type)+'</td><td>'+esc(r.to||'')+'</td><td style="white-space:normal;min-width:160px">'+esc(r.subj)+'</td><td>'+esc(r.code?r.code.slice(0,5)+'-'+r.code.slice(5):'-')+'</td><td>'+(r.st=='void'?'<span style="color:var(--bad)">Cancelled</span>':'Valid')+'</td><td>'+(/^https:\/\//.test(r.drv||'')?'<a href="'+esc(r.drv)+'" target="_blank" rel="noopener">Open in Drive</a>':r.dp?'<span class="note">Pending</span>':'<span class="note">Not in Drive</span>')+'</td><td><button class="btn g" onclick="lpGo(\''+r.id+'\')">Open</button></td></tr>')):'<div class="note">No letters issued yet.</div>'),w=document.getElementById('lpreg')||document.createElement('div');w.id='lpreg';w.innerHTML=h;B.appendChild(w)};draw();lpSync().then(draw)})}})();
+
+const SC=(function(){
+const R2=n=>Math.round((+n||0)*100)/100;
+const MON={jan:1,feb:2,mar:3,apr:4,may:5,jun:6,jul:7,aug:8,sep:9,oct:10,nov:11,dec:12};
+const pdate=s=>{s=String(s||'').trim();let m;
+ if(m=s.match(/^(\d{4})-(\d{2})-(\d{2})/))return m[1]+'-'+m[2]+'-'+m[3];
+ if(m=s.match(/^(\d{1,2})[\/.\-](\d{1,2})[\/.\-](\d{2,4})/)){const y=m[3].length==2?'20'+m[3]:m[3];return y+'-'+m[2].padStart(2,'0')+'-'+m[1].padStart(2,'0')}
+ if(m=s.match(/^(\d{1,2})[ \-]([A-Za-z]{3})[a-z]*[ \-,]*(\d{4})/)){const mm=MON[m[2].toLowerCase()];if(mm)return m[3]+'-'+String(mm).padStart(2,'0')+'-'+m[1].padStart(2,'0')}
+ return''};
+const pnum=s=>{s=String(s==null?'':s).replace(/[^\d.\-]/g,'');return s&&s!='-'&&s!='.'?+s:NaN};
+const sref=d=>{d=String(d||'');let m=d.match(/\b((?:FT|TT|LD)[0-9A-Z]{6,})\s*\\/);if(m)return m[1];m=d.match(/\b((?:FT|TT|LD)[0-9A-Z]{8,})\b/);return m?m[1]:''};
+const schq=d=>{const m=[...String(d||'').matchAll(/(?:^|[\s-])(\d{6})(?=\s|$)/g)];return m.length?m[m.length-1][1]:''};
+const stype=r=>{const s=r.desc.toLowerCase();
+ if(/maintenance charge|tax invoice debit/.test(s))return'charge';
+ if(/^ld/i.test(r.ref)||/payment of principal|reimbursement of interest/.test(s))return'emi';
+ if(/dds debit/.test(s))return'dds';
+ if(/cash cheque withdrawal/.test(s))return'chqw';
+ if(/inward cheque|cdm onus inward cheque/.test(s))return'chqo';
+ if(/cheque transfer/.test(s))return'chqi';
+ if(/atm cash deposit|cash deposit/.test(s))return'cdep';
+ return r.k=='in'?'cr':'dr'};
+function csvRows(t){const out=[];let row=[],f='',q=false;for(let i=0;i<t.length;i++){const c=t[i];if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}else if(c=='"')q=true;else if(c==','){row.push(f);f=''}else if(c=='\n'||c=='\r'){if(c=='\r'&&t[i+1]=='\n')i++;row.push(f);f='';if(row.some(x=>x.trim()))out.push(row);row=[]}else f+=c}row.push(f);if(row.some(x=>x.trim()))out.push(row);return out}
+function fromCsv(t){const R=csvRows(String(t).replace(/^\uFEFF/,'').replace(/```[a-z]*/gi,''));
+ const hi=R.findIndex(r=>r.some(c=>/date/i.test(c))&&r.some(c=>/debit|credit/i.test(c)));
+ if(hi<0)throw new Error('Header row not found. The CSV needs the columns: Date,Description,Reference,ChequeNo,Debit,Credit,Balance');
+ const H=R[hi].map(x=>x.trim().toLowerCase()),ix=re=>H.findIndex(h=>re.test(h)),c={d:ix(/date/),n:ix(/desc|particular|narrat/),c:ix(/^(cheque|chq)/),r:ix(/^(ref|utr|txn|transaction id)/),db:ix(/debit|withdraw/),cr:ix(/credit|deposit/),b:ix(/balance/)};
+ if(c.d<0||c.db<0||c.cr<0)throw new Error('The CSV must have Date, Debit and Credit columns');
+ let rows=[];R.slice(hi+1).forEach(r=>{const date=pdate(r[c.d]);if(!date)return;const dr=Math.abs(pnum(r[c.db]))||0,cr=Math.abs(pnum(r[c.cr]))||0;if(!(dr>0||cr>0))return;
+  const desc=String(c.n>=0?r[c.n]:'').replace(/\s+/g,' ').trim(),rm=String(c.r>=0?r[c.r]:'').toUpperCase().match(/(FT|TT|LD)[0-9A-Z]+/);
+  rows.push({date,desc,ref:rm?rm[0]:sref(desc),chq:String(c.c>=0?r[c.c]:'').replace(/\D/g,''),k:cr>0?'in':'out',a:R2(cr>0?cr:dr),bal:c.b>=0?pnum(r[c.b]):NaN})});
+ if(!rows.length)throw new Error('No transactions found in the CSV');
+ const bad=a=>{let n=0;for(let i=1;i<a.length;i++){if(isNaN(a[i].bal)||isNaN(a[i-1].bal))return 0;if(Math.abs(R2(a[i-1].bal+(a[i].k=='in'?a[i].a:-a[i].a))-a[i].bal)>0.011)n++}return n};
+ const rv=rows.slice().reverse(),b1=bad(rows),b2=bad(rv);
+ if(b2<b1||(b1==b2&&rows[0].date>rows[rows.length-1].date))rows=rv;
+ const problems=[];for(let i=1;i<rows.length;i++){const p=rows[i-1],r=rows[i];if(isNaN(p.bal)||isNaN(r.bal))continue;const ex=R2(p.bal+(r.k=='in'?r.a:-r.a));if(Math.abs(ex-r.bal)>0.011)problems.push(`Row ${i+1} (${r.date} ${r.ref||r.desc.slice(0,25)}): balance is ${r.bal} but should be ${ex}`)}
+ return{rows,meta:{},problems,src:'CSV'}}
+async function fromPdf(L,buf){const doc=await L.getDocument({data:new Uint8Array(buf)}).promise,lines=[];
+ for(let p=1;p<=doc.numPages;p++){const pg=await doc.getPage(p),tc=await pg.getTextContent(),it=tc.items.filter(i=>i.str&&i.str.trim()!=='').map(i=>({s:i.str,x:i.transform[4],y:i.transform[5],w:i.width||0}));
+  it.sort((a,b)=>b.y-a.y||a.x-b.x);const gl=[];it.forEach(i=>{let l=gl[gl.length-1];if(!l||Math.abs(l.y-i.y)>2.5){l={y:i.y,a:[]};gl.push(l)}l.a.push(i)});
+  gl.forEach(l=>{l.a.sort((a,b)=>a.x-b.x);let s='',e=-1e9;l.a.forEach(i=>{s+=(s&&i.x-e>1.2?' ':'')+i.s;e=i.x+i.w});lines.push(s.replace(/\s+/g,' ').trim())})}
+ const all=lines.join('\n'),mt=re=>{const m=all.match(re);return m?pnum(m[1]):NaN};
+ const meta={open:mt(/Opening Balance:[\s\S]{0,60}?AED\s*([\d,]+\.\d+)/i),close:mt(/Closing Balance:[\s\S]{0,60}?AED\s*([\d,]+\.\d+)/i),tin:mt(/Total Credits:\s*\+?\s*([\d,]+\.?\d*)/i),tout:mt(/Total Debits:\s*-?\s*([\d,]+\.?\d*)/i)};
+ const SK=/^(Transaction History|Account:|IBAN Number:|Product Type:|Classic Current|SME$|Opening Balance|Closing Balance|Transaction Date|Description|Reference\/Cheque|Generated on|This is a computer|\*\*\* End|Page \d+ of)/i;
+ const raw=[];let cur=null;lines.forEach(s=>{if(SK.test(s))return;const m=s.match(/^(\d{2} [A-Za-z]{3} \d{4})\s+(.*)$/);if(m){cur={date:pdate(m[1]),first:m[2],more:''};raw.push(cur)}else if(cur)cur.more+=' '+s});
+ if(!raw.length)throw new Error('No transactions could be read from this PDF. Use the CSV option instead.');
+ raw.reverse();const rows=[],problems=[];let prev=meta.open;
+ raw.forEach((r,i)=>{const am=r.first.match(/\s([\d,]+\.\d{2})\s+([\d,]+\.\d{2})\s*$/);if(!am){problems.push(`Row ${i+1} (${r.date}): amount / balance not found on the line "${r.first.slice(0,60)}"`);return}
+  const a=pnum(am[1]),bal=pnum(am[2]),desc=(r.first.slice(0,am.index)+' '+r.more).replace(/\s+/g,' ').trim();
+  if(isNaN(prev)){prev=R2(bal+(0));rows.push({date:r.date,desc,ref:sref(desc),chq:'',k:'in',a,bal});problems.push('Opening balance not found in the PDF header; the first row cannot be checked');return}
+  const d=R2(bal-prev),k=d>=0?'in':'out';if(Math.abs(Math.abs(d)-a)>0.011)problems.push(`Row ${i+1} (${r.date} ${sref(desc)}): amount ${a} does not match the balance change ${Math.abs(d)}`);
+  rows.push({date:r.date,desc,ref:sref(desc),chq:'',k,a:R2(Math.abs(d)),bal});prev=bal});
+ return{rows,meta,problems,src:'PDF'}}
+function fin(X,name){const rows=X.rows,problems=X.problems.slice(),meta=X.meta||{};
+ rows.forEach(r=>{r.t=stype(r);if(/^chq/.test(r.t)&&!r.chq)r.chq=schq(r.desc);if(!/^chq/.test(r.t)&&r.t!='cdep')r.chq=r.chq||'';r.sd=r.desc.replace(/\s+/g,' ').slice(0,170)});
+ const si=R2(rows.filter(r=>r.k=='in').reduce((s,r)=>s+r.a,0)),so=R2(rows.filter(r=>r.k=='out').reduce((s,r)=>s+r.a,0));
+ if(!isNaN(meta.tin)&&Math.abs(si-meta.tin)>0.011)problems.push(`Credits in the file total ${si} but the statement header says ${meta.tin}`);
+ if(!isNaN(meta.tout)&&Math.abs(so-meta.tout)>0.011)problems.push(`Debits in the file total ${so} but the statement header says ${meta.tout}`);
+ if(!isNaN(meta.close)&&rows.length&&Math.abs(rows[rows.length-1].bal-meta.close)>0.011)problems.push(`Last balance ${rows[rows.length-1].bal} does not equal the closing balance ${meta.close}`);
+ const m=[];rows.forEach(r=>{const p=m[m.length-1];if(r.t=='emi'&&p&&p.t=='emi'&&p.ref==r.ref&&p.date==r.date&&p.k==r.k){p.a=R2(p.a+r.a);p.bal=r.bal;p.sd=(p.sd+' + '+r.sd).slice(0,170);p.desc+=' + '+r.desc;p.n=(p.n||1)+1}else m.push(r)});
+ m.forEach((r,i)=>r.i=i);
+ return{name,src:X.src,rows:m,meta,problems,sumIn:si,sumOut:so}}
+return{R2,pdate,pnum,sref,schq,stype,fromCsv,fromPdf,fin}})();
+/* ===== Bank statement import (CSV / PDF), loan links and Scrutiny ===== */
+(function(){
+const R2=SC.R2;let STM=null;
+const TL={charge:'Bank charge',emi:'Loan EMI (LD)',dds:'Direct debit',chqw:'Cash cheque withdrawal',chqo:'Cheque issued',chqi:'Cheque deposited',cdep:'Cash deposit',cr:'Credit',dr:'Debit'};
+const PROMPT='Convert the attached bank statement PDF into CSV text only (no explanation, no code fences).\nColumns exactly, in this order: Date,Description,Reference,ChequeNo,Debit,Credit,Balance\n- One row per transaction. Never skip, merge, split or reorder rows (keep the statement order).\n- Date as YYYY-MM-DD.\n- Description: the full description exactly as printed, joined into one line, inside double quotes.\n- Reference: our transaction id exactly as printed = the code starting with FT, TT or LD that comes BEFORE the backslash (example: FT263169NPY3).\n- ChequeNo: the cheque number if the row has one (cash cheque withdrawal, inward cheque, cheque transfer), otherwise empty.\n- Debit and Credit in separate columns, numbers only, no commas or currency; leave the other one empty.\n- Balance: the running balance after that row, numbers only.\n- Output nothing after the last row.\nBefore answering, check that opening balance + total credits - total debits = closing balance and that every row balance follows from the previous row. If anything does not match, tell me which rows instead of guessing.';
+const nz=s=>String(s||'').toLowerCase().replace(/[^a-z]/g,'');
+function gloan(r){const d=nz(r.desc),C=LN.filter(l=>{const w=String(l.bank||'').toLowerCase().split(/[^a-z]+/).filter(x=>x.length>3&&!/bank|pjsc|retail|loans/.test(x));return w.length&&w.some(x=>d.includes(x))});if(C.length==1)return C[0].id;if(C.length>1){const q=C.find(l=>Math.abs(l.emi-r.a)<0.006);return q?q.id:''}return LN.length==1&&r.t=='emi'?LN[0].id:''}
+const loanOf=r=>r.lo!==undefined?r.lo:gloan(r);
+function sugInv(r){const d=[];let m;const a=/INV[\s:.-]*(\d{4,6})/gi,b=/\b(\d{5})\s*-?\s*26\b/g;while(m=a.exec(r.desc))d.push(m[1]);while(m=b.exec(r.desc))d.push(m[1]);for(const x of d){const L=PAY.filter(p=>p.ci&&String(p.no).includes(x)&&ciBal(p)>0);if(L.length==1)return String(L[0].no)}return''}
+const sugBills=r=>T.filter(t=>bdue(t)>0&&Math.abs(bdue(t)-r.a)<0.006).slice(0,5).map(t=>String(t.bill));
+const linkOf=r=>r.lk!==undefined?r.lk:sugInv(r);
+function rlink(txt,a){txt=String(txt||'').trim();if(!txt)return{k:'none'};const I=ciGet(txt);
+ if(I){const due=ciBal(I);if(!(due>0))return{k:'err',m:'Invoice '+I.no+' is already fully paid'};if(a>due+1e-9)return{k:'err',m:'AED '+fmt(a)+' is more than invoice '+I.no+' balance AED '+fmt(due)};return{k:'inv',I}}
+ const B=[];for(const n of txt.split(/[,;\s]+/).filter(Boolean)){const t=T.find(x=>String(x.bill)==n);if(!t)return{k:'err',m:'Bill / invoice "'+n+'" was not found'};if(!(bdue(t)>0))return{k:'err',m:'Bill '+n+' is already paid'};B.push(t)}return{k:'bill',B}}
+function pmatch(r,used){const dd=x=>Math.abs((Date.parse(x.date)-Date.parse(r.date))/864e5);const P=BL.filter(x=>x.pc&&!x.stm&&!used.has(x.id)&&x.k==r.k&&Math.abs(x.amt-r.a)<0.006&&(r.chq?String(x.chq||'')==r.chq:!x.chq)&&dd(x)<=10);P.sort((a,b)=>dd(a)-dd(b));return P[0]||null}
+function calc(){const cut=STM.cut||'',used=new Set(),cl=typeof CLOSEDTO=='string'?CLOSEDTO:'';
+ STM.rows.forEach(r=>{r.key=r.t=='emi'||!r.ref?(r.ref||'x')+'|'+r.date+(r.ref?'':'|'+r.a+'|'+r.sd.slice(0,30)):r.ref;r.pe=null;
+  if(r.date<cut)r.st='cut';else if(cl&&r.date<=cl)r.st='closed';
+  else if(BL.some(x=>x.sk==r.key)||(r.t!='emi'&&r.ref&&txnUsed(r.ref)))r.st='dup';
+  else{const q=pmatch(r,used);if(q){used.add(q.id);r.pe=q;r.st='fill'}else r.st='rec'}})}
+const regd=r=>!!(r.chq&&chqFind(r.chq));
+function willScr(r){const t=r.t;if(t=='charge'||t=='chqw')return false;if(t=='emi'||t=='dds')return !loanOf(r);if(t=='chqo'||t=='dr'||t=='cdep')return true;return !String(linkOf(r)).trim()}
+function draw(){const o=document.getElementById('stm_out');if(!o||!STM)return;const c=document.getElementById('stm_cut');if(c&&c.value)STM.cut=c.value;calc();
+ const R=STM.rows,cnt=s=>R.filter(r=>r.st==s).length,show=R.filter(r=>r.st=='rec'||r.st=='fill'||r.st=='dup'),sc=R.filter(r=>r.st=='rec'&&willScr(r)).length,M=STM.meta||{};
+ const rowH=r=>{const i=r.i,t=r.t;let tr;
+  if(r.st=='dup')tr='<span class="tag paid">Already recorded · skipped</span>';
+  else if(r.st=='fill')tr=`<span class="tag onl">Fills the UTR of a pending entry</span><div class="note">${esc(r.pe.src)} · ${esc(r.pe.date)}</div>`;
+  else if(t=='charge')tr='Recorded as bank charge';
+  else if(t=='chqw')tr='Withdrawal only (not in cash ledger) · cheque '+esc(r.chq||'?')+(regd(r)?'':'<div class="note">cheque not in the register</div>');
+  else if(t=='emi'||t=='dds'){const v=loanOf(r);tr=`<select onchange="STMX.lo(${i},this.value)"><option value="">Link to loan account… (else Scrutiny)</option>${LN.map(l=>`<option value="${esc(l.id)}"${String(l.id)==String(v)?' selected':''}>${esc(l.veh)} · ${esc(l.bank)} · ${esc(l.acc||'-')}</option>`).join('')}</select>`}
+  else if(t=='chqo')tr='Cheque '+esc(r.chq||'?')+' · <b>Scrutiny later</b> (payee / purpose)';
+  else if(t=='dr')tr='<b>Scrutiny later</b> (reason needed)';
+  else{const v=linkOf(r),ch=sugBills(r).map(b=>`<a href="#" onclick="STMX.lk(${i},'${esc(b)}');return false">${esc(b)}</a>`).join(' · ');tr=`<input value="${esc(v)}" placeholder="Bill no(s) / invoice no" onchange="STMX.lk(${i},this.value)" style="min-width:160px">${String(v).trim()?'':'<div class="note">Blank → Scrutiny later</div>'}${ch&&!String(v).trim()?'<div class="note">Unpaid bills of this amount: '+ch+'</div>':''}`}
+  return`<tr><td>${esc(r.date)}</td><td>${esc(r.ref||'—')}</td><td>${TL[t]}${r.n?'<div class="note">principal + interest merged</div>':''}</td><td style="white-space:normal;min-width:200px;max-width:340px"><span class="note">${esc(r.sd)}</span></td><td class="num in">${r.k=='in'?fmt(r.a):''}</td><td class="num outc">${r.k=='out'?fmt(r.a):''}</td><td style="white-space:normal;min-width:210px">${tr}</td></tr>`};
+ const pr=STM.problems.length?`<div class="note" style="border-left:4px solid var(--bad);padding:8px 12px;margin:10px 0;color:var(--bad)"><b>The statement does not tally:</b><br>${STM.problems.slice(0,8).map(esc).join('<br>')}${STM.problems.length>8?'<br>… and '+(STM.problems.length-8)+' more':''}<br><label style="display:block;margin-top:6px"><input type="checkbox" id="stm_ov"> Import anyway (I have checked the differences)</label></div>`:'<div class="note" style="margin:10px 0;color:var(--ok)"><b>Tallies:</b> every row\'s balance follows from the previous one'+(!isNaN(M.close)?' and the totals and closing balance agree with the statement header':'')+'.</div>';
+ o.innerHTML=`<div class="note" style="margin:8px 0"><b>${esc(STM.name)}</b> (${esc(STM.src)}) · ${R.length} rows · ${esc(R[0].date)} to ${esc(R[R.length-1].date)} · credits AED ${fmt(STM.sumIn)} · debits AED ${fmt(STM.sumOut)}${!isNaN(M.open)?' · opening AED '+fmt(M.open)+' · closing AED '+fmt(M.close):''}</div>${pr}
+ <div class="sum" style="margin:6px 0 12px"><span><small>To record</small><b>${cnt('rec')}</b></span><span><small>Fill pending UTR</small><b>${cnt('fill')}</b></span><span><small>Already recorded</small><b>${cnt('dup')}</b></span><span><small>Go to Scrutiny</small><b>${sc}</b></span><span><small>Before cut-off / closed</small><b>${cnt('cut')+cnt('closed')}</b></span></div>
+ ${tb(['Date','Txn ID','Type','Statement description','Credit','Debit','What will happen'],show.map(rowH),[4,5])}
+ <div style="margin-top:14px"><button class="btn au" onclick="STMX.go()">Import ${cnt('rec')+cnt('fill')} rows</button> <span class="note">Every row is recorded so the bank always tallies. Anything not clear goes to <b>Scrutiny</b> to be fixed later. Bill / invoice payments always need the number.</span></div>`}
+function useChq(r,l){const b=r.chq?chqFind(r.chq):null;if(b&&chqState(b,r.chq)=='free'){b.used=b.used||{};b.used[chqFmt(b,r.chq)]={ref:'Bank debit \u00b7 '+l,date:r.date,amt:r.a,by:BY()};return true}return false}
+function aInv(e,I){let left=e.amt;const al=[];ciBills(I).forEach(x=>{if(left<=0)return;const q=Math.min(left,bdue(x));if(!(q>0))return;x.rp=(+x.rp||0)+q;if(x.rp>=amt(x)-1e-9)x.paid=1;al.push({bill:x.bill,amt:q});left-=q});
+ const pid=eid++,bl=al.map(x=>x.bill).join(', ')||I.bills.join(', ');PAY.push({id:pid,ts:Date.now(),key:I.key,party:I.party,inv:I.no,date:e.date,amt:e.amt,mode:'Bank',tx:e.ref,note:'Bank transfer \u00b7 statement import',al,by:BY()});
+ Object.assign(e,{src:'Dues collected \u00b7 '+I.no,note:I.party+' \u00b7 '+I.no+' \u00b7 bills '+bl,lk:'P'+pid});delete e.scr;delete e.scn}
+function aBill(e,B){let left=e.amt;const ns=[];B.forEach(t=>{const q=Math.min(left,bdue(t));if(!(q>0))return;t.rp=R2((+t.rp||0)+q);if(t.rp>=amt(t)-1e-9){t.paid=1;t.pm='Bank';t.cdt=e.date;t.tx=e.ref}ns.push(t.bill);left=R2(left-q)});
+ if(!ns.length)return false;Object.assign(e,{src:'Bank credit \u00b7 bill payment',note:'Bill '+ns.join(', ')+' \u00b7 '+(e.sd||''),lk:'T'+ns[0]});delete e.scr;delete e.scn;if(left>0.005){e.scr=1;e.scn='AED '+fmt(left)+' of this credit is not allocated to a bill'}return true}
+function aLoan(e,l){const pid=eid++;if(l.paid<l.n)l.paid++;LP.unshift({id:pid,loan:l.id,date:e.date,amt:e.amt,mode:'Bank',tx:e.ref,inst:l.paid,pd:l.pd||'',ps:l.pd?Math.round(e.amt*(+l.pp||0))/100:0});
+ Object.assign(e,{src:'EMI \u00b7 '+l.veh,note:'EMI '+l.paid+'/'+l.n+' \u00b7 '+l.bank+' \u00b7 '+(e.sd||''),lk:'L'+pid});delete e.scr;delete e.scn}
+function run(){const st={rec:0,fill:0,scr:0,dup:STM.rows.filter(r=>r.st=='dup').length};let k=0;
+ STM.rows.filter(r=>r.st=='rec'||r.st=='fill').forEach(r=>{const ts=Date.parse(r.date+'T12:00:00')+(k++);
+  if(r.st=='fill'){const x=BL.find(q=>q.id==r.pe.id&&q.pc);if(x){x.ref=r.ref;x.pc=0;x.sk=r.key;if(r.chq&&!x.chq)x.chq=r.chq;try{bankTx(x.lk,r.ref)}catch(er){}st.fill++;return}}
+  ent(BL,{k:r.k,amt:r.a,src:r.k=='in'?'Bank credit':'Bank debit',ref:r.ref,pc:r.ref?0:1,note:r.sd,sd:r.sd,date:r.date,stm:1,sk:r.key,ts});
+  const e=BL[BL.length-1],t=r.t,flag=m=>{e.scr=1;e.scn=m;e.src=(r.k=='in'?'Credit':'Debit')+' \u00b7 to scrutinise';st.scr++};if(r.chq)e.chq=r.chq;
+  if(t=='charge')e.src='Bank charge';
+  else if(t=='chqw'){e.src='Cash cheque withdrawal';e.note='Withdrawal only (not added to cash ledger) \u00b7 cheque '+r.chq+' \u00b7 '+r.sd;useChq(r,'Cash withdrawal')}
+  else if(t=='chqo'){useChq(r,'Cheque payment');e.note='Cheque '+r.chq+' \u00b7 '+r.sd;flag('Cheque '+r.chq+': payee / purpose needed')}
+  else if(t=='emi'||t=='dds'){const l=LN.find(x=>String(x.id)==String(loanOf(r)));if(l)aLoan(e,l);else flag('Link this loan debit to a loan account (EMI section)')}
+  else if(t=='dr')flag('Unclassified debit: reason needed');
+  else{const v=String(linkOf(r)).trim(),L=v?rlink(v,r.a):{k:'none'};if(t=='cdep')e.note='ATM cash deposit \u00b7 '+r.sd;if(t=='chqi')e.note='Cheque '+r.chq+' received \u00b7 '+r.sd;
+   if(L.k=='inv')aInv(e,L.I);else if(L.k=='bill'){if(!aBill(e,L.B))flag('Those bills were already paid')}
+   else flag(t=='cdep'?'Cash deposit: link bills / source':t=='chqi'?'Cheque '+r.chq+' received: bill / invoice number needed':'Unmatched credit: bill / invoice number needed')}
+  st.rec++});
+ const last=STM.rows[STM.rows.length-1];lg('Bank statement import',`${STM.name} \u00b7 recorded ${st.rec} \u00b7 UTR filled ${st.fill} \u00b7 duplicates ${st.dup} \u00b7 scrutiny ${st.scr} \u00b7 from ${STM.cut}`);save();
+ const msg=`Imported ${st.rec} rows · UTR filled on ${st.fill} pending entries · ${st.dup} already recorded · ${st.scr} sent to Scrutiny.\n\nStatement closing balance: AED ${fmt(last.bal)}\nApp bank balance now: AED ${fmt(bal(BL))}${Math.abs(last.bal-bal(BL))>0.005?'\n\nThe two differ because entries before the cut-off date or still pending are not part of this import.':''}`;
+ STM=null;bankV();alert(msg)}
+window.STMX={lo(i,v){STM.rows[i].lo=v;draw()},lk(i,v){STM.rows[i].lk=String(v||'').trim();draw()},
+ go(){if(!STM)return;const c=document.getElementById('stm_cut');if(c&&c.value)STM.cut=c.value;calc();const E=[];
+  STM.rows.forEach(r=>{if(r.st!='rec'||!['cr','chqi','cdep'].includes(r.t))return;const v=String(linkOf(r)).trim();if(v){const L=rlink(v,r.a);if(L.k=='err')E.push('Row '+r.date+' '+r.ref+': '+L.m)}});
+  if(E.length)return alert('Fix these links first (a bill or invoice number must exist and be unpaid):\n\n'+E.slice(0,10).join('\n'));
+  if(STM.problems.length&&!(document.getElementById('stm_ov')||{}).checked)return alert('This statement does not tally row by row. Fix the file and upload again, or tick "Import anyway" after checking the differences.');
+  const n=STM.rows.filter(r=>r.st=='rec'||r.st=='fill').length;if(!n)return alert('Nothing new to import after the cut-off date');
+  if(!confirm('Import '+n+' rows from '+STM.cut+'? All rows are recorded; unclear ones go to Scrutiny.'))return;need(run)},
+ file:async function(inp){const f=inp.files&&inp.files[0];if(!f)return;const o=document.getElementById('stm_out');o.innerHTML='<div class="note">Reading the statement…</div>';
+  try{let X;if(/\.pdf$/i.test(f.name)||f.type=='application/pdf'){const L=await pdfjs();X=await SC.fromPdf(L,await f.arrayBuffer())}else X=SC.fromCsv(await f.text());
+   const c=document.getElementById('stm_cut');STM=SC.fin(X,f.name);STM.cut=(c&&c.value)||'';draw()}catch(e){console.error(e);STM=null;o.innerHTML='<div class="note" style="color:var(--bad)">'+esc(e.message||e)+'</div>'}inp.value=''},
+ copy(){const t=document.getElementById('stm_pr');t.select();try{navigator.clipboard.writeText(t.value).then(()=>toast('Prompt copied'),()=>{document.execCommand('copy');toast('Prompt copied')})}catch(e){document.execCommand('copy');toast('Prompt copied')}}};
+async function pdfjs(){if(window.pdfjsLib)return window.pdfjsLib;const base='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/';
+ await new Promise((ok,no)=>{const s=document.createElement('script');s.src=base+'pdf.min.js';s.onload=ok;s.onerror=()=>no(new Error('The PDF reader could not be loaded (internet is needed for the PDF option). Use the CSV option, or connect to the internet and try again.'));document.head.appendChild(s)});
+ const L=window.pdfjsLib;try{const t=await (await fetch(base+'pdf.worker.min.js')).text();L.GlobalWorkerOptions.workerSrc=URL.createObjectURL(new Blob([t],{type:'text/javascript'}))}catch(e){L.GlobalWorkerOptions.workerSrc=base+'pdf.worker.min.js'}return L}
+function impCard(){const d=today().slice(0,8)+'01';return`<div class="card"><h3 style="margin-bottom:4px">Import bank statement (PDF or CSV)</h3><div class="note" style="margin-bottom:12px">Upload the bank's <b>Transaction History PDF</b> or a <b>CSV</b>. The app reads each row, checks that the balances tally, takes our transaction ID (the FT / TT / LD code before the “\\”), fills the UTR of matching pending entries and records the rest. Rows are never rejected: anything unclear goes to <b>Scrutiny</b> below. Loan debits (LD and direct debits) are linked to a loan account in the EMI section, which you can change here.</div>
+<div class="row"><div><label>Import from date (cut-off) *</label><input id="stm_cut" type="date" value="${esc(STM&&STM.cut||d)}" onchange="STM_cutChg()"></div><div><label>Statement file (.pdf or .csv)</label><input type="file" id="stm_f" accept=".pdf,.csv,.txt" onchange="STMX.file(this)"></div></div>
+<div id="stm_out"></div>
+<details style="margin-top:12px"><summary class="note" style="cursor:pointer"><b>Making the CSV in Gemini?</b> Copy this prompt, paste it in Gemini with the statement PDF attached, then save Gemini's answer as a .csv file</summary><textarea id="stm_pr" readonly style="width:100%;height:210px;margin-top:8px">${esc(PROMPT)}</textarea><button class="btn au" style="margin-top:6px" onclick="STMX.copy()">Copy prompt</button></details></div>`}
+window.STM_cutChg=()=>{if(STM)draw()};
+function scrCard(){const S=BL.filter(x=>x.scr).sort((a,b)=>a.date<b.date?-1:a.date>b.date?1:a.ts-b.ts);if(!S.length)return'';
+ return`<div class="card" style="border-left:4px solid var(--bad)"><h3 style="margin-bottom:4px">Scrutiny · to fix later (${S.length})</h3><div class="note" style="margin-bottom:12px">Bank rows that are already in the balance but still need to be tied to a bill, invoice, loan or reason. Fixing one moves it to the right place; a bill or invoice payment always needs its number.</div>`+
+ tb(['Date','Txn ID','Statement description','Why it is here','Credit','Debit',''],S.map(x=>`<tr><td>${esc(x.date)}</td><td>${esc(x.ref||'—')}</td><td style="white-space:normal;min-width:200px;max-width:340px"><span class="note">${esc(x.sd||x.note)}</span></td><td style="white-space:normal;min-width:170px">${esc(x.scn||'')}</td><td class="num in">${x.k=='in'?fmt(x.amt):''}</td><td class="num outc">${x.k=='out'?fmt(x.amt):''}</td><td><button class="btn au" onclick="stmFix(${x.id})">Fix</button></td></tr>`),[4,5])+`</div>`}
+window.stmCards=()=>(role=='corp'?impCard():'')+scrCard();
+window.stmAfter=()=>{if(STM&&document.getElementById('stm_out'))draw()};
+window.stmFu=function(){const t=g('sf_t'),sh=(i,on)=>{const x=document.getElementById(i);if(x)x.classList.toggle('hide',!on)};sh('sf_nw',t=='bi');sh('sf_lw',t=='ln');sh('sf_rw',t=='oc'||t=='od')};
+window.stmFix=function(id){const e=BL.find(x=>x.id==id&&x.scr);if(!e)return;
+ const opts=e.k=='in'?'<option value="bi">Bill / invoice payment</option><option value="oc">Other credit (reason)</option>':'<option value="ln">Loan debit (link to a loan account)</option><option value="od">Expense / other payment (reason)</option>';
+ modal(`<h3>Fix · ${e.k=='in'?'credit':'debit'} AED ${fmt(e.amt)}</h3><p class="note" style="margin:4px 0 12px">${esc(e.date)} · ${esc(e.ref||'')} · ${esc(e.sd||e.note)}<br><b>${esc(e.scn||'')}</b></p><div class="row"><div><label>Resolve as</label><select id="sf_t" onchange="stmFu()">${opts}</select></div><div id="sf_nw"><label>Bill number(s) or invoice number *</label><input id="sf_n"></div><div id="sf_lw" class="hide"><label>Loan account *</label><select id="sf_l"><option value="">Select…</option>${LN.map(l=>`<option value="${esc(l.id)}">${esc(l.veh)} · ${esc(l.bank)} · ${esc(l.acc||'-')} · EMI ${fmt(l.emi)}</option>`).join('')}</select></div><div id="sf_rw" class="hide"><label>Reason / description *</label><input id="sf_r"></div></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn au" onclick="stmFd(${e.id})">Save</button><button class="btn g" onclick="cm()">Cancel</button></div>`);stmFu()};
+window.stmFd=function(id){const e=BL.find(x=>x.id==id&&x.scr);if(!e)return;const t=g('sf_t'),n=g('sf_n').trim(),lo=g('sf_l'),rs=g('sf_r').trim();let L=null,l=null;
+ if(t=='bi'){if(!n)return alert('The bill or invoice number is required');L=rlink(n,e.amt);if(L.k=='err')return alert(L.m)}
+ else if(t=='ln'){l=LN.find(x=>String(x.id)==String(lo));if(!l)return alert('Select the loan account')}
+ else if(!rs)return alert('Enter the reason / description');
+ need(()=>{const s=e.src;if(t=='bi'){if(L.k=='inv')aInv(e,L.I);else if(!aBill(e,L.B))return alert('Those bills are already paid')}else if(t=='ln')aLoan(e,l);
+  else{e.src=t=='oc'?'Other credit':'Other payment';e.note=rs+' \u00b7 '+(e.sd||'');delete e.scr;delete e.scn}
+  lg('Scrutiny fixed',`${e.k=='in'?'Credit':'Debit'} AED ${e.amt} \u00b7 ${e.ref||''} \u00b7 ${e.src}${e.scr?'':''}`);save();cm();toast('Fixed');bankV()})};
+})();
+
 </script>
 
 </body></html>
