@@ -1,5 +1,5 @@
 <!DOCTYPE html><html lang="en"><head><meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; connect-src https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com; frame-src https://*.firebaseapp.com; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://apis.google.com https://maps.googleapis.com https://maps.gstatic.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com data:; img-src 'self' data: blob: https://maps.googleapis.com https://maps.gstatic.com https://*.googleapis.com https://*.gstatic.com https://*.ggpht.com; worker-src 'self' blob:; connect-src https://*.googleapis.com https://*.firebaseio.com https://*.firebaseapp.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com wss://*.firebaseio.com; frame-src https://*.firebaseapp.com; manifest-src 'self'; base-uri 'none'; form-action 'none'; object-src 'none'">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffffff"><meta name="referrer" content="no-referrer"><meta name="robots" content="noindex,nofollow">
 <meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes">
@@ -163,7 +163,7 @@ const isNew=s=>!s.status||s.status=='scheduled'||s.status=='accepted';
 const stat=s=>s.status=='posted'?{c:'g',t:'Verified'}:s.status=='completed'?{c:'w',t:'Waiting for bill check'}:s.status=='started'?{c:'b',t:'On trip'}:(Date.now()>=stt(s)?{c:'r',t:'Not started'}:{c:'',t:'Upcoming'});
 const TYPES=['One Way','Round','Others'],CATS=['Company','Personal','Local'];let FC='Company',ADQ=[],OTPS={};
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
-let DEPQ=[],DF={},KM=null,ST=null,SIDE=false;let U=null,CD=false,CV=true,TB=[],ME={},D=null,SCHD=[],SCHA=[],LK=null,UNS=[],TAB='trips',DV='today',TODAY=ymd(new Date()),SEL=TODAY,CM=new Date(new Date().getFullYear(),new Date().getMonth(),1),FE=null,FT='One Way',DN=null;
+let DEPQ=[],DF={},KM=null,ST=null,SIDE=false;let U=null,CD=false,CV=true,TB=[],ME={},D=null,SCHD=[],SCHA=[],LK=null,UNS=[],TAB='trips',DV='today',TODAY=ymd(new Date()),SEL=TODAY,CM=new Date(new Date().getFullYear(),new Date().getMonth(),1),FE=null,FT='One Way',DN=null,WCB=[],MCB=[],SYN={},LIVEL=[];
 const show=id=>['boot','login','home'].forEach(x=>$('#'+x).classList.toggle('hide',x!==id));
 const EMP=(t,s)=>'<div class="emp"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg><b>'+t+'</b>'+(s?'<div>'+s+'</div>':'')+'</div>';
 const ICON={trips:'<svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h6a4 4 0 0 0 0-8h-4a4 4 0 0 1 0-8h6"/></svg>',cash:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M16 15h2"/></svg>',appr:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m8.5 12.5 2.5 2.5 4.5-5"/></svg>',sched:'<svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M8 3v4M16 3v4M4 10h16"/></svg>'};
@@ -171,7 +171,7 @@ const ICON={trips:'<svg viewBox="0 0 24 24"><circle cx="6" cy="19" r="2"/><circl
 auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(()=>{});
 auth.onAuthStateChanged(async u=>{
   UNS.forEach(f=>{try{f()}catch(e){}});UNS=[];$('#dlg').classList.add('hide');closeSide();
-  if(!u){U=null;D=null;SCHD=[];SCHA=[];LK=null;DEPQ=[];DF={};KM=null;$('#prof').classList.add('hide');show('login');return}
+  if(!u){try{TRK.halt()}catch(e){}U=null;D=null;SCHD=[];SCHA=[];LK=null;DEPQ=[];DF={};KM=null;$('#prof').classList.add('hide');show('login');return}
   U=u;show('boot');ME={};CD=false;CV=true;
   try{const s=await db.collection('users').doc(u.uid).get();if(s.exists)ME=s.data()}catch(e){ME={_err:e.code||'error'}}
   if(ME.role=='dispatcher'){
@@ -185,15 +185,18 @@ auth.onAuthStateChanged(async u=>{
     UNS.push(db.collection('driverapp').doc(u.uid).onSnapshot(s=>{D=s.exists?s.data():null;paint();live(!s.metadata.fromCache,s.exists?(s.metadata.fromCache?'Offline · saved copy':'Live'):(CD?'Live':'No profile published yet'))},err));
     UNS.push(db.collection('advreq').where('uid','==',u.uid).onSnapshot(s=>{ADQ=s.docs.map(x=>Object.assign({id:x.id},x.data())).sort((a,b)=>(b.at||0)-(a.at||0));paint()},()=>{}));
     UNS.push(db.collection('depreq').where('uid','==',u.uid).onSnapshot(s=>{DEPQ=s.docs.map(x=>Object.assign({id:x.id},x.data())).sort((a,b)=>(b.at||0)-(a.at||0));paint()},()=>{}));
-    UNS.push(db.collection('schedule').where('uid','==',u.uid).onSnapshot(s=>{SCHD=s.docs.map(x=>Object.assign({id:x.id},x.data()));paint()},err));
+    UNS.push(db.collection('schedule').where('uid','==',u.uid).onSnapshot(s=>{SCHD=s.docs.map(x=>Object.assign({id:x.id},x.data()));try{TRK.sync(!s.metadata.fromCache)}catch(e){}try{syncCB()}catch(e){}paint()},err));
+    UNS.push(db.collection('copybills').where('status','==','waiting').onSnapshot(s=>{WCB=s.docs.map(x=>Object.assign({id:x.id},x.data()));if(DN)drawSug()},()=>{}));
+    UNS.push(db.collection('copybills').where('uid','==',u.uid).onSnapshot(s=>{MCB=s.docs.map(x=>Object.assign({id:x.id},x.data()));try{syncCB()}catch(e){}},()=>{}));
     UNS.push(db.collection('kmlog').doc(u.uid).onSnapshot(s=>{KM=s.exists?s.data():null;paint()},()=>{}));
   }
   if(CD){
     const since=ymd(new Date(Date.now()-60*864e5));
     UNS.push(db.collection('schedule').where('date','>=',since).onSnapshot(s=>{SCHA=s.docs.map(x=>Object.assign({id:x.id},x.data()));live(!s.metadata.fromCache,s.metadata.fromCache?'Offline · saved copy':'Live');paint()},err));
     UNS.push(db.collection('lookup').doc('dispatch').onSnapshot(s=>{LK=s.exists?s.data():{}},()=>{}));
+    UNS.push(db.collection('live').onSnapshot(s=>{LIVEL=s.docs.map(x=>Object.assign({id:x.id},x.data()));if(TAB=='sched'&&DV=='live')liveUpdate()},()=>{}));
   }
-  if(!window._iv)window._iv=setInterval(()=>{if(U){const n=ymd(new Date());if(n!=TODAY){if(SEL==TODAY)SEL=n;TODAY=n}paint(true)}},60000);
+  if(!window._iv)window._iv=setInterval(()=>{if(U){const n=ymd(new Date());if(n!=TODAY){if(SEL==TODAY)SEL=n;TODAY=n}if(!(TAB=='sched'&&DV=='live'))paint(true)}},60000);
 });
 function buildNav(){$('#nav').innerHTML=TB.map(t=>'<button data-t="'+t[0]+'">'+ICON[t[0]]+t[1]+'<span class="bd hide" id="b_'+t[0]+'"></span></button>').join('');document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{TAB=b.dataset.t;paint();scrollTo(0,0)})}
 function live(on,t){const l=$('#lv');l.className='pill '+(on?'g':'w');l.textContent=t;$('.av').classList.toggle('on',on)}
@@ -217,14 +220,14 @@ function sc(s,who){
   if(s.veh)h+='<div class="sub" style="margin-top:10px">Vehicle '+esc(s.veh)+(s.vname?' ('+esc(s.vname)+')':'')+'</div>';
   if(s.startAt)h+='<div class="sub" style="margin-top:4px">Started at '+hm(s.startAt)+(s.sKm!=null?' · meter '+fmtn(s.sKm)+' km':'')+'</div>';
   if(s.note)h+='<div class="sub" style="margin-top:6px">'+esc(s.note)+'</div>';
-  if(s.status=='completed'||s.status=='posted')h+='<div class="rt sub">Bill '+esc(s.bill||'—')+(s.copy&&s.cbill?' · Copy '+esc(s.cbill):'')+(s.charge!=null?' · Charge '+fmt(s.charge)+' · Fuel '+fmt(s.fuel)+' · Salik '+fmt(s.salik):'')+((s.cat||'Company')=='Company'?' · Company outstanding':' · '+(s.paid?'Paid ('+esc(s.pm||'')+')':'Not paid'))+'</div>';
+  if(s.status=='completed'||s.status=='posted')h+='<div class="rt sub">'+(s.cwait?'<b>Waiting for original bill no</b> · Copy '+esc(s.cbill||''):'Bill '+esc(s.bill||'—')+(s.copy&&s.cbill?' · Copy '+esc(s.cbill):''))+(s.charge!=null?' · Charge '+fmt(s.charge)+' · Fuel '+fmt(s.fuel)+' · Salik '+fmt(s.salik)+(s.parking?' · Parking '+fmt(s.parking):''):'')+((s.cat||'Company')=='Company'?' · Company outstanding':' · '+(s.paid?'Paid ('+esc(s.pm||'')+')':'Not paid'))+'</div>';
   if(!who){
     if(s.status=='posted'){}
     else if(s.status=='completed')h+='<button class="sm" data-a="done" data-id="'+s.id+'">Edit details</button>';
     else if(s.status=='started')h+='<button class="btn" data-a="done" data-id="'+s.id+'">Complete trip</button>';
     else if(s.date>TODAY)h+='<div class="sub" style="margin-top:10px">You can start this trip on '+fsh(s.date)+'.</div>';
     else h+='<button class="btn" data-a="start" data-id="'+s.id+'">Start trip</button>'+(Date.now()>=stt(s)?'<button class="sm" data-a="done" data-id="'+s.id+'">Already finished? Complete it</button>':'');
-  }else if(isNew(s))h+='<button class="sm" data-a="edit" data-id="'+s.id+'">Edit</button><button class="sm d" data-a="del" data-id="'+s.id+'">Cancel trip</button>';
+  }else if(isNew(s)||s.status=='started')h+=(isNew(s)?'<button class="sm" data-a="edit" data-id="'+s.id+'">Edit</button>':'')+'<button class="sm d" data-a="del" data-id="'+s.id+'">Cancel trip</button>';
   return h+'</div>';
 }
 const act=a=>(a||SCHD).filter(s=>s.status!='completed'&&s.status!='posted').sort((p,q)=>stt(p)-stt(q));
@@ -307,9 +310,28 @@ function openSide(){SIDE=true;$('#sidec').innerHTML=sideHtml();$('#side').classL
 function closeSide(){SIDE=false;$('#side').classList.remove('open');$('#scrim').classList.add('hide');document.body.classList.remove('lock')}
 
 /* ---------- dispatcher schedule tab ---------- */
+/* ---------- dispatcher live map ---------- */
+const GM={ready:null,map:null,mk:{},bad:false,fit:false};
+const agoT=t=>{const m=Math.max(0,Math.round((Date.now()-(+t||0))/60000));return m<1?'just now':m<60?m+' min ago':Math.floor(m/60)+' h '+(m%60)+' min ago'};
+function liveRows(){const now=Date.now();return LIVEL.filter(x=>x.on===true&&typeof x.lat=='number'&&typeof x.lng=='number'&&now-(x.t||0)<43200000&&SCHA.some(q=>q.id==x.trip&&q.status=='started')).sort((a,b)=>String(a.driver).localeCompare(String(b.driver)))}
+function liveList(){const L=liveRows();return L.length?L.map(x=>{const s=SCHA.find(q=>q.id==x.trip)||{};return '<div class="trip on"><div class="cu"><b>'+esc(x.driver||'')+'</b><div class="sub">'+esc(x.veh||'')+'</div></div><div class="sub" style="margin-top:6px">'+esc(s.customer||'')+(s.from?' · '+esc(s.from)+' → '+esc(s.to||''):'')+'</div><div class="sub">'+Math.round(x.spd||0)+' km/h · updated '+agoT(x.t)+'</div><a class="sm" target="_blank" rel="noopener" href="https://www.google.com/maps?q='+x.lat+','+x.lng+'">Open in Google Maps</a></div>'}).join(''):EMP('No driver is on a trip with live tracking right now')}
+function liveUpdate(){const el=$('#lvlist');if(el)el.innerHTML=liveList();mapMarks()}
+function mapMarks(){if(!GM.map||!window.google||!google.maps)return;const L=liveRows(),ids={};L.forEach(x=>{ids[x.id]=1;const pos={lat:+x.lat,lng:+x.lng};let m=GM.mk[x.id];if(!m){m=GM.mk[x.id]=new google.maps.Marker({map:GM.map,position:pos,title:x.driver||'',label:{text:String(x.driver||'?').slice(0,10),color:'#fff',fontSize:'11px',fontWeight:'700'}})}else m.setPosition(pos)});
+  Object.keys(GM.mk).forEach(k=>{if(!ids[k]){GM.mk[k].setMap(null);delete GM.mk[k]}});
+  if(L.length&&!GM.fit){const b=new google.maps.LatLngBounds();L.forEach(x=>b.extend({lat:+x.lat,lng:+x.lng}));GM.map.fitBounds(b);if(L.length==1)GM.map.setZoom(14);GM.fit=true}}
+async function liveDraw(){
+  const el=$('#lvmap'),msg=$('#lvmsg');if(!el)return;GM.map=null;GM.mk={};GM.fit=false;
+  try{
+    if(!GM.ready){const k=await db.collection('meta').doc('maps').get();if(!k.exists||!k.data().key){if(msg)msg.textContent='The map is not connected yet. Ask the office to save the Google Maps key. The list below still updates live.';return}
+      GM.ready=new Promise((ok,no)=>{window.__gmR=()=>ok();window.gm_authFailure=()=>{GM.bad=true;const m=$('#lvmsg');if(m)m.textContent='Google blocked the map for this app. The list below still updates live.'};const sc=document.createElement('script');sc.src='https://maps.googleapis.com/maps/api/js?key='+encodeURIComponent(k.data().key)+'&callback=__gmR';sc.onerror=()=>no(new Error('load'));document.head.appendChild(sc)})}
+    await GM.ready;if(!$('#lvmap'))return;
+    GM.map=new google.maps.Map($('#lvmap'),{center:{lat:25.2048,lng:55.2708},zoom:10,streetViewControl:false,mapTypeControl:false});mapMarks()
+  }catch(e){GM.ready=null;if(msg)msg.textContent='Map could not load ('+(e.code||e.message||'error')+'). The list below still updates live.'}
+}
 function dispView(){
-  const seg='<div class="seg">'+[['today','Today'],['cal','Calendar'],['up','Upcoming'],['done','Completed']].map(x=>'<button data-a="seg" data-v="'+x[0]+'" class="'+(DV==x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
+  const seg='<div class="seg">'+[['today','Today'],['cal','Calendar'],['up','Upcoming'],['done','Completed'],['live','Live map']].map(x=>'<button data-a="seg" data-v="'+x[0]+'" class="'+(DV==x[0]?'on':'')+'">'+x[1]+'</button>').join('')+'</div>';
   const add='<button class="btn" data-a="new" style="margin:0 0 16px">Schedule a trip</button>';
+  if(DV=='live'){setTimeout(liveDraw,0);return seg+'<div class="card"><div id="lvmap" style="height:340px;border-radius:12px;background:#e2e8f0"></div><div class="note" id="lvmsg" style="margin-top:6px"></div></div><div id="lvlist">'+liveList()+'</div>'}
   if(DV=='today'){const L=SCHA.filter(s=>s.date==TODAY).sort((p,q)=>stt(p)-stt(q));return seg+add+(L.length?chipsStat(L)+L.map(s=>sc(s,1)).join(''):EMP('No trips today','Schedule one with the button above.'))}
   if(DV=='up'){const a=act(SCHA);let last='',h='';a.forEach(s=>{if(s.date!=last){last=s.date;h+='<h2>'+fdt(s.date)+'</h2>'}h+=sc(s,1)});return seg+add+(h||EMP('No upcoming trips scheduled'))}
   if(DV=='done'){const a=don(SCHA);return seg+(a.length?a.map(s=>sc(s,1)).join(''):EMP('No completed trips yet'))}
@@ -321,6 +343,10 @@ function dispView(){
   g+='</div></div>';
   const L=(by[SEL]||[]).sort((p,q)=>stt(p)-stt(q));
   return seg+add+g+'<h2>'+fdt(SEL)+'</h2>'+(L.length?chipsStat(L)+L.map(s=>sc(s,1)).join(''):EMP('Nothing scheduled on this day'));
+}
+async function cancelSched(id,s0){
+  try{await db.collection('schedule').doc(id).delete()}catch(e){return alert('Could not cancel this trip. Ask the office to publish the latest Firestore rules.')}
+  if(s0&&s0.status=='started'&&s0.uid){try{const r=db.collection('live').doc(s0.uid),l=await r.get();if(l.exists&&l.data().trip==id)await r.delete()}catch(e){}}
 }
 function openForm(id){
   const e=id?SCHA.find(x=>x.id==id):null;FE=id||null;const v=e||{date:SEL<TODAY?TODAY:SEL,time:'09:00',type:'One Way'};FT=v.type||'One Way';FC=v.cat||(v.company=='PERSONAL'?'Personal':'Company');
@@ -358,7 +384,7 @@ function tripBox(s){return '<div class="card"><b style="font-size:17px">'+esc(s.
 function openStart(id){
   const s=SCHD.find(x=>x.id==id);if(!s)return;ST={id:id};
   $('#dt').textContent='Start trip';
-  $('#dgb').innerHTML=tripBox(s)+'<div class="card"><label style="margin-top:0">Vehicle number *</label><input id="s_v" list="dlSV" autocomplete="off" value="'+esc(s.veh||((D&&D.veh)||{}).v||'')+'"><datalist id="dlSV">'+(((D&&D.veh)||{}).vs||[]).map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist><div id="s_km"></div><div class="err" id="s_e"></div><button class="btn" id="s_s" data-a="ssave" style="margin-top:6px">Start trip</button></div>';
+  $('#dgb').innerHTML=tripBox(s)+'<div class="card"><label style="margin-top:0">Vehicle number *</label><input id="s_v" list="dlSV" autocomplete="off" value="'+esc(s.veh||((D&&D.veh)||{}).v||'')+'"><datalist id="dlSV">'+(((D&&D.veh)||{}).vs||[]).map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist><div id="s_km"></div><div class="sub" style="margin-top:10px">Your location is recorded while the trip is running and stops when you finish it.</div><div class="err" id="s_e"></div><button class="btn" id="s_s" data-a="ssave" style="margin-top:6px">Start trip</button></div>';
   $('#s_v').oninput=drawKm;drawKm();$('#dlg').classList.remove('hide');
 }
 function drawKm(){
@@ -376,35 +402,39 @@ async function saveStart(){
   else{const raw=(($('#s_k')||{}).value||'').trim();if(!/^\d{1,7}$/.test(raw))return E('Enter the meter reading using digits only.');km=+raw;if(km>2000000)return E('That reading looks too high. Check the meter.');
     const pv=kmPrev(v,TODAY);if(pv&&km<pv.km)return E('This is lower than the last reading ('+fmtn(pv.km)+' km on '+fsh(pv.d)+'). Check the meter and try again.');
     if(pv&&km-pv.km>1500&&!confirm('This is '+fmtn(km-pv.km)+' km more than the last reading. Is the meter reading correct?'))return}
-  $('#s_s').disabled=true;
+  $('#s_s').disabled=true;try{TRK.ask()}catch(e){}
   try{
     if(!have)await saveKm(v,km);
     const u={status:'started',startAt:Date.now(),sKm:km};if(s.veh!==v)u.veh=v;
-    await db.collection('schedule').doc(s.id).update(u);$('#dlg').classList.add('hide');paint();
+    await db.collection('schedule').doc(s.id).update(u);try{TRK.start(s.id,v)}catch(e){}$('#dlg').classList.add('hide');paint();
   }catch(e){E(e.code=='permission-denied'?'Not allowed. The office must publish the latest Firestore rules.':'Could not save. Check your connection.');$('#s_s').disabled=false}
 }
 
 /* ---------- driver: complete a trip ---------- */
 function openDone(id){
   const s=SCHD.find(x=>x.id==id);if(!s)return;const cat=s.cat||(s.company=='PERSONAL'?'Personal':'Company');
-  DN={id:id,cat:cat,copy:!!s.copy,paid:s.paid===undefined?null:s.paid,pm:s.pm||''};
+  DN={id:id,cat:cat,copy:!!s.copy,paid:s.paid===undefined?null:s.paid,pm:s.pm||'',lk:[]};
   $('#dt').textContent='Complete trip';
   $('#dgb').innerHTML=tripBox(s)+
   '<div class="card"><label style="margin-top:0">Bill type</label><div class="chips" id="d_cp"></div>'+
   '<label id="d_bl">Bill number *</label><input id="d_b" inputmode="numeric" maxlength="12" autocomplete="off" value="'+esc(s.bill||'')+'">'+
-  '<div id="d_cw"><label>Copy bill number *</label><input id="d_cb" inputmode="numeric" maxlength="12" autocomplete="off" value="'+esc(s.cbill||'')+'"></div>'+
+  '<div id="d_sg"></div><div id="d_cw"><label>Copy bill number *</label><input id="d_cb" inputmode="numeric" maxlength="12" autocomplete="off" value="'+esc(s.cbill||'')+'"></div>'+
   '<label>Vehicle number *</label><input id="d_v" list="dlDV" autocomplete="off" value="'+esc(s.veh||((D&&D.veh)||{}).v||'')+'"><datalist id="dlDV">'+(((D&&D.veh)||{}).vs||[]).map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist>'+
   '<label>Vehicle name *</label><input id="d_vn" list="dlDN" autocomplete="off" value="'+esc(s.vname||((D&&D.veh)||{}).n||'')+'"><datalist id="dlDN">'+(((D&&D.veh)||{}).ns||[]).map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist>'+
-  '<label>Charge (AED) *</label><input id="d_ch" inputmode="decimal" autocomplete="off" value="'+(s.charge!=null?esc(s.charge):'')+'">'+
+  '<label>Charge (AED)</label><input id="d_ch" inputmode="decimal" autocomplete="off" value="'+(s.charge!=null?esc(s.charge):'')+'">'+
   '<div class="two"><div><label>Fuel (AED)</label><input id="d_fu" inputmode="decimal" autocomplete="off" placeholder="0" value="'+(s.fuel?esc(s.fuel):'')+'"></div><div><label>Salik (AED)</label><input id="d_sl" inputmode="decimal" autocomplete="off" placeholder="0" value="'+(s.salik?esc(s.salik):'')+'"></div></div>'+
+  '<label>Parking (AED)</label><input id="d_pk" inputmode="decimal" autocomplete="off" placeholder="0" value="'+(s.parking?esc(s.parking):'')+'">'+
   '<div id="d_pw"><label>Payment</label><div class="chips" id="d_p"></div><div id="d_m"></div></div><div class="err" id="d_e"></div><button class="btn" id="d_s" data-a="dsave" style="margin-top:6px">Mark as completed</button>'+
   '<div class="note">The office checks your trip when the bill is entered in the system. Until then it shows as waiting for bill check.</div></div>';
   drawCopy();drawPay();$('#dlg').classList.remove('hide');
 }
 function drawCopy(){
   $('#d_cp').innerHTML=[[0,'Normal bill'],[1,'Copy bill']].map(x=>'<button type="button" data-a="cpy" data-v="'+x[0]+'" class="'+((DN.copy?1:0)==x[0]?'on':'')+'">'+x[1]+'</button>').join('');
-  $('#d_cw').classList.toggle('hide',!DN.copy);$('#d_bl').textContent=DN.copy?'Original bill number *':'Bill number *';
+  $('#d_cw').classList.toggle('hide',!DN.copy);$('#d_bl').textContent=DN.copy?'Original bill number (leave empty if you do not have it yet)':'Bill number *';drawSug();
 }
+function sugList(){const s=SCHD.find(x=>x.id==(DN&&DN.id));if(!s||!U)return[];const nz=v=>String(v||'').trim().toLowerCase(),cu=nz(s.customer),co=nz(s.company);return WCB.filter(w=>w.uid!==U.uid&&w.trip!==s.id&&((cu&&nz(w.customer)==cu)||(co&&co!='personal'&&nz(w.company)==co)))}
+function drawSug(){const el=$('#d_sg');if(!el||!DN)return;const L=sugList();el.innerHTML=L.length?'<label>Copy bills waiting for an original bill</label>'+L.map(w=>'<div class="it" style="margin:6px 0"><div><b>Copy bill '+esc(w.cbill)+'</b><div class="sub">'+esc(w.driver||'')+(w.customer?' · '+esc(w.customer):'')+(w.company&&w.company!='PERSONAL'?' · '+esc(w.company):'')+'</div></div><button type="button" class="sm" data-a="lkcb" data-id="'+w.id+'">'+(DN.lk.indexOf(w.id)>=0?'Added \u2713 (tap to remove)':'Add to this trip')+'</button></div>').join('')+'<div class="note">Enter your bill number below. It becomes the original bill number of the copy bill you add.</div>':''}
+function syncCB(){MCB.forEach(c=>{if(c.status!='linked'||!c.obill)return;const s=SCHD.find(x=>x.id==c.id);if(!s||s.status!='completed'||s.cwait!==true||SYN[c.id])return;SYN[c.id]=1;db.collection('schedule').doc(c.id).update({bill:String(c.obill),cwait:false}).catch(()=>{SYN[c.id]=0})})}
 function drawPay(){
   $('#d_pw').classList.toggle('hide',DN.cat=='Company');
   if(DN.cat=='Company')return;
@@ -413,15 +443,23 @@ function drawPay(){
 }
 async function saveDone(){
   const b=$('#d_b').value.trim(),cb=$('#d_cb').value.trim(),n=i=>{const v=$('#'+i).value.trim();return v===''?0:+v},E=m=>{$('#d_e').textContent=m};E('');
-  const ch=n('d_ch'),fu=n('d_fu'),sl=n('d_sl'),co=DN.cat=='Company';
-  if(!/^\d{1,12}$/.test(b))return E('Enter the bill number (digits only).');
+  const ch=n('d_ch'),fu=n('d_fu'),sl=n('d_sl'),pk=n('d_pk'),co=DN.cat=='Company',wait=DN.copy&&b==='';
+  if(b===''&&!DN.copy)return E('Enter the bill number (digits only).');
+  if(b!==''&&!/^\d{1,12}$/.test(b))return E('Enter the bill number (digits only).');
   if(DN.copy){if(!/^\d{1,12}$/.test(cb))return E('Enter the copy bill number (digits only).');if(cb===b)return E('Copy bill number must be different from the original bill number.')}
+  if(DN.lk.length&&b==='')return E('Enter your bill number first, then add the waiting copy bill.');
   const vh=$('#d_v').value.trim(),vn=$('#d_vn').value.trim();
   if(!vh)return E('Enter the vehicle number.');if(!vn)return E('Enter the vehicle name.');if(vh.length>40||vn.length>40)return E('Vehicle number or name is too long.');
-  if(!(ch>0))return E('Enter the charge amount.');if(isNaN(fu)||fu<0||isNaN(sl)||sl<0)return E('Fuel and Salik must be 0 or more.');
+  if([ch,fu,sl,pk].some(x=>isNaN(x)||x<0))return E('Charge, Fuel, Salik and Parking must be 0 or more.');
   if(!co){if(DN.paid===null)return E('Select Paid or Not paid.');if(DN.paid&&!DN.pm)return E('Select Cash or Bank.')}
   $('#d_s').disabled=true;
-  try{await db.collection('schedule').doc(DN.id).update({status:'completed',bill:b,veh:vh,vname:vn,copy:!!DN.copy,cbill:DN.copy?cb:'',charge:ch,fuel:fu,salik:sl,paid:co?false:DN.paid,pm:(!co&&DN.paid)?DN.pm:'',doneAt:Date.now()});$('#dlg').classList.add('hide');paint()}
+  try{
+    const s0=SCHD.find(x=>x.id==DN.id)||{},t0=Date.now(),bt=db.batch(),cref=db.collection('copybills').doc(DN.id);
+    bt.update(db.collection('schedule').doc(DN.id),{status:'completed',bill:b,veh:vh,vname:vn,copy:!!DN.copy,cbill:DN.copy?cb:'',cwait:wait,charge:ch,fuel:fu,salik:sl,parking:pk,paid:co?false:DN.paid,pm:(!co&&DN.paid)?DN.pm:'',doneAt:t0});
+    DN.lk.forEach(id=>bt.update(db.collection('copybills').doc(id),{status:'linked',obill:b,lkTrip:DN.id,lkUid:U.uid,lkAt:t0}));
+    if(wait)bt.set(cref,{uid:U.uid,driver:(D&&D.name)||ME.name||'',trip:DN.id,customer:s0.customer||'',company:s0.company||'',cbill:cb,veh:vh,status:'waiting',at:t0,_ts:t0});
+    else if(MCB.some(x=>x.id==DN.id&&x.status=='waiting'))bt.delete(cref);
+    await bt.commit();try{TRK.stop(DN.id)}catch(e){}$('#dlg').classList.add('hide');paint()}
   catch(e){E(e.code=='permission-denied'?'Not allowed. This trip may already be verified, or the office must update the Firestore rules.':'Could not save. Check your connection.');$('#d_s').disabled=false}
 }
 
@@ -481,7 +519,8 @@ document.addEventListener('click',e=>{
   else if(a=='day'){SEL=v;paint()}
   else if(a=='new')openForm();
   else if(a=='edit')openForm(id);
-  else if(a=='del'){if(confirm('Cancel this scheduled trip?'))db.collection('schedule').doc(id).delete().catch(()=>alert('Could not cancel. The trip may already be started or completed.'))}
+  else if(a=='del'){const s0=SCHA.find(x=>x.id==id)||{};if(confirm(s0.status=='started'?'This trip is running. Cancel it and stop the driver\'s live tracking?':'Cancel this scheduled trip?'))cancelSched(id,s0)}
+  else if(a=='lkcb'){const i=DN.lk.indexOf(id);if(i>=0)DN.lk.splice(i,1);else DN.lk.push(id);drawSug()}
   else if(a=='cat'){FC=v;document.querySelectorAll('#f_cat button').forEach(x=>x.classList.toggle('on',x.dataset.v==v));$('#f_cow').classList.toggle('hide',v!='Company')}
   else if(a=='cpy'){DN.copy=v=='1';drawCopy()}
   else if(a=='ty'){FT=v;document.querySelectorAll('#f_ty button').forEach(x=>x.classList.toggle('on',x.dataset.v==v))}
@@ -507,7 +546,7 @@ async function login(){
   if(!u||!p){$('#e').textContent='Enter your username and password.';return}
   $('#go').disabled=true;$('#go').textContent='Signing in…';
   try{await auth.signInWithEmailAndPassword(u+'@'+DOMAIN,p);$('#p').value=''}
-  catch(e){const c=e.code||'';$('#e').textContent=/network/.test(c)?'No internet connection.':/too-many/.test(c)?'Too many attempts. Try again later.':'Wrong username or password.'}
+  catch(e){const c=e.code||'';$('#e').textContent=/network/.test(c)?'No internet connection.':/too-many/.test(c)?'Too many attempts. Try again later.':'Wrong username or password.'+(c?' ['+c.replace('auth/','')+']':'')}
   $('#go').disabled=false;$('#go').textContent='Sign in';
 }
 $('#go').onclick=login;$('#p').onkeydown=e=>{if(e.key=='Enter')login()};
@@ -517,4 +556,67 @@ const standalone=matchMedia('(display-mode: standalone)').matches||navigator.sta
 function inst(html,cb){['#inst','#inst2'].forEach(s=>{const b=$(s);b.classList.remove('hide');b.innerHTML=html});if(cb)cb()}
 window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();dip=e;if(!standalone)inst('<b>Install this app</b><div class="sub">Add it to your home screen for quick access.</div><button class="btn" data-i style="margin-top:12px">Install</button>',()=>document.querySelectorAll('[data-i]').forEach(b=>b.onclick=async()=>{dip.prompt();await dip.userChoice;dip=null;['#inst','#inst2'].forEach(s=>$(s).classList.add('hide'))}))});
 if(!standalone&&/iphone|ipad|ipod/i.test(navigator.userAgent))inst('<b>Install on iPhone</b><div class="sub">Tap the Share button in Safari, then “Add to Home Screen”.</div>');
+
+/* ---------- trip tracking: APK = background service, browser = while the page is open ---------- */
+const TRK=(function(){
+  const cap=window.Capacitor;let native=!!(cap&&cap.isNativePlatform&&cap.isNativePlatform()),BG=null;try{BG=native?cap.registerPlugin('BackgroundGeolocation'):null}catch(e){BG=null}const KEY='trk_state_v1';
+  let S=null,wid=null,wpid=null,lastLive=0,el=null,perm='',lerr='',gerr='',weak=false,beginning=false,askP=Promise.resolve();
+  const keep=()=>{try{if(S)localStorage.setItem(KEY,JSON.stringify(S));else localStorage.removeItem(KEY)}catch(e){}};
+  const load=()=>{try{return JSON.parse(localStorage.getItem(KEY))}catch(e){return null}};
+  const hav=(a,b,c,d)=>{const t=x=>x*Math.PI/180,q=Math.sin(t(c-a)/2)**2+Math.cos(t(a))*Math.cos(t(c))*Math.sin(t(d-b)/2)**2;return 12742*Math.asin(Math.sqrt(q))};
+  const who=()=>(typeof D!=='undefined'&&D&&D.name)||(typeof ME!=='undefined'&&ME&&ME.name)||'';
+  function pill(){
+    if(!el){el=document.createElement('div');el.style.cssText='position:fixed;left:50%;transform:translateX(-50%);bottom:84px;z-index:60;color:#fff;font:600 12px system-ui,sans-serif;padding:8px 14px;border-radius:20px;box-shadow:0 2px 10px rgba(0,0,0,.3)';el.onclick=()=>{if(perm=='denied'){if(BG){BG.openSettings();return}else alert('Location is blocked for this app.\n\nOpen the phone Settings > Apps > this app > Permissions > Location > Allow, then come back and tap this bar again.');perm='';end().then(()=>begin())}else if(gerr||(S&&!S.last)){gerr='';end().then(()=>begin())}};document.body.appendChild(el)}
+    if(!S){el.style.display='none';return}
+    el.style.display='block';el.style.background=(perm=='denied'||lerr||gerr)?'#b91c1c':'#0f172a';
+    el.textContent=perm=='denied'?'Location is off. Tap here to fix':lerr?'Location not sent ('+lerr+'). Tell the office.':gerr?gerr+'. Tap to retry':'Tracking trip \u00b7 '+(S.last?S.km.toFixed(1)+' km':'waiting for GPS')+(weak?' \u00b7 weak GPS':'')+(BG?'':' \u00b7 keep the app open')}
+  function chunk(f){return {trip:f.trip,uid:f.uid,driver:f.driver,veh:f.veh,seq:f.seq,km:Math.round(f.km*100)/100,pts:f.pts.map(p=>p.join(',')),at:Date.now()}}
+  async function flush(){
+    if(!S||!S.pts.length||S.busy)return;S.busy=1;const f=S,n=f.pts.length,doc=chunk(f);doc.pts=doc.pts.slice(0,n);
+    try{await db.collection('tracks').doc(f.trip+'_'+String(f.seq).padStart(3,'0')).set(doc);f.pts.splice(0,n);f.seq++;f.lastSent=Date.now();keep()}catch(e){}
+    f.busy=0}
+  function live(l,t,force){
+    const now=Date.now();if(!S||(!force&&now-lastLive<30000)||navigator.onLine===false)return;lastLive=now;
+    db.collection('live').doc(S.uid).set({uid:S.uid,driver:S.driver,trip:S.trip,veh:S.veh,lat:l.latitude,lng:l.longitude,spd:Math.round((l.speed||0)*3.6),acc:Math.round(l.accuracy||0),t,km:Math.round(S.km*100)/100,since:S.start,on:true}).then(()=>{if(lerr){lerr='';pill()}}).catch(e=>{lerr=(e&&e.code)||'error';pill()})}
+  function onPoint(l){
+    if(!S||!l||typeof l.latitude!=='number')return;perm='';const acc=l.accuracy||999,t=l.time||Date.now();if(acc>80){weak=true;live(l,t);pill();return}weak=false;const L=S.last;
+    if(L){const d=hav(L.lat,L.lng,l.latitude,l.longitude)*1000,dt=Math.max(1,(t-L.t)/1000);if(d<40&&dt<90){live(l,t);pill();return}if(d/dt>70)return;S.km+=d/1000}
+    S.last={lat:l.latitude,lng:l.longitude,t};S.pts.push([t,+l.latitude.toFixed(5),+l.longitude.toFixed(5),Math.round((l.speed||0)*3.6),Math.round(acc)]);keep();pill();live(l,t);
+    if(S.pts.length>=100||Date.now()-S.lastSent>600000)flush()}
+  function webWatch(){
+    if(!navigator.geolocation){gerr='GPS is not available in this app';pill();return}
+    wpid=navigator.geolocation.watchPosition(p=>{gerr='';onPoint({latitude:p.coords.latitude,longitude:p.coords.longitude,accuracy:p.coords.accuracy,speed:p.coords.speed,time:p.timestamp})},e=>{if(e.code==1){perm='denied';gerr=''}else gerr=e.code==2?'No GPS signal':'GPS is slow, go outside';pill()},{enableHighAccuracy:true,maximumAge:5000,timeout:60000})}
+  async function begin(){
+    if(wid!==null||wpid!==null||beginning)return;beginning=true;
+    try{
+      await askP;
+      if(BG){
+        try{wid=await BG.addWatcher({backgroundTitle:'Saif Navas Transport',backgroundMessage:'Trip in progress. Your location is being recorded.',requestPermissions:true,stale:false,distanceFilter:25},(l,err)=>{
+          if(err){if(err.code==='NOT_AUTHORIZED'){perm='denied';pill();if(confirm('Location permission is needed to record this trip. Open settings and choose "Allow all the time"?'))BG.openSettings()}return}onPoint(l)})}
+        catch(e){wid=null;
+          if(e&&e.code==='NOT_AUTHORIZED'){perm='denied';gerr=/disabled/i.test(e.message||'')?'Phone location (GPS) is turned off':'';pill();if(!gerr&&confirm('Location permission is needed to record this trip. Open settings and choose "Allow all the time"?'))BG.openSettings()}
+          else{BG=null;gerr='';webWatch()}}   /* background plugin missing in this APK: use the normal GPS instead */
+      }else webWatch()
+    }catch(e){gerr='Tracking could not start'}
+    beginning=false;pill()}
+  function notif(){try{if(native){const LN=cap.registerPlugin('LocalNotifications');return Promise.resolve(LN.requestPermissions()).catch(()=>{})}if(window.Notification&&Notification.permission==='default')Notification.requestPermission()}catch(e){}return Promise.resolve()}
+  function ask(){try{if(native)askP=notif();else if(navigator.geolocation)navigator.geolocation.getCurrentPosition(notif,notif,{enableHighAccuracy:true,timeout:20000});else notif()}catch(e){}}
+  async function end(){const a=wid,b=wpid;wid=null;wpid=null;try{if(a!==null&&BG)await BG.removeWatcher({id:a})}catch(e){}if(b!==null&&navigator.geolocation)navigator.geolocation.clearWatch(b)}
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden&&S&&wid===null&&wpid===null){perm='';gerr='';begin()}});
+  function fresh(trip,veh){return{trip,veh:veh||'',uid:U.uid,driver:who(),seq:0,km:0,last:null,pts:[],start:Date.now(),lastSent:Date.now()}}
+  return{
+    ask,
+    start(trip,veh){if(!U)return;if(S&&S.trip==trip)return;S=fresh(trip,veh);keep();pill();begin()},
+    /* called whenever the driver's trips load: resumes after an app restart, stops if the trip is no longer running */
+    cancelled(trip){if(!S||S.trip!=trip)return;const f=S;S=null;end();keep();pill();try{const r=db.collection('live').doc(f.uid);r.delete().catch(()=>r.set({on:false,t:Date.now(),trip:f.trip},{merge:true}).catch(()=>{}))}catch(e){}},
+    sync(server){if(!U)return;const run=SCHD.filter(s=>s.status=='started');
+      if(S){const mine=SCHD.find(s=>s.id==S.trip);if(mine&&mine.status!='started'){this.stop(S.trip);return}if(!mine){if(server)this.cancelled(S.trip);return}if(wid===null&&wpid===null)begin();return}
+      if(!run.length){const sv=load();if(sv&&sv.uid==U.uid&&sv.trip&&server){S=sv;this.cancelled(sv.trip)}return}const t=run.sort((a,b)=>(b.startAt||0)-(a.startAt||0))[0],sv=load();
+      S=(sv&&sv.trip==t.id&&sv.uid==U.uid)?sv:fresh(t.id,t.veh);S.busy=0;keep();pill();begin()},
+    stop(trip){if(!S||S.trip!=trip)return;const f=S;S=null;end();keep();pill();
+      try{if(f.pts.length)db.collection('tracks').doc(f.trip+'_'+String(f.seq).padStart(3,'0')).set(chunk(f));
+        db.collection('tracks').doc(f.trip+'_sum').set({trip:f.trip,uid:f.uid,driver:f.driver,veh:f.veh,km:Math.round(f.km*100)/100,start:f.start,end:Date.now(),sum:true});
+        db.collection('live').doc(f.uid).set({on:false,t:Date.now(),trip:f.trip},{merge:true})}catch(e){}},
+    halt(){if(!S)return;end();S=null;pill()}}
+})();
 </script></body></html>
