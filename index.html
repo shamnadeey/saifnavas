@@ -383,6 +383,52 @@ body:has(#login:not(.hide)) #sbar{display:none!important}
 .um.open{animation:pop .3s var(--spring)}
 .cmdb{animation:pop .32s var(--spring)}
 .toast{transition:opacity .3s,transform .45s var(--spring)}
+
+/* ---- Assistant ---- */
+.ai-fab{position:fixed;right:22px;bottom:50px;z-index:455;display:flex;align-items:center;gap:8px;height:46px;padding:0 18px 0 14px;border:0;border-radius:99px;background:linear-gradient(135deg,var(--brand),#ff8a4c);color:#fff;font-weight:650;font-size:13.5px;cursor:pointer;box-shadow:0 12px 30px -8px rgba(238,108,28,.65),0 2px 6px rgba(15,27,61,.2);transition:transform .35s var(--spring),box-shadow .2s,opacity .25s}
+.ai-fab:hover{transform:translateY(-2px) scale(1.03)}.ai-fab:active{transform:scale(.96)}
+.ai-fab svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ai-fab.on{opacity:0;pointer-events:none;transform:scale(.8)}
+.ai-panel{position:fixed;top:0;right:0;bottom:0;width:min(440px,100vw);z-index:460;display:flex;flex-direction:column;background:#f6f8fc;box-shadow:-24px 0 60px -24px rgba(15,27,61,.45);border-left:1px solid var(--line);transform:translateX(104%);transition:transform .5s var(--spring);visibility:hidden}
+.ai-panel.open{transform:none;visibility:visible}
+.ai-hd{display:flex;align-items:center;gap:10px;padding:14px 14px 12px 16px;background:linear-gradient(135deg,#14224d,#0b1430);color:#fff}
+.ai-av{width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:linear-gradient(135deg,var(--brand),#ff8a4c);flex:none}
+.ai-av svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ai-ht{flex:1;min-width:0;line-height:1.25}.ai-ht b{font-size:15px;display:block}.ai-ht small{font-size:11.5px;color:#9fb0dd}
+.ai-ib{width:34px;height:34px;border-radius:9px;border:0;background:transparent;color:#c4cfee;display:grid;place-items:center;cursor:pointer;flex:none;transition:background .15s,color .15s}
+.ai-ib:hover{background:#ffffff1a;color:#fff}.ai-ib svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.ai-ib.on{background:var(--brand);color:#fff}
+.ai-ms{flex:1;overflow-y:auto;padding:16px 14px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+.ai-m{flex:none;max-width:94%;font-size:13.5px;line-height:1.5;animation:aiIn .38s var(--spring) both}
+.ai-m.me{align-self:flex-end;background:var(--navy);color:#fff;padding:9px 14px;border-radius:16px 16px 4px 16px;max-width:85%}
+.ai-m.bot{min-width:0;overflow:hidden;align-self:flex-start;background:#fff;border:1px solid var(--line);padding:12px 14px;border-radius:4px 16px 16px 16px;box-shadow:var(--sh1);color:var(--ink)}
+.ai-m.bot p{margin:0 0 8px}.ai-m.bot p:last-child{margin-bottom:0}
+.ai-m .ai-note{font-size:11.5px;color:var(--mut)}
+.ai-ul,.ai-ol{margin:4px 0 8px 18px;padding:0}.ai-ul li,.ai-ol li{margin:3px 0}
+.ai-kv{width:100%;border-collapse:collapse;margin:4px 0 8px}.ai-kv td{padding:5px 0;border-bottom:1px solid #eef1f7;vertical-align:top;font-size:13px}
+.ai-kv{table-layout:fixed}.ai-kv td:first-child{color:var(--mut);padding-right:12px;width:44%}.ai-kv td:last-child{text-align:right;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.ai-kv tr:last-child td{border:0}
+.ai-tw{overflow-x:auto;margin:6px -4px 6px;border:1px solid var(--line);border-radius:10px}
+.ai-tw table{font-size:12px;min-width:100%}.ai-tw th{padding:7px 9px;font-size:10.5px;position:static}.ai-tw td{padding:6px 9px;white-space:nowrap}
+.ai-ch{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.ai-chip{border:1px solid var(--line2);background:#fff;color:var(--tx2);border-radius:99px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer;transition:background .15s,border-color .15s,transform .25s var(--spring)}
+.ai-chip:hover{background:var(--soft);border-color:#b3bed4}.ai-chip:active{transform:scale(.95)}
+.ai-chip.ok{background:var(--navy);border-color:var(--navy);color:#fff}.ai-chip.ok:hover{background:#1b2c5e}
+.ai-chip[disabled]{opacity:.45;pointer-events:none}
+.ai-m.typing{display:flex;gap:4px;padding:13px 16px}.ai-m.typing i{width:7px;height:7px;border-radius:50%;background:#aab4cf;animation:aiDot 1s infinite}.ai-m.typing i:nth-child(2){animation-delay:.15s}.ai-m.typing i:nth-child(3){animation-delay:.3s}
+.ai-ft{padding:10px 12px 14px;background:#fff;border-top:1px solid var(--line)}
+.ai-in{display:flex;align-items:flex-end;gap:6px;background:#f3f5fa;border:1px solid var(--line2);border-radius:14px;padding:5px 5px 5px 12px;transition:border-color .15s,box-shadow .15s}
+.ai-in:focus-within{border-color:var(--acc);box-shadow:0 0 0 3px #2f5bd824;background:#fff}
+#aiq{border:0;background:transparent;box-shadow:none!important;resize:none;padding:8px 0;font-size:14px;max-height:120px;text-transform:none;border-radius:0;outline:none}
+.ai-in .ai-ib{color:var(--mut)}.ai-in .ai-ib:hover{background:#e6eaf4;color:var(--ink)}.ai-in .ai-ib.on{background:var(--bad);color:#fff}
+.ai-send{width:36px;height:36px;border-radius:10px;border:0;background:var(--navy);color:#fff;display:grid;place-items:center;cursor:pointer;flex:none;transition:background .15s,transform .25s var(--spring)}
+.ai-send:hover{background:#1b2c5e}.ai-send:active{transform:scale(.92)}.ai-send svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+@keyframes aiIn{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes aiDot{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
+@media (max-width:900px){.ai-fab{bottom:calc(20px + env(safe-area-inset-bottom));right:16px;padding:0 14px}.ai-fab span{display:none}.ai-fab{width:50px;height:50px;padding:0;justify-content:center}.ai-panel{width:100vw}}
+@media print{.ai-fab,.ai-panel{display:none!important}}
+body.tsfull .ai-fab{top:10px;bottom:auto;right:172px;height:38px;padding:0 14px 0 10px;font-size:12.5px}
+body.tsfull .ai-fab svg{width:17px;height:17px}
 </style>
 </head><body>
 <div class="aurora"><i></i><i></i><i></i><i></i></div><div class="grid"></div>
@@ -2357,7 +2403,7 @@ const _et=window.editTrip;window.editTrip=function(b){const t=T.find(x=>x.bill==
 const _se=window.saveEdit;window.saveEdit=function(b){const t=T.find(x=>x.bill==b);if(role=='acc'&&t&&(isLocked(t.date)||isLocked(g('m_date'))))return alert('Closed month — this bill cannot be changed.');return _se.apply(this,arguments)};})();
 
 /* auto capitals, full-screen trip sheet fit */
-document.addEventListener('input',e=>{const el=e.target;if(!el||!(el.tagName=='INPUT'||el.tagName=='TEXTAREA'))return;const ty=(el.type||'text').toLowerCase();if(el.tagName=='INPUT'&&['text','search','tel'].indexOf(ty)<0)return;if(/mail|pass|pwd|otp|token/i.test((el.id||'')+(el.name||'')+(el.autocomplete||'')))return;const v=el.value,u=v.toUpperCase();if(v!==u){const a=el.selectionStart,b=el.selectionEnd;el.value=u;try{el.setSelectionRange(a,b)}catch(_){}}},true);
+document.addEventListener('input',e=>{const el=e.target;if(!el||!(el.tagName=='INPUT'||el.tagName=='TEXTAREA'))return;const ty=(el.type||'text').toLowerCase();if(el.dataset&&el.dataset.keepCase)return;if(el.tagName=='INPUT'&&['text','search','tel'].indexOf(ty)<0)return;if(/mail|pass|pwd|otp|token/i.test((el.id||'')+(el.name||'')+(el.autocomplete||'')))return;const v=el.value,u=v.toUpperCase();if(v!==u){const a=el.selectionStart,b=el.selectionEnd;el.value=u;try{el.setSelectionRange(a,b)}catch(_){}}},true);
 window.tsExit=function(){document.body.classList.remove('tsfull');const i=NAV[role].findIndex(n=>n!='Trip Sheet');go(Math.max(i,0))};
 (function(){const bt=document.createElement('button');bt.id='tsx';bt.className='btn g';bt.textContent='✕ Exit trip sheet';bt.onclick=tsExit;document.body.appendChild(bt);
 const fit=(el,av)=>{let z=1;for(let i=0;i<5;i++){el.style.zoom=z;const h=el.getBoundingClientRect().height;if(h<=av+1)break;z=Math.max(.4,z*av/h*.99)}};
@@ -3893,4 +3939,393 @@ window.stmFd=function(id){const e=BL.find(x=>x.id==id&&x.scr);if(!e)return;const
 
 </script>
 
+<script id="ai-assist">
+/* ==========================================================================
+   SN ASSISTANT - offline assistant for this app. No internet, no outside AI service.
+   - Understands plain English (rules + fuzzy name matching), answers from the data already loaded in the app.
+   - Respects the signed-in role: it only talks about areas that role can open.
+   - Every change is shown first, needs a click on Confirm, then runs through the app's own admin check
+     (password re-entry) and is written to the Audit log as "Assistant action".
+   ========================================================================== */
+(function(){
+'use strict';
+if(window.__AI)return;
+const $=s=>document.querySelector(s);
+const E=s=>String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+const money=n=>'AED '+fmt(n),r2=n=>Math.round((+n||0)*100)/100;
+const dmy=s=>{const p=String(s||'').slice(0,10).split('-');return p.length==3?p[2]+'/'+p[1]+'/'+p[0]:''};
+const N=s=>String(s||'').toLowerCase().replace(/&/g,' and ').replace(/[^a-z0-9#.\s'-]/g,' ').replace(/\s+/g,' ').trim();
+const has=n=>{try{return NAV[role].includes(n)}catch(e){return false}};
+const isAdmin=()=>role=='corp';
+const who=()=>{try{return USERN?USERN.split(' ')[0]:''}catch(e){return ''}};
+
+/* ---------- dates ---------- */
+const pd=s=>{const p=s.split('-').map(Number);return new Date(Date.UTC(p[0],p[1]-1,p[2]))},fd=d=>d.toISOString().slice(0,10);
+const addD=(s,n)=>fd(new Date(pd(s).getTime()+n*864e5));
+const mr=(y,m)=>({from:y+'-'+String(m).padStart(2,'0')+'-01',to:fd(new Date(Date.UTC(y,m,0)))});
+const MNs=['january','february','march','april','may','june','july','august','september','october','november','december'],MSh=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+function period(q){
+ const t=today(),y=+t.slice(0,4),m=+t.slice(5,7),dow=(pd(t).getUTCDay()+6)%7;let x;
+ if(/\btoday\b/.test(q))return{from:t,to:t,label:'today'};
+ if(/\byesterday\b/.test(q)){const d=addD(t,-1);return{from:d,to:d,label:'yesterday'}}
+ if(/\bthis week\b/.test(q))return{from:addD(t,-dow),to:t,label:'this week'};
+ if(/\blast week\b/.test(q)){const e=addD(t,-dow-1);return{from:addD(e,-6),to:e,label:'last week'}}
+ if(/\b(this|current) month\b/.test(q))return Object.assign(mr(y,m),{label:'this month ('+cap(MNs[m-1])+' '+y+')'});
+ if(/\b(last|previous) month\b/.test(q)){const mm=m==1?12:m-1,yy=m==1?y-1:y;return Object.assign(mr(yy,mm),{label:'last month ('+cap(MNs[mm-1])+' '+yy+')'})}
+ if(/\b(this|current) year\b|\bytd\b/.test(q))return{from:y+'-01-01',to:y+'-12-31',label:'this year ('+y+')'};
+ if(/\blast year\b/.test(q))return{from:(y-1)+'-01-01',to:(y-1)+'-12-31',label:'last year ('+(y-1)+')'};
+ if(x=q.match(/\b(?:last|past)\s+(\d{1,3})\s+days?\b/))return{from:addD(t,-(+x[1]-1)),to:t,label:'the last '+x[1]+' days'};
+ for(let i=0;i<12;i++){const mm=q.match(new RegExp('\\b('+MNs[i]+'|'+MSh[i]+(i==8?'|sept':'')+')\\b(?:\\s+(20\\d\\d))?'));
+  if(mm){if(i==4&&mm[1]=='may'&&!mm[2]&&!/\b(in|for|of|during|month)\s+may\b/.test(q))continue;const yy=+(mm[2]||y);return Object.assign(mr(yy,i+1),{label:cap(MNs[i])+' '+yy})}}
+ if(x=q.match(/\b(20\d\d)\b/))return{from:x[1]+'-01-01',to:x[1]+'-12-31',label:x[1]};
+ return null}
+
+/* ---------- fuzzy name matching ---------- */
+function lev(a,b){const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=[...Array(n+1).keys()];for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]==b[j-1]?0:1));p=c}return p[n]}
+const STOP=new Set('a an the of for in on at to by with and or is are was were be me my our us we you your it its this that these those show list give tell get find fetch display what whats which who whom how much many total sum count number any all please can could would should do does did have has had there their from about into out up down than then so as if not no yes ok trip trips bill bills invoice invoices amount amounts details detail info information status paid unpaid outstanding pending due dues owed owe revenue profit expense expenses income cost today yesterday week month year last next current past recent latest first top best most highest lowest biggest ranking rank cash bank balance salary salaries payroll driver drivers company companies customer customers vehicle vehicles truck trucks leave documents document expiring expire expired between during per each every also just only open go take switch navigate add create new set change update rename delete remove make edit named called earn earned phone mobile basic allowance minimum min i im ive what\'s'.split(' '));
+const GEN=new Set(['llc','l.l.c','co','est','fze','fzco','ltd','and','the','of','general','services','group','company','corporation','fzc','establishment','l.l.c.']);
+const tokMatch=(a,b)=>{if(a==b)return 1;if(a.length>=4&&b.length>=4&&(a.startsWith(b)||b.startsWith(a)))return .9;if(a.length>=5&&b.length>=5&&lev(a,b)<=(Math.max(a.length,b.length)>=8?2:1))return .8;return 0};
+function nameHits(toks,list){let bs=0,out=[];for(const nm of list){const sig=N(nm).split(' ').filter(w=>w&&w.length>1&&!GEN.has(w));if(!sig.length)continue;let hit=0,hn=0;for(const w of sig){let m=0;for(const a of toks)m=Math.max(m,tokMatch(a,w));if(m>0){hit+=m;hn++}}
+  if(!hn)continue;const sc=hit/sig.length;if(sc<.5)continue;if(sc>bs+1e-9){bs=sc;out=[nm]}else if(Math.abs(sc-bs)<1e-9)out.push(nm)}return{list:out,score:bs}}
+function plateOf(q){const c=q.replace(/\s/g,'');let best=null;for(const v of VE){const n=N(v).replace(/\s/g,'');if(n.length>=4&&c.includes(n)){best=v;break}const dg=(String(v).match(/\d{3,}/g)||[]).pop();if(dg&&dg.length>=3&&new RegExp('(^|\\D)'+dg+'(\\D|$)').test(q))best=best||v}return best}
+
+/* ---------- entity extraction ---------- */
+function ent(raw){
+ let q=N(raw);const e={raw,q};
+ let m=q.match(/(?:bill|invoice|inv)\s*(?:no|number|num)?\.?\s*#?\s*(\d{3,7})|#\s*(\d{3,7})/);
+ if(m){e.bill=m[1]||m[2];q=q.replace(m[0],' ')}
+ e.q2=q;e.per=period(q);
+ const toks=q.split(' ').filter(w=>w&&!STOP.has(w)&&!/^\d+$/.test(w)&&!MNs.includes(w)&&!MSh.includes(w));
+ const d=nameHits(toks,DR),c=nameHits(toks,CO);
+ if(d.list.length&&d.score>=c.score||(d.list.length&&!c.list.length)){if(d.list.length==1)e.driver=d.list[0];else e.amb={kind:'driver',list:d.list}}
+ if(c.list.length&&(c.score>=d.score||!d.list.length)){if(c.list.length==1)e.company=c.list[0];else e.amb=e.amb||{kind:'company',list:c.list}}
+ e.veh=plateOf(q);
+ if(/\b(unpaid|outstanding|not paid|pending payment|due|dues|owed|owe|owes|credit|receivable)\b/.test(q))e.status='unpaid';else if(/\bpaid\b/.test(q))e.status='paid';
+ if(/\bcash\b/.test(q))e.mode='cash';else if(/\b(bank|online|transfer|cheque|check)\b/.test(q))e.mode='bank';
+ m=q.match(/\b(?:top|best|first)\s+(\d{1,2})\b/);if(m)e.n=+m[1];
+ return e}
+const perTxt=p=>['today','yesterday','this week','last week'].includes(p.label)?p.label:'in '+p.label,pf=p=>'for '+p.label;
+const descE=e=>{const a=[];if(e.company)a.push('for '+E(e.company));if(e.driver)a.push('by '+E(e.driver));if(e.veh)a.push('on '+E(e.veh));if(e.per)a.push(perTxt(e.per));if(e.status)a.push(e.status);if(e.mode)a.push(e.mode+' payments');return a.join(' · ')};
+
+/* ---------- data helpers ---------- */
+const DOCT=[['visa','Visa'],['eid','Emirates ID'],['pass','Passport'],['lic','Driving licence'],['ins','Medical insurance'],['lab','Labour card']],DOC=d=>(DI[d]||{}).docs||{},daysTo=x=>x?Math.round((Date.parse(x)-Date.parse(today()))/864e5):null;
+const stat=t=>{const o=amt(t)-(+t.rp||0);if(t.cp=='c')return'Copy bill';if(t.paid||o<=0.004)return(t.pm=='Cash'&&t.cs=='Pending')?'Paid · cash with driver':'Paid';return(+t.rp>0)?'Part paid':'Unpaid'};
+const outOf=t=>t.paid?0:Math.max(0,amt(t)-(+t.rp||0));
+function fT(e){let a=T.slice();
+ if(e.per)a=a.filter(t=>t.date>=e.per.from&&t.date<=e.per.to);
+ if(e.company)a=a.filter(t=>t.company==e.company);if(e.driver)a=a.filter(t=>t.driver==e.driver);if(e.veh)a=a.filter(t=>t.vehicle==e.veh);
+ if(e.status=='unpaid')a=a.filter(t=>outOf(t)>0.004);else if(e.status=='paid')a=a.filter(t=>t.paid&&t.cp!='c');
+ if(e.mode)a=a.filter(t=>String(t.pm||'').toLowerCase().includes(e.mode));
+ return a.sort((x,y)=>x.date<y.date?1:x.date>y.date?-1:(+y.bill)-(+x.bill))}
+const canTrips=()=>has('Filter Bills')||has('Trip Sheet')||has('Statements')||has('Collections')||has('Dashboard');
+const canMoney=()=>has('Dashboard')||has('Statements');
+const canOwed=()=>has('Collections')||canMoney();
+const roleName=()=>({corp:'Admin',acc:'Accountant'}[role]||'your');
+const deny=(what)=>R(B.p('I can\'t show '+what+' — that area isn\'t open to your <b>'+roleName()+'</b> login.'));
+
+/* ---------- reply builders ---------- */
+const B={
+ p:t=>'<p>'+t+'</p>',
+ kv:rows=>'<table class="ai-kv">'+rows.filter(Boolean).map(r=>'<tr><td>'+r[0]+'</td><td>'+r[1]+'</td></tr>').join('')+'</table>',
+ tb:(cols,rows,right)=>'<div class="ai-tw"><table><thead><tr>'+cols.map((c,i)=>'<th'+(right&&right.includes(i)?' class="num"':'')+'>'+E(c)+'</th>').join('')+'</tr></thead><tbody>'+rows.map(r=>'<tr>'+r.map((c,i)=>'<td'+(right&&right.includes(i)?' class="num"':'')+'>'+c+'</td>').join('')+'</tr>').join('')+'</tbody></table></div>',
+ note:t=>'<p class="ai-note">'+t+'</p>'};
+const R=(html,chips,opt)=>Object.assign({html,chips:chips||[]},opt||{});
+const colr=n=>'<b style="color:var(--'+(n<0?'bad':'ok')+')">'+money(n)+'</b>';
+
+/* ---------- navigation ---------- */
+const TABS=[['Dashboard',['dashboard','home','overview']],['Trip Sheet',['trip sheet','tripsheet','new trip','trip entry','trip form']],['Scheduled Trips',['scheduled trips','scheduled','schedule']],['Drivers',['drivers','driver details','driver list']],['Outside Drivers',['outside drivers','outsiders','outside driver']],['Companies & Drivers',['companies and drivers']],['Live Map',['live map','map','tracking']],['Location Monitoring',['location monitoring','locations']],['Invoice',['invoice','invoices','invoicing']],['Filter Bills',['filter bills','bills','bill search']],['Statements',['statements','statement','reports','profit and loss']],['Collections',['collections','collection','receivables']],['Letterpad',['letterpad']],['Letterhead',['letterhead']],['Company Documents',['company documents']],['Drive',['drive','google drive','files']],['Cash Ledger',['cash ledger','cash book','cash']],['Bank',['bank','bank ledger']],['Expenses',['expenses','expense']],['EMI',['emi','loans','installments']],['Adnoc',['adnoc','fuel card','fuel wallet']],['Salik',['salik','toll','tolls']],['Salary',['salary','payroll','salaries']],['Deductions',['deductions','fines']],['Partners Share',['partners share','partner share','partners']],['Error Corrections',['error corrections','corrections','errors','flags']],['Reversals',['reversals']],['Deleted Items',['deleted items','trash','recycle bin']],['Masters',['masters','master data','settings']],['Team Access',['team access','team','users']],['Audit Log',['audit log','audit','activity log']],['Approvals',['approvals','approval']],['Daily Summary',['daily summary']],['Owner Console',['owner console','owner']]];
+function tabFor(q){let best=null,bl=0;for(const[n,al]of TABS)for(const a of al)if(new RegExp('\\b'+a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b').test(q)&&a.length>bl){best=n;bl=a.length}return best}
+function openTab(name,search){const L=NAV[role],i=L.indexOf(name);if(i<0)return false;const a=document.querySelectorAll('.nav a')[i];if(a)a.click();else go(i);
+ if(search)setTimeout(()=>{const inp=[...document.querySelectorAll('#view input')].find(x=>/search|bill|name|driver/i.test(x.placeholder||'')&&x.type!='date');if(inp){inp.value=search;['input','change','keyup'].forEach(ev=>inp.dispatchEvent(new Event(ev,{bubbles:true})))}},550);return true}
+const openChip=(tab,search)=>has(tab)?{t:'Open '+tab,f:()=>openTab(tab,search)}:null;
+
+/* ---------- skills ---------- */
+const SK={};
+SK.bill=e=>{
+ if(!canTrips())return deny('bill details');
+ const t=T.find(x=>String(x.bill)==e.bill);if(!t)return R(B.p('I couldn\'t find bill <b>'+E(e.bill)+'</b>. Check the number and try again.'));
+ const o=outOf(t),rows=[['Bill','<b>'+E(t.bill)+'</b>'+(t.cp=='c'?' (copy bill)':'')],['Date',dmy(t.date)+(t.tm?' · '+E(t.tm):'')],['Company',E(t.company)],t.customer&&t.customer!='-'?['Customer',E(t.customer)]:null,['Driver',E(t.driver)],['Vehicle',E(t.vehicle)+(t.vname?' · '+E(t.vname):'')],['Route',E(t.from)+' → '+E(t.to)+(t.type?' <small>('+E(t.type)+')</small>':'')],
+  ['Charge',money(t.charge)],+t.parking?['Parking',money(t.parking)]:null,+t.salik?['Salik',money(t.salik)]:null,['Total billed','<b>'+money(amt(t))+'</b>'],['Status','<b>'+stat(t)+'</b>'+(t.pm?' · '+E(t.pm):'')],+t.rp?['Received',money(t.rp)]:null,o>0.004?['Outstanding','<b style="color:var(--bad)">'+money(o)+'</b>']:null];
+ if(canMoney())rows.push(['Our expenses',money(exp(t))],['Margin',colr(amt(t)-exp(t))]);
+ return R(B.kv(rows),[openChip('Filter Bills',String(t.bill)),openChip('Collections',t.company)].filter(Boolean))};
+
+SK.trips=e=>{
+ if(!canTrips())return deny('trip records');
+ const a=fT(e),s=stats(a);if(!a.length)return R(B.p(e.status=='unpaid'?'Nothing is outstanding '+descE(Object.assign({},e,{status:null}))+' — everything is paid. ✅':'No trips found '+(descE(e)||'')+'.'));
+ const shown=a.slice(0,10),adm=canMoney();
+ let h=B.p('<b>'+a.length+'</b> trip'+(a.length==1?'':'s')+' '+descE(e)+'.')+B.kv([['Billed',money(s.rev)],['Outstanding',s.out>0.004?'<b style="color:var(--bad)">'+money(s.out)+'</b>':money(0)],adm?['Our expenses',money(s.ex)]:null,adm?['Profit (before salary)',colr(s.rev-s.ex)]:null]);
+ h+=B.tb(['Bill','Date','Company','Driver','Route','Amount','Status'],shown.map(t=>[E(t.bill),dmy(t.date),E(t.company),E(t.driver),E(t.from)+' → '+E(t.to),money(amt(t)),stat(t)]),[5]);
+ if(a.length>shown.length)h+=B.note('Showing the latest '+shown.length+' of '+a.length+'. Ask me to export them to a file to get the full list.');
+ return R(h,[{t:'Export all '+a.length+' as CSV',f:()=>exportCsv(a,'trips')},e.company?openChip('Collections',e.company):openChip('Filter Bills')].filter(Boolean))};
+
+SK.money=e=>{
+ const q=e.q,wantOut=/\b(outstanding|unpaid|owe|owes|owed|due|dues|receivable|pending payment)\b/.test(q),wantProfit=/\b(profit|margin|net)\b/.test(q),wantEx=/\b(expense|expenses|cost|costs|spent|spend|spending)\b/.test(q),wantRev=/\b(revenue|income|sales|billed|turnover|earned|earning|earnings|collection)\b/.test(q);
+ if(wantOut&&!wantProfit&&!wantEx&&!(wantRev&&/revenue|income|sales/.test(q))){
+  if(!canOwed())return deny('receivable figures');
+  const a=fT(Object.assign({},e,{status:'unpaid'}));const tot=a.reduce((s,t)=>s+outOf(t),0);
+  if(e.company||e.driver||e.veh)return R(B.p('<b>'+money(tot)+'</b> is outstanding '+descE(Object.assign({},e,{status:null}))+' across <b>'+a.length+'</b> unpaid bill'+(a.length==1?'':'s')+'.')+(a.length?B.tb(['Bill','Date','Driver','Amount','Status'],a.slice(0,8).map(t=>[E(t.bill),dmy(t.date),E(t.driver),money(outOf(t)),stat(t)]),[3]):''),[openChip('Collections',e.company||'')].filter(Boolean));
+  const by={};a.forEach(t=>{(by[t.company]=by[t.company]||{n:0,o:0});by[t.company].n++;by[t.company].o+=outOf(t)});
+  const rows=Object.entries(by).sort((x,y)=>y[1].o-x[1].o);
+  return R((rows.length&&/\b(most|highest|biggest|who|which)\b/.test(q)?B.p('<b>'+E(rows[0][0])+'</b> owes the most: <b>'+money(rows[0][1].o)+'</b> across '+rows[0][1].n+' unpaid bills.'):'')+B.p('Total outstanding '+(e.per?perTxt(e.per):'')+': <b style="color:var(--bad)">'+money(tot)+'</b> across <b>'+a.length+'</b> unpaid bills.')+(rows.length?B.tb(['Company','Unpaid bills','Outstanding'],rows.slice(0,10).map(([c,v])=>[E(c),v.n,money(v.o)]),[1,2]):''),[openChip('Collections')].filter(Boolean))}
+ if(!canMoney())return deny('revenue and profit figures');
+ const a=fT(e),s=stats(a),ms=[];
+ const exL=EXP.filter(x=>(!e.per||(x.date>=e.per.from&&x.date<=e.per.to))&&(!e.veh||x.veh==e.veh));
+ const exT=exL.reduce((z,x)=>z+(+x.amt||0),0);
+ const rows=[['Trips',a.length],['Revenue (billed)',money(s.rev)],['Trip expenses (fuel, batha, other)',money(s.ex)],['Profit before salary',colr(s.rev-s.ex)],['Outstanding',money(s.out)]];
+ if(wantEx&&!e.company&&!e.driver){const by={};exL.forEach(x=>by[x.cat||'Other']=(by[x.cat||'Other']||0)+(+x.amt||0));
+  const top=Object.entries(by).sort((x,y)=>y[1]-x[1]).slice(0,6);rows.push(['Logged expenses (Expenses tab)',money(exT)]);
+  return R(B.p('Here are the figures '+(e.per?pf(e.per):'for all time')+':')+B.kv(rows)+(top.length?B.tb(['Expense category','Amount'],top.map(([c,v])=>[E(c),money(v)]),[1]):''),[openChip('Expenses')].filter(Boolean))}
+ return R(B.p('Here are the figures '+(descE(e)||'for all time')+':')+B.kv(rows),[openChip('Statements'),openChip('Dashboard')].filter(Boolean))};
+
+SK.cash=e=>{
+ const q=e.q,rows=[];let any=false;
+ const sc=/\bcash\b|deposit/.test(q),sb=/\bbank\b/.test(q),sw=/adnoc|salik|wallet|toll|fuel/.test(q),all=!sc&&!sb&&!sw;
+ if((sc||all)&&(has('Cash Ledger')||has('Dashboard'))){rows.push(['Cash in hand',colr(bal(CL))]);rows.push(['Pending deposit (with drivers)',money(sum(T.filter(t=>t.pm=='Cash'&&t.cs=='Pending'),pendA))]);any=true}
+ if((sb||all)&&(has('Bank')||has('Dashboard'))){rows.push(['Available bank balance',colr(bal(BL))]);any=true}
+ if((sw||all)&&(has('Adnoc')||has('Salik')||has('Dashboard'))){const ad=/adnoc|fuel/.test(q),sl=/salik|toll/.test(q);if(ad||!sl)rows.push(['Adnoc wallet',colr(walBal('adnoc'))]);if(sl||!ad)rows.push(['Salik wallet',colr(walBal('salik'))]);any=true}
+ if(!any)return deny('those balances');
+ let h=B.p('Current balances:')+B.kv(rows);const ch=[];
+ if(/transaction|recent|last|latest|history|statement|movement/.test(q)){const L=/\bbank\b/.test(q)?BL:CL;if((L===BL?has('Bank'):has('Cash Ledger'))){const x=L.filter(z=>!z.pc).slice(-6).reverse();h+=B.tb(['Date','In / Out','Amount','Note'],x.map(z=>[dmy(z.date),z.k=='in'?'In':'Out',money(z.amt),E(z.note||z.ref||'')]),[2])}}
+ ch.push(openChip('Cash Ledger'),has('Bank')?openChip('Bank'):null);return R(h,ch.filter(Boolean))};
+
+SK.driver=e=>{
+ const d=e.driver;if(!d)return null;if(!(has('Drivers')||has('Trip Sheet')||has('Dashboard')))return deny('driver details');
+ const di=DI[d]||{},o=isOut(d),pt=isPt(d),t=today(),y=+t.slice(0,4),m=+t.slice(5,7),per=e.per||Object.assign(mr(y,m),{label:'this month'});
+ const a=T.filter(x=>x.driver==d&&x.date>=per.from&&x.date<=per.to),s=stats(a);
+ const rows=[['Driver','<b>'+E(d)+'</b>'],['Type',o?'Outside driver':pt?'Partner driver':'Company driver'],['Phone',E(di.phone||'—')]];
+ const lv=onLeave(d);rows.push(['Today',lv?'On leave ('+E(lv.type||'leave')+')':'Available']);
+ rows.push(['Trips '+per.label,'<b>'+a.length+'</b>'],['Billed '+per.label,money(s.rev)]);
+ if(s.out>0.004)rows.push(['Outstanding on these trips','<b style="color:var(--bad)">'+money(s.out)+'</b>']);
+ if(has('Salary')||canMoney()){if(!o){rows.push(['Basic · Allowance',money(di.basic||0)+' · '+money(di.allow||0)],['Minimum trips',E(minT(d))]);}
+  try{const mm=+per.from.slice(5,7),yy=+per.from.slice(0,4),sl=salary(d,mm,yy);rows.push(['Salary '+cap(MSh[mm-1])+' '+yy+' (net)','<b>'+money(sl.net)+'</b>'],['Gross · Deductions',money(sl.gross)+' · '+money(sl.ded)])}catch(x){}}
+ let docs='';try{const D=DOC(d),bad=[];DOCT.forEach(([k,l])=>{const x=D[k],ex=x&&(x.exp||x.expiry);if(ex){const n=daysTo(ex);if(n!==null&&n<=60)bad.push(E(l)+': '+(n<0?'<b style="color:var(--bad)">expired '+(-n)+' days ago</b>':'expires in '+n+' days'))}});docs=bad.length?bad.join('<br>'):'All recorded documents are valid'}catch(x){}
+ if(/\b(salary|earn|earned|wage|commission)\b/.test(e.q)&&!(has('Salary')||canMoney()))rows.push(['Salary','Not available for your login']);
+ if(docs)rows.push(['Documents',docs]);
+ return R(B.kv(rows),[openChip('Drivers',d),has('Salary')?openChip('Salary'):null].filter(Boolean))};
+
+SK.company=e=>{
+ const c=e.company;if(!c)return null;if(!canTrips())return deny('company records');
+ const all=T.filter(t=>t.company==c),a=e.per?all.filter(t=>t.date>=e.per.from&&t.date<=e.per.to):all,s=stats(a),un=all.filter(t=>outOf(t)>0.004).sort((x,y)=>x.date<y.date?-1:1);
+ const rows=[['Company','<b>'+E(c)+'</b>'],['Trips '+(e.per?e.per.label:'(all time)'),a.length],canOwed()?['Billed',money(s.rev)]:null,canOwed()?['Outstanding (all time)',un.length?'<b style="color:var(--bad)">'+money(un.reduce((z,t)=>z+outOf(t),0))+'</b> in '+un.length+' bills':money(0)]:null,un.length&&canOwed()?['Oldest unpaid bill','#'+E(un[0].bill)+' · '+dmy(un[0].date)]:null,all.length?['Last trip',dmy(all.map(t=>t.date).sort().pop())]:null];
+ return R(B.kv(rows),[openChip('Collections',c),{t:'List unpaid bills',f:()=>say(SK.trips(Object.assign({},e,{status:'unpaid',per:null})))}].filter(Boolean))};
+
+SK.top=e=>{
+ const q=e.q,kind=/\b(driver|drivers)\b/.test(q)?'driver':/\b(vehicle|vehicles|truck|trucks)\b/.test(q)?'vehicle':'company';
+ if(!canTrips())return deny('rankings');
+ const byTrips=/\btrips?\b/.test(q)||!canMoney(),a=fT(Object.assign({},e,{company:kind=='company'?null:e.company,driver:kind=='driver'?null:e.driver}));
+ const key=kind=='driver'?'driver':kind=='vehicle'?'vehicle':'company',by={};a.forEach(t=>{const k=t[key];(by[k]=by[k]||{n:0,r:0});by[k].n++;by[k].r+=amt(t)});
+ const rows=Object.entries(by).sort((x,y)=>byTrips?y[1].n-x[1].n:y[1].r-x[1].r).slice(0,e.n||5);
+ return R(B.p('Top '+(kind=='company'?'customers':kind+'s')+' by '+(byTrips?'number of trips':'billed amount')+' '+(e.per?perTxt(e.per):'(all time)')+':')+B.tb(canMoney()?[cap(kind),'Trips','Billed']:[cap(kind),'Trips'],rows.map(([k,v])=>canMoney()?[E(k),v.n,money(v.r)]:[E(k),v.n]),[1,2]))};
+
+SK.docs=e=>{
+ if(!(has('Drivers')||has('Dashboard')))return deny('driver documents');
+ const q=e.q;
+ if(/\bleave\b/.test(q)&&!/\bdocument|visa|licen|passport|expir/.test(q)){const l=DR.filter(d=>onLeave(d));return R(l.length?B.p('<b>'+l.length+'</b> driver'+(l.length==1?' is':'s are')+' on leave today:')+B.tb(['Driver','Leave','Until'],l.map(d=>{const v=onLeave(d);return[E(d),E(v.type||'Leave'),v.to?dmy(v.to):'open']})):B.p('Nobody is on leave today.'),[openChip('Drivers')].filter(Boolean))}
+ const keys=DOCT.filter(([k,l])=>new RegExp(l.toLowerCase().split(' ')[0]).test(q)||(k=='eid'&&/emirates|\beid\b/.test(q))||(k=='lic'&&/licen/.test(q))||(k=='ins'&&/insur|medical/.test(q))||(k=='lab'&&/labour|labor/.test(q))).map(x=>x[0]),rows=[];
+ DR.forEach(d=>{try{const D=DOC(d);DOCT.forEach(([k,l])=>{if(keys.length&&!keys.includes(k))return;const x=D[k],ex=x&&(x.exp||x.expiry);if(!ex)return;const n=daysTo(ex);if(n!==null&&n<=60)rows.push([n,E(d),E(l),dmy(ex),n<0?'<b style="color:var(--bad)">Expired '+(-n)+' d ago</b>':n+' days'])})}catch(x){}});
+ rows.sort((x,y)=>x[0]-y[0]);
+ return R(rows.length?B.p('<b>'+rows.length+'</b> document'+(rows.length==1?'':'s')+' expired or expiring within 60 days:')+B.tb(['Driver','Document','Expiry','Left'],rows.slice(0,15).map(r=>r.slice(1))):B.p('Good news — no driver document is expired or expiring within 60 days.'),[openChip('Drivers')].filter(Boolean))};
+
+SK.salary=e=>{
+ if(!has('Salary'))return deny('salary details');
+ const t=today(),y=e.per?+e.per.from.slice(0,4):+t.slice(0,4),m=e.per?+e.per.from.slice(5,7):+t.slice(5,7);
+ let rows=[];DR.filter(d=>!isOut(d)).forEach(d=>{try{const s=salary(d,m,y);rows.push([d,s.a.length,s.net,s.gross])}catch(x){}});
+ rows.sort((a,b)=>b[2]-a[2]);let tot='';try{tot=B.kv([['Total payroll '+cap(MSh[m-1])+' '+y,'<b>'+money(salGross(y,m))+'</b>'],['Net salary cost',money(salCost(y,m))]])}catch(x){}
+ return R(B.p('Salary overview for <b>'+cap(MNs[m-1])+' '+y+'</b>:')+tot+B.tb(['Driver','Trips','Net salary'],rows.map(r=>[E(r[0]),r[1],money(r[2])]),[1,2]),[openChip('Salary')].filter(Boolean))};
+
+SK.audit=e=>{
+ if(/\bapproval|approvals|pending request|waiting for approval\b/.test(e.q)){if(!has('Approvals'))return deny('approvals');const p=(typeof APR!='undefined'?APR:[]).filter(x=>x.status=='pending');return R(p.length?B.p('<b>'+p.length+'</b> request'+(p.length==1?' is':'s are')+' waiting for approval:')+B.tb(['By','Request'],p.slice(0,8).map(x=>[E(x.by||''),(typeof descApr=='function'?descApr(x):E(x.type||''))])):B.p('There are no pending approvals.'),[openChip('Approvals')].filter(Boolean))}
+ if(!has('Audit Log'))return deny('the audit log');
+ let a=LOG.slice();if(e.per)a=a.filter(l=>{const d=fd(new Date(l.ts));return d>=e.per.from&&d<=e.per.to});
+ return R(B.p('Latest activity '+(e.per?perTxt(e.per):'')+' (<b>'+a.length+'</b> entries):')+B.tb(['When','By','Action','Details'],a.slice(0,8).map(l=>[E(l.t),E(l.by),'<b>'+E(l.a)+'</b>',E(l.d)])),[openChip('Audit Log')].filter(Boolean))};
+
+SK.summary=e=>{
+ const t=today(),ym=t.slice(0,7),mth=T.filter(x=>String(x.date).slice(0,7)==ym),s=stats(T),ms=stats(mth);let rows;
+ if(canMoney())rows=[['Trips (all time)',s.n],['Revenue',money(s.rev)],['Expenses',money(s.ex)],['Profit before salary',colr(s.rev-s.ex)],['Outstanding','<b style="color:var(--bad)">'+money(s.out)+'</b>'],['This month: trips · revenue',ms.n+' · '+money(ms.rev)],['Cash in hand',colr(bal(CL))],['Bank balance',colr(bal(BL))]];
+ else{rows=[['Trips today',T.filter(x=>x.date==t).length],['Outstanding',canOwed()?money(s.out):'—']];if(has('Cash Ledger'))rows.push(['Cash in hand',colr(bal(CL))])}
+ return R(B.p('Here\'s the picture right now:')+B.kv(rows),[openChip('Dashboard'),{t:'Outstanding by company',f:()=>say(SK.money(ent('outstanding by company')))}].filter(Boolean))};
+
+/* ---------- how-to knowledge ---------- */
+const KB=[
+ {k:'add trip new trip enter trip save trip trip sheet record trip',t:'Add a trip',s:['Open <b>Trip Sheet</b> and fill the form (company, driver, vehicle, route, amounts).','Press <b>Save Trip</b> — or <b>Ctrl/⌘ + Enter</b>, <b>Ctrl/⌘ + S</b>, <b>Alt + S</b>.','A mistake after 30 seconds: use ⚑ <b>Flag</b> next to the bill so the admin can correct it.']},
+ {k:'payment receive collection collect money record payment customer paid',t:'Record a payment',s:['Open <b>Collections</b> and open the party.','Enter the amount received.','Larger payments'+(typeof APL!='undefined'?' (above AED '+fmt(APL)+')':'')+' go to the admin for approval first.']},
+ {k:'count cash drawer cash in hand daily check',t:'Count the cash',s:['<b>Cash Ledger</b> → “Daily cash-in-hand check”.','Count the drawer, enter the amount and save. Explain any difference in the note.']},
+ {k:'expense add expense bill receipt petrol maintenance',t:'Add an expense',s:['Open <b>Expenses</b> and fill date, category, vehicle, amount and details.','Upload the bill or receipt (image or PDF) — every expense needs one.','Cash debits the cash ledger; bank expenses are confirmed by the admin in the Bank tab.']},
+ {k:'mistake wrong error correct fix flag edit trip correction',t:'Correct a mistake',s:['Within 30 seconds of saving you can undo the trip.','After that, use ⚑ <b>Flag</b> next to the bill and describe the error.','The admin corrects it from <b>Error Corrections</b> with a reason; it is kept in the audit log.']},
+ {k:'salary payroll pay driver close month wps initiate',t:'Run the salary',s:['Open <b>Salary</b> and pick the month.','Check basic, allowance and batha; fines and advances are subtracted automatically.','Use <b>Initiate all</b>, then the WPS transfer PDF; press <b>Close month</b> when paid (closed months are locked for the accountant).']},
+ {k:'approve approval approvals request above limit',t:'Approvals (admin)',s:['<b>Approvals</b> lists payments, advances and cash corrections above the limit.','Check the details and press Approve or Reject. You cannot approve your own request (the owner can).']},
+ {k:'add driver company vehicle master new driver new company',t:'Add a driver, company or vehicle',s:['Admin: <b>Masters</b> → pick the list → type the name → <b>Add</b>.','Or just tell me: “add driver Mohammed”, “add company Gulf Traders”, “add vehicle DXB A 12345”.']},
+ {k:'statement pdf download report profit loss monthly yearly',t:'Download a statement',s:['Open <b>Statements</b> → choose Monthly or Yearly.','Use <b>Sample PDF</b> or <b>Download PDF</b>.']},
+ {k:'offline signal internet weak sync queue',t:'Weak signal',s:['Keep working — changes are saved on this device.','The bar at the bottom shows how many changes are waiting; they upload by themselves.']},
+ {k:'deleted restore removed trash recover delete',t:'Deleted items',s:['<b>Deleted Items</b> keeps every removed record for 90 days with who removed it.']},
+ {k:'shortcut keyboard keys hotkey',t:'Keyboard shortcuts',s:['<b>Ctrl/⌘ + K</b> — search any tab · <b>Ctrl/⌘ + J</b> — this assistant.','Trip Sheet: <b>Ctrl/⌘ + Enter</b> or <b>Alt + S</b> save · <b>Alt + P</b> personal · <b>Alt + R</b> round/one way · <b>Alt + 1/2/3</b> payment mode.']},
+ {k:'team access user signout sign out devices permission',t:'Team access',s:['Admin: <b>Team Access</b> lets you turn a person off or sign them out of all devices.']}];
+SK.help=e=>{
+ const toks=e.q.split(' ').filter(w=>w.length>2&&!STOP.has(w));let best=null,bs=0;
+ for(const k of KB){const kw=k.k.split(' ');let s=0;for(const w of toks)if(kw.some(z=>z==w||(w.length>=4&&(z.startsWith(w)||w.startsWith(z)))))s++;if(s>bs){bs=s;best=k}}
+ if(!best||!bs)return R(B.p('I can explain: adding trips, recording payments, counting cash, expenses, corrections, salary, approvals, statements, shortcuts and more. What would you like to do?'),KB.slice(0,5).map(k=>({t:k.t,f:()=>say(R(B.p('<b>'+k.t+'</b>')+'<ol class="ai-ol">'+k.s.map(x=>'<li>'+x+'</li>').join('')+'</ol>'))})));
+ return R(B.p('<b>'+best.t+'</b>')+'<ol class="ai-ol">'+best.s.map(x=>'<li>'+x+'</li>').join('')+'</ol>')};
+
+/* ---------- export ---------- */
+function exportCsv(a,name){
+ if(!canTrips())return say(deny('trip records'));
+ const cols=['Bill','Date','Company','Customer','Driver','Vehicle','From','To','Charge','Parking','Salik','Total','Received','Outstanding','Status','Payment'];
+ const q=v=>'"'+String(v==null?'':v).replace(/"/g,'""')+'"';
+ const rows=a.map(t=>[t.bill,t.date,t.company,t.customer,t.driver,t.vehicle,t.from,t.to,t.charge,t.parking,t.salik,amt(t),t.rp||0,r2(outOf(t)),stat(t),t.pm||''].map(q).join(','));
+ const blob=new Blob(['\ufeff'+cols.join(',')+'\n'+rows.join('\n')],{type:'text/csv;charset=utf-8'}),u=URL.createObjectURL(blob),l=document.createElement('a');
+ l.href=u;l.download=name+'-'+today()+'.csv';document.body.appendChild(l);l.click();setTimeout(()=>{URL.revokeObjectURL(u);l.remove()},500);
+ say(R(B.p('Exported <b>'+a.length+'</b> trips to <b>'+E(l.download)+'</b> (check your downloads).')))}
+SK.export=e=>{if(!canTrips())return deny('trip records');const a=fT(e);if(!a.length)return R(B.p('There is nothing to export for that selection.'));exportCsv(a,'trips');return null};
+
+/* ---------- edits (admin only, always confirmed) ---------- */
+const KIND={driver:'DR',company:'CO',customer:'CO',vehicle:'VE',truck:'VE',car:'VE',plate:'VE',place:'PL',location:'PL'},KL={DR:'driver',CO:'company',VE:'vehicle',VN:'vehicle name',PL:'place'};
+let PEND=null;
+function planCard(p){
+ PEND=p;
+ return R(B.p('<b>'+E(p.title)+'</b>')+'<ul class="ai-ul">'+p.lines.map(l=>'<li>'+l+'</li>').join('')+'</ul>'+B.note('Nothing changes until you confirm. It is recorded in the Audit log as an Assistant action, and the app may ask for your admin password.'),
+  [{t:'Confirm',f:()=>confirmPlan(p),cls:'ok'},{t:'Cancel',f:()=>{PEND=null;say(R(B.p('Cancelled — nothing was changed.')))},cls:'no'}],{plan:true})}
+function confirmPlan(p){
+ if(PEND!==p)return say(R(B.p('That request has expired. Ask me again.')));PEND=null;
+ if(!isAdmin())return say(R(B.p('Only the admin can make changes. Your role is <b>'+roleName()+'</b>.')));
+ try{p.run()}catch(x){console.error(x);return say(R(B.p('Something went wrong, nothing was changed.')))}
+ if(typeof UNL!='undefined'&&!UNL)say(R(B.p('Please enter your admin password in the box to authorise this change.')));
+ let n=0;const iv=setInterval(()=>{n++;let ok=false;try{ok=p.done()}catch(x){}
+  if(ok){clearInterval(iv);try{lg('Assistant action',p.log,'Requested via Assistant')}catch(x){}say(R(B.p('✅ '+p.ok),p.undo?[{t:'Undo',f:()=>say(p.undo())}]:[]))}
+  else if(n>150){clearInterval(iv);say(R(B.p('No change was made (cancelled or timed out).')))}},400)}
+const up=s=>s.trim().replace(/\s+/g,' ').toUpperCase();
+function planAdd(k,v){
+ if(AR[k].some(x=>x.toLowerCase()==v.toLowerCase()))return R(B.p('<b>'+E(v)+'</b> already exists in the '+KL[k]+' list.'));
+ return planCard({title:'Add '+KL[k],lines:['New '+KL[k]+': <b>'+E(v)+'</b>'],log:'Added '+KL[k]+' '+v,ok:'Added <b>'+E(v)+'</b> to the '+KL[k]+' list.',
+  run:()=>need(()=>{if(AR[k].includes(v))return;AR[k].push(v);if(k=='DR')DI[v]={phone:'',basic:0,allow:0,cat:'Company'};lg('Master added',k+': '+v,'via Assistant');refresh()}),done:()=>AR[k].includes(v),
+  undo:()=>planDel(k,v,true)})}
+function usage(k,o){return T.filter(t=>FL[k].some(f=>t[f]==o)||(k=='PL'&&(t.from2==o||t.to2==o))).length+(k=='VE'?LN.filter(l=>l.veh==o).length+EXP.filter(x=>x.veh==o).length:0)}
+function planDel(k,o,silent){
+ const i=AR[k].indexOf(o),n=usage(k,o);if(i<0)return R(B.p('I couldn\'t find “'+E(o)+'”.'));
+ if(n)return R(B.p('<b>'+E(o)+'</b> is used in <b>'+n+'</b> records, so it can\'t be deleted. Rename it instead if it is wrong.'));
+ return planCard({title:'Delete '+KL[k],lines:['Remove <b>'+E(o)+'</b> from the '+KL[k]+' list (it is not used in any record).'],log:'Deleted '+KL[k]+' '+o,ok:'Deleted <b>'+E(o)+'</b>.',
+  run:()=>del(k,AR[k].indexOf(o)),done:()=>!AR[k].includes(o)})}
+function planRename(k,o,nv){
+ if(AR[k].includes(nv))return R(B.p('<b>'+E(nv)+'</b> already exists.'));
+ const n=usage(k,o);
+ return planCard({title:'Rename '+KL[k],lines:['<b>'+E(o)+'</b> → <b>'+E(nv)+'</b>',n?'It will also be updated in <b>'+n+'</b> existing records.':'It is not used in any record yet.'],log:'Renamed '+KL[k]+' '+o+' → '+nv,ok:'Renamed to <b>'+E(nv)+'</b>.',
+  run:()=>ren(k,AR[k].indexOf(o),nv),done:()=>AR[k].includes(nv),undo:()=>planRename(k,nv,o)})}
+const DF={phone:['phone','Phone'],basic:['basic','Basic salary'],allow:['allow','Allowance'],min:['min','Minimum trips']};
+function planSet(d,f,v){
+ const i=DR.indexOf(d),old=(DI[d]||{})[DF[f][0]];
+ if(isOut(d)&&(f=='basic'||f=='allow'||f=='min'))return R(B.p('<b>'+E(d)+'</b> is an outside driver — salary fields don\'t apply to outsiders.'));
+ return planCard({title:'Update '+E(d),lines:[DF[f][1]+': <b>'+E(old===undefined||old===''?'—':old)+'</b> → <b>'+E(v)+'</b>'],log:d+' · '+DF[f][1]+' '+(old||'—')+' → '+v,ok:DF[f][1]+' of <b>'+E(d)+'</b> is now <b>'+E(v)+'</b>.',
+  run:()=>setDI(i,DF[f][0],v),done:()=>String((DI[d]||{})[DF[f][0]])==String(f=='phone'?v:+v),undo:()=>planSet(d,f,old===undefined?'':old)})}
+SK.edit=e=>{
+ const raw=e.raw.trim(),q=e.q;
+ if(!isAdmin())return R(B.p('Only the admin can change data. Your role is <b>'+roleName()+'</b>. I can still look things up or open a tab for you.'));
+ let m=raw.match(/^\s*(?:please\s+)?(?:add|create|register|new)\s+(?:a\s+|an\s+|new\s+)?(driver|company|customer|vehicle|truck|car|plate|place|location)\s*(?:named|called|:|-)?\s*(.+)$/i);
+ if(m){const k=KIND[m[1].toLowerCase()],v=up(m[2].replace(/^["'“”]|["'“”]$/g,''));if(!v)return R(B.p('What should the '+m[1]+' be called?'));return planAdd(k,v)}
+ m=raw.match(/\b(?:set|change|update|edit|make)\b.*?\b(phone|mobile|contact|basic(?: salary)?|salary|allowance|min(?:imum)?\s*trips?)\b.*?\b(?:to|as|=)\s*(.+)$/i);
+ if(m){if(e.amb)return R(B.p('Which driver? '+e.amb.list.map(E).join(' · ')));const d=e.driver;if(!d)return R(B.p('Which driver do you mean? Please include the driver\'s name.'));
+  const w=m[1].toLowerCase(),f=/phone|mobile|contact/.test(w)?'phone':/basic|^salary/.test(w)?'basic':/allow/.test(w)?'allow':'min',val=m[2].trim().replace(/[.\s]+$/,'');
+  if(f!='phone'&&!/^\d+(\.\d+)?$/.test(val.replace(/,/g,'')))return R(B.p('Please give a number, for example “set basic salary of '+E(d)+' to 2000”.'));
+  return planSet(d,f,f=='phone'?val:val.replace(/,/g,''))}
+ m=raw.match(/\brename\b\s+(?:the\s+)?(driver|company|customer|vehicle|place)?\s*(.+?)\s+(?:to|as)\s+(.+)$/i);
+ if(m){const guess=m[1]?KIND[m[1].toLowerCase()]:(e.driver?'DR':e.company?'CO':null),k=guess;if(!k)return R(B.p('Tell me what to rename, for example “rename company Gulf Trading to Gulf Traders”.'));
+  const nm=nameHits(N(m[2]).split(' '),AR[k]);if(!nm.list.length)return R(B.p('I couldn\'t find a '+KL[k]+' called “'+E(m[2])+'”.'));if(nm.list.length>1)return R(B.p('Which one? '+nm.list.map(E).join(' · ')));
+  return planRename(k,nm.list[0],up(m[3]))}
+ m=raw.match(/\b(?:delete|remove)\b\s+(?:the\s+)?(driver|company|customer|vehicle|place)\s+(.+)$/i);
+ if(m){const k=KIND[m[1].toLowerCase()],nm=nameHits(N(m[2]).split(' '),AR[k]);if(!nm.list.length)return R(B.p('I couldn\'t find a '+KL[k]+' called “'+E(m[2])+'”.'));if(nm.list.length>1)return R(B.p('Which one? '+nm.list.map(E).join(' · ')));return planDel(k,nm.list[0])}
+ return null};
+SK.payNote=e=>R(B.p('For safety I don\'t record payments directly: a payment needs the amount, the mode and a reference, and large ones need admin approval. I\'ll open Collections for you so you can enter it in a few seconds.'),[openChip('Collections',e.company||e.bill||''),openChip('Cash Ledger')].filter(Boolean),{auto:()=>openTab('Collections',e.company||e.bill||'')});
+
+/* ---------- router ---------- */
+const CAP=R(B.p('I\'m your offline assistant — I read this app\'s data and never send anything online. You can ask me things like:')+'<ul class="ai-ul"><li><b>Look up:</b> “bill 1003”, “unpaid bills of Gulf Trading”, “trips by Ahmed last month”</li><li><b>Numbers:</b> “profit this month”, “who owes the most?”, “cash in hand”, “top 5 customers”</li><li><b>People:</b> “tell me about Rafeeq”, “documents expiring”, “who is on leave?”</li><li><b>Do:</b> “open Salary”, “add driver Mohammed”, “set phone of Ahmed to 0501234567”, “export unpaid bills”</li><li><b>Help:</b> “how do I record a payment?”</li></ul>');
+let CTX=null;
+const FOLLOW=/^(and|what about|how about|also|then|same for|now)\b/;
+function route(e,allowFollow){
+ const q=e.q,words=q.split(' ').filter(Boolean).length;
+ if(/^(hi|hello|hey|salam|assalam|good (morning|afternoon|evening))\b/.test(q))return R(B.p('Hello'+(who()?' '+E(who()):'')+'! What would you like to know or do?'),[{t:'Business summary',f:()=>ask('summary')},{t:'Unpaid bills',f:()=>ask('unpaid bills')},{t:'What can you do?',f:()=>say(CAP)}]);
+ if(/\b(thanks|thank you|thx|great|perfect|nice)\b/.test(q)&&words<=4)return R(B.p('You\'re welcome! Ask me anything else.'));
+ if(/\b(what can you do|capabilities|commands|what do you do|help me|^help$|^help\b.*assistant)/.test(q)||q=='help')return CAP;
+ if(/^(yes|yep|confirm|go ahead|do it|ok do it)$/.test(q)&&PEND){confirmPlan(PEND);return null}
+ if(/^(no|cancel|stop|never mind|nevermind)$/.test(q)&&PEND){PEND=null;return R(B.p('Cancelled — nothing was changed.'))}
+ if(/\b(add|create|register|set|change|update|edit|rename|delete|remove|make)\b/.test(q)&&/\b(driver|company|customer|vehicle|truck|plate|place|location|phone|mobile|basic|salary|allowance|minimum|min trips)\b/.test(q)&&!/^(how|what|where|who|which|why|when)\b/.test(q)){const r=SK.edit(e);if(r)return r}
+ if(/\b(mark|record|receive|enter|settle|clear)\b.*\b(paid|payment|received|bill|invoice)\b/.test(q)&&!/^(how|what)\b/.test(q))return SK.payNote(e);
+ if(/^(how (do|can|to|should|would)|where (do|can|is|are)|what is the (way|process)|steps|guide me|explain|teach|show me how)\b/.test(q)||/\bshortcuts?\b/.test(q))return SK.help(e);
+ if(/\b(export|download|csv|excel|spreadsheet)\b/.test(q))return SK.export(e);
+ if(e.bill&&!/\b(delete|remove)\b/.test(q))return SK.bill(e);
+ if(/^(open|go to|goto|take me to|navigate to|switch to|show me the|bring up|launch)\b/.test(q)){const t=tabFor(q);if(t){if(!has(t)){const exists=TABS.some(x=>x[0]==t);return R(B.p(exists?'The <b>'+t+'</b> tab isn\'t available for the <b>'+roleName()+'</b> role.':'I can\'t find that tab.'))}
+   const sr=e.company||e.driver||e.bill||null;openTab(t,sr);return R(B.p('Opening <b>'+t+'</b>'+(sr?' and searching for <b>'+E(sr)+'</b>':'')+'.'))}}
+ if(/\b(leave|documents?|visa|licen[cs]e|passport|emirates id|insurance|labour card|expir(?:e|ed|ing|y))\b/.test(q)&&!e.company)return SK.docs(e);
+ if(/\b(salary|salaries|payroll|wage|wages|earn|earned|commission|batha)\b/.test(q)){if(e.driver)return SK.driver(e);return SK.salary(e)}
+ if(/\b(approval|approvals|audit|activity|what changed|who edited|recent changes|log)\b/.test(q)&&!/\bbalance\b/.test(q))return SK.audit(e);
+ if(/\b(top|best|most|highest|biggest|ranking|rank|worst|lowest)\b/.test(q)&&/\b(customers?|companies|company|drivers?|vehicles?|trucks?)\b/.test(q)&&!/\bowe|owes|owed|outstanding|unpaid\b/.test(q))return SK.top(e);
+ if(/\b(who|which|what)\b.*\b(owe|owes|owed)\b|\b(owe|owes)\b.*\bmost\b/.test(q)){e.status='unpaid';return SK.money(e)}
+ if(/\b(cash|bank|wallet|adnoc|salik|balance|deposit)\b/.test(q)&&!/\b(trips?|bills?)\b/.test(q)&&!e.company&&!e.driver)return SK.cash(e);
+ if(/\b(revenue|income|sales|turnover|profit|margin|expenses?|costs?|spent|spending|outstanding|owe|owes|owed|due|dues|receivable|unpaid)\b/.test(q)&&!/\b(list|show|which|display)\b.*\b(bills?|trips?)\b/.test(q)&&!(/\b(bills?|trips?)\b/.test(q)&&!/\b(how much|total|amount|sum)\b/.test(q)))return SK.money(e);
+ if(/\b(summary|overview|snapshot|brief|how are we doing|how is business|business|status report|report)\b/.test(q)&&!e.driver&&!e.company)return SK.summary(e);
+ if(/\b(trips?|bills?|jobs?|deliver(?:y|ies)|loads?)\b/.test(q)&&canTrips())return SK.trips(e);
+ if(e.amb)return R(B.p('Which one do you mean?'),e.amb.list.slice(0,6).map(n=>({t:n,f:()=>ask(e.raw.replace(/\s+$/,'')+' '+n)})));
+ if(e.driver)return SK.driver(e);
+ if(e.company)return SK.company(e);
+ if(e.veh)return SK.trips(e);
+ if(allowFollow&&CTX&&(FOLLOW.test(q)||(words<=4&&(e.per||e.driver||e.company||e.veh||e.status)))){const m2=Object.assign({},CTX.e);['per','driver','company','veh','status','mode','n'].forEach(k=>{if(e[k])m2[k]=e[k]});m2.q=CTX.e.q+' '+q;m2.raw=CTX.e.raw;return route(Object.assign({},m2,{__f:1}),false)}
+ const t=tabFor(q);if(t&&words<=4){if(has(t)){openTab(t);return R(B.p('Opening <b>'+t+'</b>.'))}}
+ return R(B.p('I\'m not sure what you mean by that. Try asking about <b>bills, trips, outstanding amounts, drivers, cash, salary</b> — or say “what can you do?”.'),[{t:'What can you do?',f:()=>say(CAP)},{t:'Business summary',f:()=>ask('summary')},{t:'Unpaid bills',f:()=>ask('unpaid bills')}])}
+
+/* ---------- UI ---------- */
+const CH=[];let OPEN=false,VOICE=false,SRx=null,LISTEN=false,BUSY=false;
+try{VOICE=localStorage.getItem('ai_voice')=='1'}catch(x){}
+const ICON={spark:'<svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>',
+ send:'<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',mic:'<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
+ spk:'<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>',x:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',trash:'<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'};
+let box,msgs,inp,btn,panel;
+function build(){
+ if($('#ai-btn'))return;
+ btn=document.createElement('button');btn.id='ai-btn';btn.className='ai-fab hide';btn.title='Ask the assistant (Ctrl+J)';btn.setAttribute('aria-label','Open assistant');btn.innerHTML=ICON.spark+'<span>Assistant</span>';btn.onclick=()=>toggle();
+ panel=document.createElement('aside');panel.id='ai-panel';panel.className='ai-panel';panel.setAttribute('aria-hidden','true');
+ panel.innerHTML='<div class="ai-hd"><div class="ai-av">'+ICON.spark+'</div><div class="ai-ht"><b>Assistant</b><small>Offline · reads this app only</small></div><button class="ai-ib" id="ai-vo" title="Read replies aloud">'+ICON.spk+'</button><button class="ai-ib" id="ai-cl" title="Clear chat">'+ICON.trash+'</button><button class="ai-ib" id="ai-x" title="Close">'+ICON.x+'</button></div><div class="ai-ms" id="ai-ms"></div><div class="ai-ft"><div class="ai-sg" id="ai-sg"></div><div class="ai-in"><textarea id="aiq" rows="1" placeholder="Ask anything about your data, or tell me what to do…" autocomplete="off" spellcheck="false"></textarea><button class="ai-ib ai-mic" id="ai-mic" title="Speak (uses your browser\'s speech service)">'+ICON.mic+'</button><button class="ai-send" id="ai-go" title="Send">'+ICON.send+'</button></div></div>';
+ document.body.appendChild(btn);document.body.appendChild(panel);
+ msgs=$('#ai-ms');inp=$('#aiq');inp.dataset.keepCase='1';
+ $('#ai-x').onclick=()=>toggle(false);$('#ai-cl').onclick=()=>{msgs.innerHTML='';CH.length=0;PEND=null;CTX=null;welcome()};
+ $('#ai-vo').onclick=()=>{VOICE=!VOICE;try{localStorage.setItem('ai_voice',VOICE?'1':'0')}catch(x){}$('#ai-vo').classList.toggle('on',VOICE);if(!VOICE&&window.speechSynthesis)speechSynthesis.cancel();else speak('Voice is on.')};
+ $('#ai-vo').classList.toggle('on',VOICE);
+ $('#ai-go').onclick=submit;
+ inp.addEventListener('keydown',e=>{if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();submit()}else if(e.key=='Escape')toggle(false)});
+ inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(120,inp.scrollHeight)+'px'});
+ msgs.addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(b){const c=CH[+b.dataset.c];if(c){b.closest('.ai-ch')&&b.closest('.ai-ch').querySelectorAll('button').forEach(x=>{if(c.cls=='ok'||c.cls=='no')x.disabled=true});try{c.f()}catch(x){console.error(x)}}}});
+ const SRc=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!SRc)$('#ai-mic').style.display='none';else $('#ai-mic').onclick=()=>listen(SRc);
+ welcome();sync()}
+function welcome(){say(R(B.p('Hi'+(who()?' <b>'+E(who())+'</b>':'')+'! I can look up bills, trips, drivers and balances, open tabs, and (for admins) make confirmed edits — all without going online.'),sug().map(s=>({t:s,f:()=>ask(s)}))),true)}
+const sug=()=>isAdmin()?['Business summary','Unpaid bills','Who owes the most?','Cash in hand','Trips today','Documents expiring']:['Trips today','Unpaid bills','Cash in hand','How do I add a trip?'];
+function toggle(f){OPEN=f===undefined?!OPEN:f;panel.classList.toggle('open',OPEN);panel.setAttribute('aria-hidden',OPEN?'false':'true');btn.classList.toggle('on',OPEN);if(OPEN)setTimeout(()=>inp.focus(),200)}
+function sync(){const app=$('#app'),show=app&&!app.classList.contains('hide');btn.classList.toggle('hide',!show);if(!show&&OPEN)toggle(false)}
+function html2txt(h){const d=document.createElement('div');d.innerHTML=h.replace(/<\/(p|li|tr)>/g,'. ').replace(/<br>/g,', ');return d.textContent.replace(/\s+/g,' ').trim()}
+function speak(t){if(!VOICE||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t.slice(0,420));u.lang='en-GB';u.rate=1;const v=speechSynthesis.getVoices().find(x=>/^en/i.test(x.lang));if(v)u.voice=v;speechSynthesis.speak(u)}catch(x){}}
+function bubble(cls,h){const d=document.createElement('div');d.className='ai-m '+cls;d.innerHTML=h;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;return d}
+function say(r,quiet){
+ if(!r)return;if(!r.html)r=R(String(r));
+ const chips=(r.chips||[]).filter(Boolean);let ch='';
+ if(chips.length)ch='<div class="ai-ch">'+chips.map(c=>{CH.push(c);return'<button class="ai-chip '+(c.cls||'')+'" data-c="'+(CH.length-1)+'">'+E(c.t)+'</button>'}).join('')+'</div>';
+ bubble('bot',r.html+ch);if(!quiet)speak(html2txt(r.html));if(r.auto)setTimeout(r.auto,300)}
+function ask(text){
+ text=String(text||'').trim();if(!text)return null;
+ bubble('me',E(text));let out=null;
+ const typing=bubble('bot typing','<i></i><i></i><i></i>');
+ try{const e=ent(text);out=route(e,true);if(out&&!out.plan&&!/^(open|go to|add|set|change|rename|delete)/.test(e.q))CTX={e}}catch(x){console.error(x);out=R(B.p('Sorry, I hit a problem answering that. Please try rephrasing.'))}
+ setTimeout(()=>{typing.remove();if(out)say(out)},160);
+ return out}
+function submit(){const v=inp.value;if(!v.trim())return;inp.value='';inp.style.height='auto';ask(v)}
+function listen(SRc){
+ if(LISTEN&&SRx){try{SRx.stop()}catch(x){}return}
+ try{SRx=new SRc();SRx.lang='en-US';SRx.interimResults=false;SRx.maxAlternatives=1;LISTEN=true;$('#ai-mic').classList.add('on');
+  SRx.onresult=ev=>{const t=ev.results[0][0].transcript;inp.value=t;submit()};
+  SRx.onerror=ev=>{say(R(B.p('Voice input isn\'t available here ('+E(ev.error||'error')+'). You can type instead.')))};
+  SRx.onend=()=>{LISTEN=false;$('#ai-mic').classList.remove('on')};SRx.start()}catch(x){LISTEN=false}}
+
+document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&(e.key=='j'||e.key=='J')){const app=$('#app');if(app&&!app.classList.contains('hide')){e.preventDefault();toggle()}}});
+function init(){build();const app=$('#app');if(app)new MutationObserver(sync).observe(app,{attributes:true,attributeFilter:['class']});new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['class']})}
+if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',init);else init();
+window.__AI={ask:q=>{const o=ask(q);return o?html2txt(o.html):null},open:()=>toggle(true),route:q=>route(ent(q),true),SK};
+})();
+
+</script>
 </body></html>
