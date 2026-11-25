@@ -429,6 +429,12 @@ body:has(#login:not(.hide)) #sbar{display:none!important}
 @media print{.ai-fab,.ai-panel{display:none!important}}
 body.tsfull .ai-fab{top:10px;bottom:auto;right:172px;height:38px;padding:0 14px 0 10px;font-size:12.5px}
 body.tsfull .ai-fab svg{width:17px;height:17px}
+/* guided menu */
+.ai-ch.menu{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ai-chip.menu{border-radius:12px;padding:13px 12px;text-align:left;font-size:13px;font-weight:650}
+.ai-chip.ghost{background:transparent;border-style:dashed;color:var(--mut)}
+.ai-chip.picked{background:var(--navy)!important;color:#fff!important;border-color:var(--navy)!important;opacity:1!important}
+.ai-chip[disabled]:not(.picked){opacity:.4}
 </style>
 </head><body>
 <div class="aurora"><i></i><i></i><i></i><i></i></div><div class="grid"></div>
@@ -3383,16 +3389,19 @@ p.tc={m:mt.filter(t=>String(t.date||'').slice(0,7)==ms).length,y:mt.filter(t=>St
 return p}}
 window.DEP=[];window._depBusy=0;
 window.depPend=d=>Math.round(pendL().filter(t=>t.driver==d).reduce((q,t)=>q+pendA(t),0)*100)/100;
+/* bills a deposit request refers to: the ones the driver ticked (still pending), otherwise all of the driver's pending cash */
+window.depBills=r=>{const all=pendL().filter(t=>t.driver==r.driver),bs=(r.bills||[]).map(String),pick=bs.length?all.filter(t=>bs.includes(String(t.bill))):[];return pick.length?pick:all};
+window.depPendR=r=>Math.round(depBills(r).reduce((q,t)=>q+pendA(t),0)*100)/100;
 window.depCard=function(){const ex=r=>(r.status=='pending'&&Date.now()-(r.at||0)>1800000)||(r.status=='approved'&&Date.now()-(r.apAt||0)>1800000),
 A=DEP.filter(r=>['pending','approved','confirmed'].includes(r.status)&&!ex(r)),H=DEP.filter(r=>r.status=='posted').slice(0,5),tm=n=>new Date(n).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'});
 if(!A.length&&!H.length)return '<div id="depcard"></div>';
 const row=r=>{let b='',s='';if(r.status=='pending'){s='<span class="tag unp">Waiting for you</span>';b='<button class="btn au" onclick="depApprove(\''+r.id+'\')">Approve</button> <button class="btn g" onclick="depReject(\''+r.id+'\')">Reject</button>'}
 else if(r.status=='approved'){let pin='';try{pin=sessionStorage.getItem('dep_'+r.id)||''}catch(e){}s='<span class="tag" style="background:#fef3c7;color:#92400e">Waiting for driver PIN</span>';b=(pin?'<b style="font:700 22px monospace;letter-spacing:6px">'+esc(pin)+'</b> ':'')+'<button class="btn g" onclick="depReject(\''+r.id+'\')">Cancel</button>'}
 else if(r.status=='confirmed')s='<span class="tag paid">PIN verified · posting…</span>';else s='<span class="tag paid">Deposited</span>';
-return '<tr><td><b>'+esc(r.driver)+'</b><div class="note">'+tm(r.at||0)+'</div></td><td class="num">'+fmt(r.amt)+'</td><td class="num">'+(r.rcv!=null?fmt(r.rcv):'-')+'</td><td>'+s+'</td><td>'+b+'</td></tr>'};
+return '<tr><td><b>'+esc(r.driver)+'</b><div class="note">'+tm(r.at||0)+'</div>'+((r.bills||[]).length?'<div class="note">Bills: '+r.bills.slice(0,10).map(x=>esc(String(x))).join(', ')+(r.bills.length>10?' +'+(r.bills.length-10)+' more':'')+'</div>':'')+'</td><td class="num">'+fmt(r.amt)+'</td><td class="num">'+(r.rcv!=null?fmt(r.rcv):'-')+'</td><td>'+s+'</td><td>'+b+'</td></tr>'};
 return '<div id="depcard"><div class="card" style="margin-bottom:14px"><h3 style="margin-bottom:4px">Driver cash deposits</h3><div class="note" style="margin-bottom:10px">Approve, enter the amount you actually received, then give the 6-digit PIN to the driver. The cash ledger and the driver’s dues update only after the driver enters the PIN in the Driver App.</div>'+tb(['Driver','Requested','Received','Status',''],A.concat(H).map(row),[1,2])+'</div></div>'};
-window.depApprove=function(id){const r=DEP.find(x=>x.id==id);if(!r)return;const pa=depPend(r.driver);modal('<h3>Approve deposit · '+esc(r.driver)+'</h3><p class="note" style="margin:4px 0 14px">Driver requested AED '+fmt(r.amt)+'. Pending cash for this driver: AED '+fmt(pa)+'. Enter the amount you received; the PIN is shown only after this.</p><div class="row"><div><label>Amount received (AED)</label><input id="dp_a" type="number" value="'+(Math.min(r.amt,pa)||'')+'"></div></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn au" onclick="depGo(\''+id+'\')">Approve and show PIN</button><button class="btn g" onclick="cm()">Cancel</button></div>')};
-window.depGo=async function(id){const r=DEP.find(x=>x.id==id);if(!r||r.status!='pending'){cm();return}const a=Math.round(+g('dp_a')*100)/100,pa=depPend(r.driver);if(!(a>0))return alert('Enter the amount received');if(a>pa+1e-9)return alert('More than the pending AED '+fmt(pa));
+window.depApprove=function(id){const r=DEP.find(x=>x.id==id);if(!r)return;const pa=depPendR(r),bl=(r.bills||[]).length?'<div style="margin:0 0 12px;padding:10px 12px;border-radius:10px;background:var(--soft,#f6f8fc);font-size:13px"><b>Bills ticked by the driver</b><br>'+depBills(r).map(t=>'#'+esc(t.bill)+' · AED '+fmt(pendA(t))).join('<br>')+'</div>':'';modal('<h3>Approve deposit · '+esc(r.driver)+'</h3><p class="note" style="margin:4px 0 10px">Driver requested AED '+fmt(r.amt)+(bl?' for the bills below':'')+'. Pending on '+(bl?'these bills':'this driver')+': AED '+fmt(pa)+'. Enter the amount you received; the PIN is shown only after this.</p>'+bl+'<div class="row"><div><label>Amount received (AED)</label><input id="dp_a" type="number" value="'+(Math.min(r.amt,pa)||'')+'"></div></div><div style="margin-top:14px;display:flex;gap:8px"><button class="btn au" onclick="depGo(\''+id+'\')">Approve and show PIN</button><button class="btn g" onclick="cm()">Cancel</button></div>')};
+window.depGo=async function(id){const r=DEP.find(x=>x.id==id);if(!r||r.status!='pending'){cm();return}const a=Math.round(+g('dp_a')*100)/100,pa=depPendR(r);if(!(a>0))return alert('Enter the amount received');if(a>pa+1e-9)return alert('More than the pending AED '+fmt(pa));
 const pin=String(100000+(crypto.getRandomValues(new Uint32Array(1))[0]%900000));
 try{const h=await otpHash(pin,id,r.uid);await db.collection('depreq').doc(id).update({status:'approved',rcv:a,otpH:h,apAt:Date.now(),apBy:BY()});try{sessionStorage.setItem('dep_'+id,pin)}catch(e){}
 modal('<h3>Deposit approved</h3><p class="note" style="margin:6px 0">Give this PIN to <b>'+esc(r.driver)+'</b>. They enter it in the Driver App to complete the deposit of AED '+fmt(a)+'. Valid for 30 minutes. The cash ledger is credited only after they do.</p><div style="font:700 40px/1.3 monospace;letter-spacing:10px;text-align:center;margin:14px 0">'+pin+'</div><button class="btn au" onclick="cm()">Done</button>')}catch(e){alert('Could not approve: '+(e.code||e.message))}};
@@ -3401,7 +3410,7 @@ window.depPostAll=async function(){if(window._depBusy||typeof T=='undefined')ret
 try{for(const r of Q){let ok=false;const ref=db.collection('depreq').doc(r.id);
 try{ok=await db.runTransaction(async tx=>{const s=await tx.get(ref);if(!s.exists||s.data().status!='confirmed')return false;tx.update(ref,{status:'posted',postAt:Date.now(),postBy:BY()});return true})}catch(e){console.warn('depreq claim',e.code||e)}
 if(!ok)continue;
-try{const L=pendL().filter(t=>t.driver==r.driver),u=cashApply(L,Math.min(+r.rcv||0,sum(L,pendA)));lg('Driver deposit (PIN verified)',r.driver+' · AED '+fmt(u)+' · approved by '+(r.apBy||'accountant'));cashDone(L,u);try{sessionStorage.removeItem('dep_'+r.id)}catch(e){}try{drvSyncAll()}catch(e){}}
+try{const L=depBills(r),u=cashApply(L,Math.min(+r.rcv||0,sum(L,pendA)));lg('Driver deposit (PIN verified)',r.driver+' · AED '+fmt(u)+((r.bills||[]).length?' · bills '+L.map(t=>t.bill).join(', '):'')+' · approved by '+(r.apBy||'accountant'));cashDone(L,u);try{sessionStorage.removeItem('dep_'+r.id)}catch(e){}try{drvSyncAll()}catch(e){}}
 catch(e){console.error(e);ref.update({status:'confirmed'}).catch(()=>{});alert('Could not post the deposit for '+r.driver+'. It will be retried.')}}}finally{window._depBusy=0}};
 window.depListen=function(){if(window._depU||typeof db=='undefined'||!db||!fbAuth||!fbAuth.currentUser||(role!='corp'&&role!='acc'))return;window._depU=1;
 try{db.collection('depreq').orderBy('at','desc').limit(200).onSnapshot(sn=>{DEP=sn.docs.map(d=>Object.assign({id:d.id},d.data())).sort((a,b)=>(b.at||0)-(a.at||0));const t=document.getElementById('ttl'),c=document.getElementById('depcard');if(t&&t.textContent=='Cash Ledger'&&c)c.outerHTML=depCard();depPostAll()},e=>{console.warn('depreq',e.code);setTimeout(()=>{window._depU=0},30000)})}catch(e){window._depU=0}};
@@ -4005,7 +4014,7 @@ function ent(raw){
  if(/\bcash\b/.test(q))e.mode='cash';else if(/\b(bank|online|transfer|cheque|check)\b/.test(q))e.mode='bank';
  m=q.match(/\b(?:top|best|first)\s+(\d{1,2})\b/);if(m)e.n=+m[1];
  return e}
-const perTxt=p=>['today','yesterday','this week','last week'].includes(p.label)?p.label:'in '+p.label,pf=p=>'for '+p.label;
+const perTxt=p=>['today','yesterday','this week','last week'].includes(p.label)?p.label:(/^(this|last) (month|year)/.test(p.label)?'during ':'in ')+p.label,pf=p=>'for '+p.label;
 const descE=e=>{const a=[];if(e.company)a.push('for '+E(e.company));if(e.driver)a.push('by '+E(e.driver));if(e.veh)a.push('on '+E(e.veh));if(e.per)a.push(perTxt(e.per));if(e.status)a.push(e.status);if(e.mode)a.push(e.mode+' payments');return a.join(' · ')};
 
 /* ---------- data helpers ---------- */
@@ -4236,12 +4245,12 @@ SK.edit=e=>{
 SK.payNote=e=>R(B.p('For safety I don\'t record payments directly: a payment needs the amount, the mode and a reference, and large ones need admin approval. I\'ll open Collections for you so you can enter it in a few seconds.'),[openChip('Collections',e.company||e.bill||''),openChip('Cash Ledger')].filter(Boolean),{auto:()=>openTab('Collections',e.company||e.bill||'')});
 
 /* ---------- router ---------- */
-const CAP=R(B.p('I\'m your offline assistant — I read this app\'s data and never send anything online. You can ask me things like:')+'<ul class="ai-ul"><li><b>Look up:</b> “bill 1003”, “unpaid bills of Gulf Trading”, “trips by Ahmed last month”</li><li><b>Numbers:</b> “profit this month”, “who owes the most?”, “cash in hand”, “top 5 customers”</li><li><b>People:</b> “tell me about Rafeeq”, “documents expiring”, “who is on leave?”</li><li><b>Do:</b> “open Salary”, “add driver Mohammed”, “set phone of Ahmed to 0501234567”, “export unpaid bills”</li><li><b>Help:</b> “how do I record a payment?”</li></ul>');
+const CAP=R(B.p('Tap what you need and I\'ll ask a couple of quick questions, then show the answer — no typing or commands to remember. I work offline and only read this app\'s data.')+B.note('You can still type a question (like “bill 1003” or “unpaid bills of Gulf Trading”) if you prefer.'),menuChips());
 let CTX=null;
 const FOLLOW=/^(and|what about|how about|also|then|same for|now)\b/;
 function route(e,allowFollow){
  const q=e.q,words=q.split(' ').filter(Boolean).length;
- if(/^(hi|hello|hey|salam|assalam|good (morning|afternoon|evening))\b/.test(q))return R(B.p('Hello'+(who()?' '+E(who()):'')+'! What would you like to know or do?'),[{t:'Business summary',f:()=>ask('summary')},{t:'Unpaid bills',f:()=>ask('unpaid bills')},{t:'What can you do?',f:()=>say(CAP)}]);
+ if(/^(hi|hello|hey|salam|assalam|good (morning|afternoon|evening))\b/.test(q))return R(B.p('Hello'+(who()?' '+E(who()):'')+'! What would you like to know or do?'),menuChips());
  if(/\b(thanks|thank you|thx|great|perfect|nice)\b/.test(q)&&words<=4)return R(B.p('You\'re welcome! Ask me anything else.'));
  if(/\b(what can you do|capabilities|commands|what do you do|help me|^help$|^help\b.*assistant)/.test(q)||q=='help')return CAP;
  if(/^(yes|yep|confirm|go ahead|do it|ok do it)$/.test(q)&&PEND){confirmPlan(PEND);return null}
@@ -4268,63 +4277,125 @@ function route(e,allowFollow){
  if(e.veh)return SK.trips(e);
  if(allowFollow&&CTX&&(FOLLOW.test(q)||(words<=4&&(e.per||e.driver||e.company||e.veh||e.status)))){const m2=Object.assign({},CTX.e);['per','driver','company','veh','status','mode','n'].forEach(k=>{if(e[k])m2[k]=e[k]});m2.q=CTX.e.q+' '+q;m2.raw=CTX.e.raw;return route(Object.assign({},m2,{__f:1}),false)}
  const t=tabFor(q);if(t&&words<=4){if(has(t)){openTab(t);return R(B.p('Opening <b>'+t+'</b>.'))}}
- return R(B.p('I\'m not sure what you mean by that. Try asking about <b>bills, trips, outstanding amounts, drivers, cash, salary</b> — or say “what can you do?”.'),[{t:'What can you do?',f:()=>say(CAP)},{t:'Business summary',f:()=>ask('summary')},{t:'Unpaid bills',f:()=>ask('unpaid bills')}])}
+ return R(B.p('I didn\'t quite get that. Please pick what you need from the menu below.'),menuChips())}
 
-/* ---------- UI ---------- */
-const CH=[];let OPEN=false,VOICE=false,SRx=null,LISTEN=false,BUSY=false;
-try{VOICE=localStorage.getItem('ai_voice')=='1'}catch(x){}
+/* ---------- guided flows: ask first, then show the answer ---------- */
+const CH=[];let OPEN=false,EXPECT=null,msgs,inp,btn,panel;
+const mainBtn=()=>({t:'↩ Main menu',f:()=>menu(),cls:'ghost',one:1,silent:1});
+function menuChips(){const L=[];
+ if(canTrips())L.push({t:'Bills & trips',f:()=>gTrips()});
+ if(canMoney()||canOwed())L.push({t:'Money & profit',f:()=>gMoney()});
+ if(has('Cash Ledger')||has('Bank')||has('Dashboard')||has('Adnoc')||has('Salik'))L.push({t:'Cash & bank',f:()=>gCash()});
+ if(has('Drivers')||has('Trip Sheet')||has('Dashboard'))L.push({t:'Drivers',f:()=>gDrivers()});
+ if(canTrips())L.push({t:'Companies',f:()=>gCompanies()});
+ if(has('Salary'))L.push({t:'Salary & payroll',f:()=>gSalary()});
+ if(has('Audit Log')||has('Approvals'))L.push({t:'Activity & approvals',f:()=>gAudit()});
+ if(isAdmin()&&has('Masters'))L.push({t:'Make a change',f:()=>gChange()});
+ L.push({t:'How do I…?',f:()=>gHelp()},{t:'Open a tab',f:()=>gOpen()});
+ return L.map(o=>Object.assign({one:1,cls:'menu'},o))}
+function menu(msg){say(R(B.p(msg||'What would you like to do?'),menuChips()))}
+const fin=(r,extra)=>{if(!r)return;r.chips=(r.chips||[]).concat(extra||[],[{t:'Ask something else',f:()=>menu(),one:1,silent:1,cls:'ghost'}]);say(r)};
+function opts(q,list,back){say(R(B.p(q),list.map(o=>Object.assign({one:1},o)).concat(back===false?[]:[back||mainBtn()])))}
+function expectText(q,ph,fn){EXPECT={fn};inp.placeholder=ph;say(R(B.p(q),[{t:'Cancel',f:()=>{EXPECT=null;inp.placeholder=PH;menu('Cancelled.')},cls:'ghost',one:1,silent:1}]));inp.focus()}
+const PH='Or type a question…';
+function choose(title,items,onPick,anyLabel,page){page=page||0;const per=8,sl=items.slice(page*per,page*per+per),L=[];
+ if(anyLabel&&!page)L.push({t:anyLabel,f:()=>onPick(null)});sl.forEach(x=>L.push({t:x,f:()=>onPick(x)}));
+ if(items.length>(page+1)*per)L.push({t:'More ▸',f:()=>choose(title,items,onPick,anyLabel,page+1)});
+ if(!items.length&&!anyLabel)return say(R(B.p('There is nothing to choose from yet.')));opts(title,L)}
+const byCount=(list,key)=>{const c={};T.forEach(t=>{c[t[key]]=(c[t[key]]||0)+1});return list.slice().sort((a,b)=>(c[b]||0)-(c[a]||0))};
+function gPeriod(done,allTime){
+ const t=today(),y=+t.slice(0,4),m=+t.slice(5,7),mo=[];for(let i=2;i<=7;i++){const mm=((m-i-1+24)%12)+1,yy=m-i<=0?y-1:y;mo.push(cap(MNs[mm-1])+' '+yy)}
+ const L=[['Today','today'],['This week','this week'],['This month','this month'],['Last month','last month'],['This year','this year']].map(([l,q])=>({t:l,f:()=>done(period(q))}));
+ if(allTime!==false)L.push({t:'All time',f:()=>done(null)});
+ L.push({t:'Pick a month ▸',f:()=>opts('Which month?',mo.map(x=>({t:x,f:()=>done(period(x.toLowerCase()))})))});
+ opts('For which period?',L)}
+const frame=(o)=>Object.assign({raw:'',q:'',per:null},o);
+/* bills & trips */
+function gTrips(){opts('What would you like to see?',[
+ {t:'Unpaid bills',f:()=>gTripsFlow({status:'unpaid'})},{t:'Paid bills',f:()=>gTripsFlow({status:'paid'})},{t:'All trips',f:()=>gTripsFlow({})},
+ {t:'One bill (by number)',f:()=>expectText('Type the bill number.','Bill number, e.g. 1003',v=>{const n=String(v).replace(/\D/g,'');if(!n)return menu('That doesn\'t look like a bill number.');fin(SK.bill(frame({bill:n})))})}])}
+function gTripsFlow(e){choose('Which company?',byCount(CO,'company'),c=>{e.company=c;gPeriod(p=>{e.per=p;e.q='trips';fin(SK.trips(frame(e)))})},'Any company')}
+/* money */
+function gMoney(){const L=[];
+ if(canMoney())L.push({t:'Revenue',f:()=>gMoneyPer('revenue')},{t:'Expenses',f:()=>gMoneyPer('expenses')},{t:'Profit',f:()=>gMoneyPer('profit')},{t:'Top customers',f:()=>gPeriod(p=>fin(SK.top(frame({q:'top customers',per:p}))))});
+ if(canOwed())L.push({t:'Who owes us money',f:()=>fin(SK.money(frame({q:'who owes outstanding by company'})))},{t:'Amount owed by one company',f:()=>choose('Which company?',byCount(CO,'company'),c=>fin(SK.money(frame({q:'outstanding',company:c}))))});
+ opts('What would you like to know?',L)}
+const gMoneyPer=q=>gPeriod(p=>fin(SK.money(frame({q,per:p}))));
+/* cash */
+function gCash(){const L=[];const cl=has('Cash Ledger')||has('Dashboard'),bk=has('Bank')||has('Dashboard'),w=has('Adnoc')||has('Salik')||has('Dashboard');
+ if(cl)L.push({t:'Cash in hand',f:()=>fin(SK.cash(frame({q:'cash in hand'})))});if(bk)L.push({t:'Bank balance',f:()=>fin(SK.cash(frame({q:'bank balance'})))});if(w)L.push({t:'Fuel & toll wallets',f:()=>fin(SK.cash(frame({q:'adnoc salik wallet'})))});
+ L.push({t:'All balances',f:()=>fin(SK.cash(frame({q:'balance'})))});if(cl)L.push({t:'Recent cash entries',f:()=>fin(SK.cash(frame({q:'cash recent transactions'})))});if(bk&&has('Bank'))L.push({t:'Recent bank entries',f:()=>fin(SK.cash(frame({q:'bank recent transactions'})))});
+ opts('Which balance?',L)}
+/* drivers */
+function gDrivers(){const L=[{t:'Look up a driver',f:()=>choose('Which driver?',byCount(DR,'driver'),d=>gDriverWhat(d))}];
+ L.push({t:'Who is on leave today',f:()=>fin(SK.docs(frame({q:'who is on leave'})))},{t:'Documents expiring',f:()=>fin(SK.docs(frame({q:'documents expiring'})))});
+ if(has('Salary'))L.push({t:'Salary overview',f:()=>gSalary()});opts('What would you like to know?',L)}
+function gDriverWhat(d){const L=[{t:'Full profile',f:()=>fin(SK.driver(frame({driver:d,q:'profile'})))},{t:'Trips',f:()=>gPeriod(p=>fin(SK.trips(frame({driver:d,per:p,q:'trips'}))))}];
+ if(has('Salary')||canMoney())L.push({t:'Salary',f:()=>gPeriod(p=>fin(SK.driver(frame({driver:d,per:p||period('this month'),q:'salary'}))),false)});
+ opts('What about '+d+'?',L)}
+/* companies */
+function gCompanies(){choose('Which company?',byCount(CO,'company'),c=>opts(c+' — what do you need?',[
+ {t:'Summary',f:()=>fin(SK.company(frame({company:c,q:'company'})))},{t:'Unpaid bills',f:()=>fin(SK.trips(frame({company:c,status:'unpaid',q:'trips'})))},
+ {t:'Trips',f:()=>gPeriod(p=>fin(SK.trips(frame({company:c,per:p,q:'trips'}))))}]))}
+/* salary */
+function gSalary(){if(!has('Salary'))return say(deny('salary details'));gPeriod(p=>fin(SK.salary(frame({per:p||period('this month'),q:'salary'}))),false)}
+/* activity */
+function gAudit(){const L=[];if(has('Audit Log'))L.push({t:'Recent activity',f:()=>fin(SK.audit(frame({q:'recent activity'})))},{t:'Today\'s activity',f:()=>fin(SK.audit(frame({q:'activity today',per:period('today')})))});
+ if(has('Approvals'))L.push({t:'Pending approvals',f:()=>fin(SK.audit(frame({q:'pending approvals'})))});opts('What would you like to see?',L)}
+/* changes (admin) */
+const TYPES=[['Driver','DR'],['Company','CO'],['Vehicle','VE'],['Place','PL']];
+function gChange(){if(!isAdmin())return say(R(B.p('Only the admin can make changes.')));
+ opts('What would you like to change?',[{t:'Add something new',f:()=>opts('Add which?',TYPES.map(([l,k])=>({t:l,f:()=>expectText('Type the new '+l.toLowerCase()+' name.','New '+l.toLowerCase()+' name',v=>{const n=up(v);if(!n)return menu('No name entered.');say(planAdd(k,n))})})))},
+ {t:'Change a driver\'s details',f:()=>choose('Which driver?',DR.slice(),d=>opts('Which detail of '+d+'?',[['Phone','phone'],['Basic salary','basic'],['Allowance','allow'],['Minimum trips','min']].map(([l,f])=>({t:l,f:()=>expectText('Type the new '+l.toLowerCase()+' for '+d+'.','New '+l.toLowerCase(),v=>{const val=f=='phone'?v.trim():v.replace(/,/g,'').trim();if(f!='phone'&&!/^\d+(\.\d+)?$/.test(val))return menu('That has to be a number.');say(planSet(d,f,val))})}))))},
+ {t:'Rename something',f:()=>opts('Rename which?',TYPES.map(([l,k])=>({t:l,f:()=>choose('Which '+l.toLowerCase()+'?',AR[k].slice(),o=>expectText('Type the new name for '+o+'.','New name',v=>{const n=up(v);if(!n)return menu('No name entered.');say(planRename(k,o,n))}))})))},
+ {t:'Delete something',f:()=>opts('Delete which?',TYPES.map(([l,k])=>({t:l,f:()=>choose('Which '+l.toLowerCase()+'?',AR[k].slice(),o=>say(planDel(k,o)))})))}])}
+/* help + open */
+function gHelp(){opts('What would you like help with?',KB.map(k=>({t:k.t,f:()=>fin(R(B.p('<b>'+k.t+'</b>')+'<ol class="ai-ol">'+k.s.map(x=>'<li>'+x+'</li>').join('')+'</ol>'))})))}
+function gOpen(){const gs=[...new Set(NAV[role].map(gIdx))].sort((a,b)=>a-b);opts('Which area?',gs.map(g=>({t:NGL[g],f:()=>opts('Which tab?',NAV[role].filter(n=>gIdx(n)==g).map(n=>({t:n,f:()=>{openTab(n);say(R(B.p('Opening <b>'+n+'</b>.')))}}))) })))}
+
+/* ---------- panel ---------- */
 const ICON={spark:'<svg viewBox="0 0 24 24"><path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg>',
- send:'<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',mic:'<svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>',
- spk:'<svg viewBox="0 0 24 24"><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/></svg>',x:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',trash:'<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'};
-let box,msgs,inp,btn,panel;
+ send:'<svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>',x:'<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',trash:'<svg viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>'};
 function build(){
  if($('#ai-btn'))return;
- btn=document.createElement('button');btn.id='ai-btn';btn.className='ai-fab hide';btn.title='Ask the assistant (Ctrl+J)';btn.setAttribute('aria-label','Open assistant');btn.innerHTML=ICON.spark+'<span>Assistant</span>';btn.onclick=()=>toggle();
+ btn=document.createElement('button');btn.id='ai-btn';btn.className='ai-fab hide';btn.title='Assistant (Ctrl+J)';btn.setAttribute('aria-label','Open assistant');btn.innerHTML=ICON.spark+'<span>Assistant</span>';btn.onclick=()=>toggle();
  panel=document.createElement('aside');panel.id='ai-panel';panel.className='ai-panel';panel.setAttribute('aria-hidden','true');
- panel.innerHTML='<div class="ai-hd"><div class="ai-av">'+ICON.spark+'</div><div class="ai-ht"><b>Assistant</b><small>Offline · reads this app only</small></div><button class="ai-ib" id="ai-vo" title="Read replies aloud">'+ICON.spk+'</button><button class="ai-ib" id="ai-cl" title="Clear chat">'+ICON.trash+'</button><button class="ai-ib" id="ai-x" title="Close">'+ICON.x+'</button></div><div class="ai-ms" id="ai-ms"></div><div class="ai-ft"><div class="ai-sg" id="ai-sg"></div><div class="ai-in"><textarea id="aiq" rows="1" placeholder="Ask anything about your data, or tell me what to do…" autocomplete="off" spellcheck="false"></textarea><button class="ai-ib ai-mic" id="ai-mic" title="Speak (uses your browser\'s speech service)">'+ICON.mic+'</button><button class="ai-send" id="ai-go" title="Send">'+ICON.send+'</button></div></div>';
+ panel.innerHTML='<div class="ai-hd"><div class="ai-av">'+ICON.spark+'</div><div class="ai-ht"><b>Assistant</b><small>Offline · reads this app only</small></div><button class="ai-ib" id="ai-cl" title="Start over">'+ICON.trash+'</button><button class="ai-ib" id="ai-x" title="Close">'+ICON.x+'</button></div><div class="ai-ms" id="ai-ms"></div><div class="ai-ft"><div class="ai-in"><textarea id="aiq" rows="1" placeholder="'+PH+'" autocomplete="off" spellcheck="false"></textarea><button class="ai-send" id="ai-go" title="Send">'+ICON.send+'</button></div></div>';
  document.body.appendChild(btn);document.body.appendChild(panel);
  msgs=$('#ai-ms');inp=$('#aiq');inp.dataset.keepCase='1';
- $('#ai-x').onclick=()=>toggle(false);$('#ai-cl').onclick=()=>{msgs.innerHTML='';CH.length=0;PEND=null;CTX=null;welcome()};
- $('#ai-vo').onclick=()=>{VOICE=!VOICE;try{localStorage.setItem('ai_voice',VOICE?'1':'0')}catch(x){}$('#ai-vo').classList.toggle('on',VOICE);if(!VOICE&&window.speechSynthesis)speechSynthesis.cancel();else speak('Voice is on.')};
- $('#ai-vo').classList.toggle('on',VOICE);
+ $('#ai-x').onclick=()=>toggle(false);$('#ai-cl').onclick=()=>{msgs.innerHTML='';CH.length=0;PEND=null;CTX=null;EXPECT=null;inp.placeholder=PH;welcome()};
  $('#ai-go').onclick=submit;
  inp.addEventListener('keydown',e=>{if(e.key=='Enter'&&!e.shiftKey){e.preventDefault();submit()}else if(e.key=='Escape')toggle(false)});
  inp.addEventListener('input',()=>{inp.style.height='auto';inp.style.height=Math.min(120,inp.scrollHeight)+'px'});
- msgs.addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(b){const c=CH[+b.dataset.c];if(c){b.closest('.ai-ch')&&b.closest('.ai-ch').querySelectorAll('button').forEach(x=>{if(c.cls=='ok'||c.cls=='no')x.disabled=true});try{c.f()}catch(x){console.error(x)}}}});
- const SRc=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!SRc)$('#ai-mic').style.display='none';else $('#ai-mic').onclick=()=>listen(SRc);
+ msgs.addEventListener('click',e=>{const b=e.target.closest('[data-c]');if(!b||b.disabled)return;const c=CH[+b.dataset.c];if(!c)return;const grp=b.closest('.ai-ch');
+  if(c.one||c.cls=='ok'||c.cls=='no'){grp&&grp.querySelectorAll('button').forEach(x=>x.disabled=true);b.classList.add('picked')}
+  if(c.one&&!c.silent)bubble('me',E(c.t));
+  try{c.f()}catch(x){console.error(x)}});
  welcome();sync()}
-function welcome(){say(R(B.p('Hi'+(who()?' <b>'+E(who())+'</b>':'')+'! I can look up bills, trips, drivers and balances, open tabs, and (for admins) make confirmed edits — all without going online.'),sug().map(s=>({t:s,f:()=>ask(s)}))),true)}
-const sug=()=>isAdmin()?['Business summary','Unpaid bills','Who owes the most?','Cash in hand','Trips today','Documents expiring']:['Trips today','Unpaid bills','Cash in hand','How do I add a trip?'];
+function welcome(){say(R(B.p('Hi'+(who()?' <b>'+E(who())+'</b>':'')+'! Tap what you need — I\'ll ask a couple of quick questions and then show the answer.'),menuChips()))}
 function toggle(f){OPEN=f===undefined?!OPEN:f;panel.classList.toggle('open',OPEN);panel.setAttribute('aria-hidden',OPEN?'false':'true');btn.classList.toggle('on',OPEN);if(OPEN)setTimeout(()=>inp.focus(),200)}
 function sync(){const app=$('#app'),show=app&&!app.classList.contains('hide');btn.classList.toggle('hide',!show);if(!show&&OPEN)toggle(false)}
-function html2txt(h){const d=document.createElement('div');d.innerHTML=h.replace(/<\/(p|li|tr)>/g,'. ').replace(/<br>/g,', ');return d.textContent.replace(/\s+/g,' ').trim()}
-function speak(t){if(!VOICE||!window.speechSynthesis)return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(t.slice(0,420));u.lang='en-GB';u.rate=1;const v=speechSynthesis.getVoices().find(x=>/^en/i.test(x.lang));if(v)u.voice=v;speechSynthesis.speak(u)}catch(x){}}
+const html2txt=h=>{const d=document.createElement('div');d.innerHTML=h.replace(/<\/(p|li|tr)>/g,'. ').replace(/<br>/g,', ');return d.textContent.replace(/\s+/g,' ').trim()};
 function bubble(cls,h){const d=document.createElement('div');d.className='ai-m '+cls;d.innerHTML=h;msgs.appendChild(d);msgs.scrollTop=msgs.scrollHeight;return d}
-function say(r,quiet){
+function say(r){
  if(!r)return;if(!r.html)r=R(String(r));
  const chips=(r.chips||[]).filter(Boolean);let ch='';
- if(chips.length)ch='<div class="ai-ch">'+chips.map(c=>{CH.push(c);return'<button class="ai-chip '+(c.cls||'')+'" data-c="'+(CH.length-1)+'">'+E(c.t)+'</button>'}).join('')+'</div>';
- bubble('bot',r.html+ch);if(!quiet)speak(html2txt(r.html));if(r.auto)setTimeout(r.auto,300)}
+ if(chips.length)ch='<div class="ai-ch'+(chips.every(c=>c.cls=='menu')?' menu':'')+'">'+chips.map(c=>{CH.push(c);return'<button class="ai-chip '+(c.cls||'')+'" data-c="'+(CH.length-1)+'">'+E(c.t)+'</button>'}).join('')+'</div>';
+ const d=bubble('bot',r.html+ch);msgs.scrollTop=Math.max(0,d.offsetTop-8);if(r.auto)setTimeout(r.auto,300)}
 function ask(text){
  text=String(text||'').trim();if(!text)return null;
  bubble('me',E(text));let out=null;
  const typing=bubble('bot typing','<i></i><i></i><i></i>');
- try{const e=ent(text);out=route(e,true);if(out&&!out.plan&&!/^(open|go to|add|set|change|rename|delete)/.test(e.q))CTX={e}}catch(x){console.error(x);out=R(B.p('Sorry, I hit a problem answering that. Please try rephrasing.'))}
+ try{const e=ent(text);out=route(e,true);if(out&&!out.plan&&!/^(open|go to|add|set|change|rename|delete)/.test(e.q))CTX={e}}catch(x){console.error(x);out=R(B.p('Sorry, I hit a problem answering that. Please pick from the menu.'),menuChips())}
  setTimeout(()=>{typing.remove();if(out)say(out)},160);
  return out}
-function submit(){const v=inp.value;if(!v.trim())return;inp.value='';inp.style.height='auto';ask(v)}
-function listen(SRc){
- if(LISTEN&&SRx){try{SRx.stop()}catch(x){}return}
- try{SRx=new SRc();SRx.lang='en-US';SRx.interimResults=false;SRx.maxAlternatives=1;LISTEN=true;$('#ai-mic').classList.add('on');
-  SRx.onresult=ev=>{const t=ev.results[0][0].transcript;inp.value=t;submit()};
-  SRx.onerror=ev=>{say(R(B.p('Voice input isn\'t available here ('+E(ev.error||'error')+'). You can type instead.')))};
-  SRx.onend=()=>{LISTEN=false;$('#ai-mic').classList.remove('on')};SRx.start()}catch(x){LISTEN=false}}
-
+function submit(){const v=inp.value;if(!v.trim())return;inp.value='';inp.style.height='auto';
+ if(EXPECT){const f=EXPECT.fn;EXPECT=null;inp.placeholder=PH;bubble('me',E(v));try{f(v)}catch(x){console.error(x);menu('Something went wrong.')}return}
+ ask(v)}
 document.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&(e.key=='j'||e.key=='J')){const app=$('#app');if(app&&!app.classList.contains('hide')){e.preventDefault();toggle()}}});
 function init(){build();const app=$('#app');if(app)new MutationObserver(sync).observe(app,{attributes:true,attributeFilter:['class']});new MutationObserver(sync).observe(document.body,{attributes:true,attributeFilter:['class']})}
 if(document.readyState=='loading')document.addEventListener('DOMContentLoaded',init);else init();
-window.__AI={ask:q=>{const o=ask(q);return o?html2txt(o.html):null},open:()=>toggle(true),route:q=>route(ent(q),true),SK};
+window.__AI={ask:q=>{const o=ask(q);return o?html2txt(o.html):null},open:()=>toggle(true),route:q=>route(ent(q),true),SK,menu,flows:{gTrips,gMoney,gCash,gDrivers,gCompanies,gSalary,gAudit,gChange,gHelp,gOpen}};
 })();
 
 </script>

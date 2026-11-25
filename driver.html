@@ -63,6 +63,9 @@ input:focus,select:focus,textarea:focus{border-color:#000;background:#fff}
 .cal-g .d.td{border-color:#000}.cal-g .d.sel{background:#000;color:#fff}
 .cal-g .d em{position:absolute;right:0;top:-2px;font-style:normal;font-size:9px;font-weight:800;min-width:15px;height:15px;line-height:15px;border-radius:8px;background:var(--bluebg);color:var(--blue)}.cal-g .d.sel em{background:#fff;color:#000}
 .sm{background:#e9e9e9;border:0;border-radius:99px;padding:10px 16px;font:inherit;font-size:14px;font-weight:700;color:#000;cursor:pointer;margin:12px 8px 0 0}.sm.p{background:#000;color:#fff}.sm.d{color:var(--bad)}
+.dsel{display:flex;align-items:center;gap:12px;padding:12px 0;border-top:1px solid var(--line);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.dsel input{width:24px;height:24px;accent-color:#000;flex:none;margin:0}.dsel .m{flex:1;min-width:0}.dsel .m b{display:block}.dsel .m .sub{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.dsel .r{text-align:right;white-space:nowrap}
+.dtot{display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding:14px 0 2px;border-top:2px solid #000;font-size:15px}.dtot b{font-size:18px}
 .chips{display:flex;gap:8px;flex-wrap:wrap}.chips button{border:0;background:#eee;border-radius:99px;padding:10px 16px;font:inherit;font-size:14px;font-weight:700;color:#000;cursor:pointer}.chips button.on{background:#000;color:#fff}
 .chips2{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 14px}
 /* hero + trip cards */
@@ -452,18 +455,33 @@ async function advDecline(id){
 /* ---------- footer and cash deposit ---------- */
 const FOOT=()=>'<div class="foot"><div class="lg"><img src="icon-192.png" alt=""></div>© '+new Date().getFullYear()+' Saif Navas Transportation LLC · All rights reserved<br>Driver App '+VER+'</div>';
 document.querySelectorAll('[data-foot]').forEach(e=>e.innerHTML=FOOT());
+let DSEL=null;
+const billsTxt=A=>A.bills&&A.bills.length?' · Bill'+(A.bills.length>1?'s ':' ')+A.bills.slice(0,8).map(x=>esc(String(x))).join(', ')+(A.bills.length>8?'…':''):'';
+function selHtml(ci){const sel=ci.filter(t=>DSEL.has(String(t.bill))),tot=Math.round(sel.reduce((q,t)=>q+(+t.pend||0),0)*100)/100,all=sel.length==ci.length&&ci.length>0;
+  return '<div class="card" id="depsel"><b>Which bills are you depositing?</b><div class="sub" style="margin:2px 0 8px">Tick the bill numbers whose cash you are handing over now. Only these bills are set off.</div>'
+  +'<label class="dsel" style="border-top:0"><input type="checkbox" data-a="depall"'+(all?' checked':'')+'><div class="m"><b>Select all bills</b></div><div class="r"><span class="sub">'+ci.length+' bill'+(ci.length==1?'':'s')+'</span></div></label>'
+  +ci.map(t=>'<label class="dsel"><input type="checkbox" data-a="depsel" data-v="'+esc(String(t.bill))+'"'+(DSEL.has(String(t.bill))?' checked':'')+'><div class="m"><b>Bill '+esc(t.bill)+'</b><div class="sub">'+esc(t.customer||'Trip')+' · '+fdt(t.date)+'</div></div><div class="r"><b>AED '+fmt(t.pend)+'</b></div></label>').join('')
+  +'<div class="dtot"><span>Selected: <b>'+sel.length+'</b> bill'+(sel.length==1?'':'s')+'</span><b>AED '+fmt(tot)+'</b></div>'
+  +'<button class="btn" data-a="depsub" style="margin-top:12px"'+(sel.length?'':' disabled')+'>Submit request</button><button class="sm" data-a="depback" style="margin:10px 0 0">Back</button></div>'}
+function selPaint(){const el=document.getElementById('depsel');if(el)el.outerHTML=selHtml(((D&&D.cash)||{}).items||[])}
 function depSt(r){const t=r.status=='approved'?(r.apAt||0):(r.at||0);return (r.status=='pending'||r.status=='approved')&&Date.now()-t>AEXP?'expired':r.status}
 function depHtml(ci,cs){
+  if(!ci.length)DSEL=null;
   const A=DEPQ.find(r=>['pending','approved','confirmed'].indexOf(depSt(r))>=0);
   if(A){const st=depSt(A);
-    if(st=='pending')return '<div class="card"><div class="it"><div><b>Deposit request sent</b><div class="sub">Waiting for the accountant to approve · AED '+fmt(A.amt)+'</div></div><span class="pill w">Pending</span></div><button class="sm d" data-a="depx" data-id="'+A.id+'">Cancel request</button></div>';
-    if(st=='approved')return '<div class="card"><b>Enter the PIN</b><div class="sub" style="margin:2px 0 10px">The accountant received AED '+fmt(A.rcv)+'. Enter the 6-digit PIN they give you to complete this deposit.</div><input class="pin" id="dep_in" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="······">'+(DF[A.id]?'<div class="err">Wrong PIN. '+(5-DF[A.id])+' tries left.</div>':'<div class="err" id="dep_er"></div>')+'<button class="btn" data-a="depok" data-id="'+A.id+'" style="margin-top:4px">Confirm deposit</button><button class="sm d" data-a="depx" data-id="'+A.id+'">Cancel</button></div>';
+    if(st=='pending')return '<div class="card"><div class="it"><div><b>Deposit request sent</b><div class="sub">Waiting for the accountant to approve · AED '+fmt(A.amt)+billsTxt(A)+'</div></div><span class="pill w">Pending</span></div><button class="sm d" data-a="depx" data-id="'+A.id+'">Cancel request</button></div>';
+    if(st=='approved')return '<div class="card"><b>Enter the PIN</b><div class="sub" style="margin:2px 0 10px">The accountant received AED '+fmt(A.rcv)+billsTxt(A)+'. Enter the 6-digit PIN they give you to complete this deposit.</div><input class="pin" id="dep_in" inputmode="numeric" maxlength="6" autocomplete="off" placeholder="······">'+(DF[A.id]?'<div class="err">Wrong PIN. '+(5-DF[A.id])+' tries left.</div>':'<div class="err" id="dep_er"></div>')+'<button class="btn" data-a="depok" data-id="'+A.id+'" style="margin-top:4px">Confirm deposit</button><button class="sm d" data-a="depx" data-id="'+A.id+'">Cancel</button></div>';
     return '<div class="card"><div class="it"><div><b>PIN verified</b><div class="sub">The office is updating your cash now.</div></div><span class="pill g">Done</span></div></div>'}
   const L=DEPQ[0],ln=L&&L.status=='posted'?'<div class="sub" style="margin:0 0 10px">Last deposit: AED '+fmt(L.rcv)+' recorded '+fdt(ymd(new Date(L.postAt||L.cfAt||L.at)))+'</div>':L&&L.status=='rejected'?'<div class="sub" style="margin:0 0 10px">Your last deposit request was rejected by the accountant.</div>':'';
+  if(DSEL)return selHtml(ci)+ln;
   return (ci.length?'<button class="btn" data-a="dep" style="margin:0 0 12px">Deposit now</button>':'')+ln}
-async function depReq(){const cs=(D&&D.cash)||{};if(!(cs.total>0)||DEPQ.some(r=>['pending','approved','confirmed'].indexOf(depSt(r))>=0))return;
-  if(!confirm('Send a deposit request for AED '+fmt(cs.total)+' to the accountant?'))return;
-  try{const now=Date.now();await db.collection('depreq').add({uid:U.uid,driver:(D&&D.name)||ME.name||'',amt:Math.round(cs.total*100)/100,bills:(cs.items||[]).slice(0,60).map(t=>t.bill),status:'pending',at:now,_ts:now})}
+function depStart(){if(DEPQ.some(r=>['pending','approved','confirmed'].indexOf(depSt(r))>=0))return;DSEL=new Set();paint()}
+async function depReq(){const cs=(D&&D.cash)||{},ci=cs.items||[];if(!DSEL||DEPQ.some(r=>['pending','approved','confirmed'].indexOf(depSt(r))>=0))return;
+  const sel=ci.filter(t=>DSEL.has(String(t.bill)));if(!sel.length)return alert('Tick at least one bill.');
+  if(sel.length>60)return alert('Please tick at most 60 bills in one request. Send the rest in a second request.');
+  const amt=Math.round(sel.reduce((q,t)=>q+(+t.pend||0),0)*100)/100;if(!(amt>0))return;
+  if(!confirm('Send a deposit request for '+sel.length+' bill'+(sel.length==1?'':'s')+' (AED '+fmt(amt)+') to the accountant?'))return;
+  try{const now=Date.now();await db.collection('depreq').add({uid:U.uid,driver:(D&&D.name)||ME.name||'',amt:amt,bills:sel.map(t=>t.bill),status:'pending',at:now,_ts:now});DSEL=null;paint()}
   catch(e){alert(e.code=='permission-denied'?'Not allowed yet. The office must publish the latest Firestore rules.':'Could not send. Check your connection.')}}
 async function depVerify(id){const r=DEPQ.find(x=>x.id==id),v=($('#dep_in')||{}).value||'',er=$('#dep_er');if(!r||depSt(r)!='approved')return;
   if(!/^\d{6}$/.test(v)){if(er)er.textContent='Enter the 6-digit PIN.';return}
@@ -489,7 +507,11 @@ document.addEventListener('click',e=>{
   else if(a=='start')openStart(id);
   else if(a=='ssave')saveStart();
   else if(a=='menux')closeSide();
-  else if(a=='dep')depReq();
+  else if(a=='dep')depStart();
+  else if(a=='depsel'){if(DSEL){b.checked?DSEL.add(String(v)):DSEL.delete(String(v));selPaint()}}
+  else if(a=='depall'){if(DSEL){const ci=((D&&D.cash)||{}).items||[];if(b.checked)ci.forEach(t=>DSEL.add(String(t.bill)));else DSEL.clear();selPaint()}}
+  else if(a=='depsub')depReq();
+  else if(a=='depback'){DSEL=null;paint()}
   else if(a=='depok')depVerify(id);
   else if(a=='depx'){if(confirm('Cancel this deposit request?'))db.collection('depreq').doc(id).update({status:'cancelled',decAt:Date.now()}).catch(()=>alert('Could not cancel.'))}
   else if(a=='aok')advApprove(id);
