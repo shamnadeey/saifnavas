@@ -265,7 +265,7 @@ function paint(quiet){
   else if(TAB=='trips')h=tripsHtml();
   else if(!D)h=EMP('Your profile is not ready yet','The office has not published it.');
   else if(TAB=='cash'){const cs=D.cash||{};
-    h='<div class="card kpi"><small>Pending to deposit</small><b>AED '+fmt(cs.total)+'</b><span>'+ci.length+' trip'+(ci.length==1?'':'s')+' with cash not yet handed over</span></div>'+depHtml(ci,cs)+
+    h='<div class="card kpi"><small>Pending to deposit</small><b>AED '+fmt(cs.total)+'</b><span>'+ci.length+' trip'+(ci.length==1?'':'s')+' with cash not yet handed over</span></div>'+acctHtml()+depHtml(ci,cs)+
       (ci.length?'<h2>Cash trips</h2>'+ci.map(t=>'<div class="card"><div class="it"><div><b>'+esc(t.customer||'Trip')+'</b><div class="sub">Bill '+esc(t.bill)+' · '+fdt(t.date)+'</div></div><div class="r"><b>AED '+fmt(t.pend)+'</b><div class="sub">of '+fmt(t.amt)+'</div></div></div>'+(+t.rcv>0?'<div class="rt"><span class="pill g">Received '+fmt(t.rcv)+'</span></div>':'')+'</div>').join('')+'<div class="note">Hand the cash to the office. The accountant updates this list when it is received.</div>':EMP('No cash to deposit'));
   }else h=ap.length?ap.map(a=>'<div class="card"><div class="it"><div><b>'+esc(a.title||'Approval')+'</b><div class="sub">'+esc(a.note||'')+'</div></div><div class="r"><span class="pill w">'+esc(a.status||'Pending')+'</span></div></div></div>').join(''):'';
   if(TAB=='appr'){h=advHtml()+h;if(!h)h=EMP('No approvals pending')}
@@ -452,6 +452,7 @@ async function advDecline(id){
   if(!confirm('Decline this advance? Nothing will be paid or recorded.'))return;
   try{await db.collection('advreq').doc(id).update({status:'declined',decAt:Date.now()})}catch(e){alert('Could not decline. Check your connection.')}}
 
+function acctHtml(){const a=D&&D.acct;if(!a||!(+a.bal>0))return '';const n=(a.items||[]).length;return '<div style="margin:-4px 2px 12px;color:#d92d20;font-size:12.5px;font-weight:700;line-height:1.45">Company cash account balance: AED '+fmt(a.bal)+'<div style="font-weight:500;font-size:11.5px">Given AED '+fmt((a.items||[]).reduce((q,x)=>q+(+x.amt||0),0))+(n>1?' in '+n+' accounts':' on '+fdt(a.items[0].date))+'. For Adnoc, Salik and approved expenses only. The accountant updates this live.</div></div>'}
 /* ---------- footer and cash deposit ---------- */
 const FOOT=()=>'<div class="foot"><div class="lg"><img src="icon-192.png" alt=""></div>© '+new Date().getFullYear()+' Saif Navas Transportation LLC · All rights reserved<br>Driver App '+VER+'</div>';
 document.querySelectorAll('[data-foot]').forEach(e=>e.innerHTML=FOOT());
