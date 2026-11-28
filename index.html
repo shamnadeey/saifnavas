@@ -3377,15 +3377,18 @@ const fn=(typeof FIN!='undefined'?FIN:[]).filter(f=>f.driver==d);
 p.fines={total:Math.round(fn.reduce((q,f)=>q+(+f.amt||0),0)*100)/100,n:fn.length,items:fn.slice(-10).reverse().map(f=>({t:f.type||'Fine',amt:+f.amt||0,bill:String(f.bill||'')}))};
 return p}}
 /* ===== driver app v5: work and leave since 1 Nov, reward progress, advances received, trip counts ===== */
-{const _dp5=window.drvPayload;window.drvPayload=function(d,u){const p=_dp5(d,u);try{const td=today(),x=DI[d]||{},FROM='2026-11-01',st=(x.joined&&x.joined>FROM)?x.joined:FROM,wd=typeof wDays=='function'?wDays:()=>0,
+{const _dp5=window.drvPayload;window.drvPayload=function(d,u){const p=_dp5(d,u);try{const td=today(),x=DI[d]||{},FROM='2026-11-01',st=(x.joined&&x.joined>FROM)?x.joined:FROM,wd=(dr,from)=>{if(!from||from>td)return 0;let n=Math.round((Date.parse(td)-Date.parse(from))/864e5)+1;((DI[dr]||{}).leaves||[]).forEach(l=>{if(!l.from)return;const a=l.from>from?l.from:from,b=(l.to&&l.to<td)?l.to:td;if(a<=b)n-=Math.round((Date.parse(b)-Date.parse(a))/864e5)+1});return Math.max(0,n)},
 dd=a=>a>td?0:Math.round((Date.parse(td)-Date.parse(a))/864e5)+1,yd=dd(st),yw=Math.min(yd,wd(d,st));
 p.yr={from:st,days:yd,worked:yw,leave:Math.max(0,yd-yw)};
-const R=(typeof rwRules=='function'?rwRules():[]),G=(typeof CF!='undefined'&&CF&&CF.rwGiven)||{};
-p.rw=R.map(r=>{const s0=G[d+'|'+r.id]||x.joined||'',n=s0?wd(d,s0):0,dy=+r.days||0;return{name:String(r.name||''),days:dy,n:n,left:Math.max(0,dy-n),set:!!s0}});
+const R=(typeof CF!='undefined'&&CF&&CF.rewards)||[],G=(typeof CF!='undefined'&&CF&&CF.rwGiven)||{};
+p.rw=R.map(r=>{let s0=G[d+'|'+r.id]||x.joined||'';if(s0&&s0<FROM)s0=FROM;const n=s0?wd(d,s0):0,dy=+r.days||0;return{name:String(r.name||''),days:dy,n:n,left:Math.max(0,dy-n),set:!!s0,from:s0}});
 const ad=ADV.filter(a=>a.driver==d).sort((a,b)=>String(a.date)<String(b.date)?1:String(a.date)>String(b.date)?-1:0);
 p.adv={total:Math.round(ad.reduce((q,a)=>q+(+a.amt||0),0)*100)/100,n:ad.length,items:ad.slice(0,10).map(a=>({d:String(a.date||''),amt:+a.amt||0,m:String(a.mode||'')}))};
 const mt=T.filter(t=>t.driver==d),ms=td.slice(0,7);
-p.tc={m:mt.filter(t=>String(t.date||'').slice(0,7)==ms).length,y:mt.filter(t=>String(t.date||'')>=FROM).length,all:mt.length}}catch(e){console.warn('driver payload v5',e)}
+const cl=(typeof CLOSEDTO=='string'&&CLOSEDTO)||'',op=mt.filter(t=>String(t.date||'')>=FROM&&(!cl||String(t.date||'')>cl)).sort((q,r)=>String(r.date||'')<String(q.date||'')?-1:String(r.date||'')>String(q.date||'')?1:0),
+cs=t=>t.pm=='Cash'?(t.cs=='Received'?'R':'P'):'';
+p.tc={m:op.length,y:op.length,all:op.length,from:cl?'after '+cl:FROM};
+p.done=op.slice(0,120).map(t=>({bill:String(t.bill||''),date:String(t.date||''),customer:String(t.customer||''),fr:String(t.from||''),to:String(t.to||''),pm:String(t.pm||''),cs:cs(t),amt:t.pm=='Cash'?(+cashT(t)||0):0,rcv:t.pm=='Cash'?(+rcvd(t)||0):0,pend:t.pm=='Cash'?(+pendA(t)||0):0}))}catch(e){console.warn('driver payload v5',e)}
 return p}}
 window.DEP=[];window._depBusy=0;
 window.depPend=d=>Math.round(pendL().filter(t=>t.driver==d).reduce((q,t)=>q+pendA(t),0)*100)/100;
@@ -4598,8 +4601,5 @@ window.flagRev=ref=>{cm();try{ocJump('Reversals')}catch(e){}setTimeout(()=>{cons
 try{if(NAV.corp.indexOf('Flags')<0)NAV.corp.push('Flags');if(NAV.acc.indexOf('Flags')<0)NAV.acc.push('Flags');IC.Flags='<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>'}catch(e){console.error(e)}
 })();
 </script>
-<script id="drvdone">
-/* driver app: last 80 billed trips of the driver, with cash deposit state */
-{const _d=window.drvPayload;window.drvPayload=function(d,u){const p=_d(d,u);try{p.done=T.filter(t=>t.driver==d).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(+b.bill||0)-(+a.bill||0)).slice(0,80).map(t=>{const c=t.pm=='Cash';return{bill:String(t.bill||''),date:String(t.date||''),customer:String(t.customer||''),fr:String(t.from||''),to:String(t.to||''),pm:String(t.pm||''),amt:c?(+cashT(t)||0):0,rcv:c?(+rcvd(t)||0):0,pend:c?(+pendA(t)||0):0,cs:c&&t.cs=='Received'?'R':''}})}catch(e){console.error(e);p.done=[]}return p}}
-</script>
+<script id="drvdone">/* trip list now published by the driver app v5 payload (current open month only) */</script>
 </body></html>
