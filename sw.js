@@ -3,7 +3,7 @@
    Other files: served from cache for speed, refreshed in the background.
    Firebase library files (versioned URLs): cached for offline use.
    Firebase data/login requests are never touched. */
-const CACHE = 'sn-cache-v4';
+const CACHE = 'sn-cache-v5';
 const PRECACHE = ['./manifest.json', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

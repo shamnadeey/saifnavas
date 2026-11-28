@@ -4598,4 +4598,8 @@ window.flagRev=ref=>{cm();try{ocJump('Reversals')}catch(e){}setTimeout(()=>{cons
 try{if(NAV.corp.indexOf('Flags')<0)NAV.corp.push('Flags');if(NAV.acc.indexOf('Flags')<0)NAV.acc.push('Flags');IC.Flags='<path d="M5 21V4"/><path d="M5 4h11l-2 4 2 4H5"/>'}catch(e){console.error(e)}
 })();
 </script>
+<script id="drvdone">
+/* driver app: last 80 billed trips of the driver, with cash deposit state */
+{const _d=window.drvPayload;window.drvPayload=function(d,u){const p=_d(d,u);try{p.done=T.filter(t=>t.driver==d).sort((a,b)=>a.date<b.date?1:a.date>b.date?-1:(+b.bill||0)-(+a.bill||0)).slice(0,80).map(t=>{const c=t.pm=='Cash';return{bill:String(t.bill||''),date:String(t.date||''),customer:String(t.customer||''),fr:String(t.from||''),to:String(t.to||''),pm:String(t.pm||''),amt:c?(+cashT(t)||0):0,rcv:c?(+rcvd(t)||0):0,pend:c?(+pendA(t)||0):0,cs:c&&t.cs=='Received'?'R':''}})}catch(e){console.error(e);p.done=[]}return p}}
+</script>
 </body></html>
