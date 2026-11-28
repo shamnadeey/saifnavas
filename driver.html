@@ -206,8 +206,13 @@ function live(on,t){const l=$('#lv');l.className='pill '+(on?'g':'w');l.textCont
 const vk=v=>String(v||'').toUpperCase().replace(/[^A-Z0-9]/g,'');
 const kmKey=(d,v)=>d+'_'+vk(v);
 const kmDay=(d,v)=>((KM&&KM.days)||{})[kmKey(d,v)]||null;
-function kmPrev(v,before){let best=null;const k=vk(v),days=(KM&&KM.days)||{};Object.keys(days).forEach(key=>{const e=days[key]||{},d=key.slice(0,10);if(vk(e.veh)!==k||d>=before)return;if(!best||d>best.d||(d==best.d&&e.km>best.km))best={d:d,km:+e.km}});const pv=((KM&&KM.veh)||{})[k];if(pv&&pv.date<before&&(!best||pv.date>best.d))best={d:pv.date,km:+pv.km};return best}
-async function saveKm(v,km){const at=Date.now(),days={},veh={};days[kmKey(TODAY,v)]={veh:v,km:km,at:at};veh[vk(v)]={veh:v,km:km,date:TODAY,at:at};
+function kmPrev(v,before){let best=null;const k=vk(v),days=(KM&&KM.days)||{};Object.keys(days).forEach(key=>{const e=days[key]||{},d=key.slice(0,10);if(vk(e.veh)!==k||d>=before)return;if(!best||d>best.d||(d==best.d&&e.km>best.km))best={d:d,km:+e.km}});const pv=((KM&&KM.veh)||{})[k];if(pv&&pv.date<before&&(!best||pv.date>best.d))best={d:pv.date,km:+pv.km};const g=VKC[k];if(g&&g.date<before&&(!best||g.date>=best.d))best={d:g.date,km:+g.km};return best}
+const VKC={};
+async function loadVk(v){const k=vk(v);if(!k)return null;try{const s=await db.collection('vehkm').doc(k).get();VKC[k]=s.exists?s.data():null}catch(e){VKC[k]=undefined}return VKC[k]}
+const vkTaken=v=>{const g=VKC[vk(v)];return g&&g.date==TODAY&&U&&g.uid!=U.uid?g:null};
+async function saveKm(v,km){const at=Date.now(),days={},veh={},vr=db.collection('vehkm').doc(vk(v));
+  await db.runTransaction(async tx=>{const s=await tx.get(vr),g=s.exists?s.data():null;if(g&&g.date==TODAY&&g.uid!=U.uid){const e=new Error('taken');e.code='veh-taken';e.by=g.driver||'another driver';throw e}tx.set(vr,{veh:v,km:km,date:TODAY,uid:U.uid,driver:(D&&D.name)||ME.name||'',at:at})});
+  VKC[vk(v)]={veh:v,km:km,date:TODAY,uid:U.uid,at:at};days[kmKey(TODAY,v)]={veh:v,km:km,at:at};veh[vk(v)]={veh:v,km:km,date:TODAY,at:at};
   const ex=Object.keys((KM&&KM.days)||{}),ds=ex.map(k=>k.slice(0,10)).concat([TODAY]).filter((x,i,a)=>a.indexOf(x)==i).sort().reverse().slice(0,3);
   ex.forEach(k=>{if(ds.indexOf(k.slice(0,10))<0)days[k]=firebase.firestore.FieldValue.delete()});
   await db.collection('kmlog').doc(U.uid).set({uid:U.uid,driver:(D&&D.name)||ME.name||'',last:{veh:v,km:km,date:TODAY,at:at},veh:veh,days:days,_ts:at},{merge:true})}
@@ -381,18 +386,22 @@ function openStart(id){
   const s=SCHD.find(x=>x.id==id);if(!s)return;ST={id:id};
   $('#dt').textContent='Start trip';
   $('#dgb').innerHTML=tripBox(s)+'<div class="card"><label style="margin-top:0">Vehicle number *</label><input id="s_v" list="dlSV" autocomplete="off" value="'+esc(s.veh||((D&&D.veh)||{}).v||'')+'"><datalist id="dlSV">'+(((D&&D.veh)||{}).vs||[]).map(x=>'<option value="'+esc(x)+'">').join('')+'</datalist><div id="s_km"></div><div class="err" id="s_e"></div><button class="btn" id="s_s" data-a="ssave" style="margin-top:6px">Start trip</button></div>';
-  $('#s_v').oninput=drawKm;drawKm();$('#dlg').classList.remove('hide');
+  const lv=()=>{clearTimeout(window._vt);window._vt=setTimeout(()=>loadVk($('#s_v')&&$('#s_v').value.trim()).then(()=>{if($('#s_v'))drawKm()}),350)};$('#s_v').oninput=()=>{drawKm();lv()};drawKm();lv();$('#dlg').classList.remove('hide');
 }
 function drawKm(){
-  const v=$('#s_v').value.trim(),box=$('#s_km');if(!v){box.innerHTML='';return}
+  const v=$('#s_v').value.trim(),box=$('#s_km'),old=($('#s_k')||{}).value||'',btn=$('#s_s');if(!v){box.innerHTML='';if(btn)btn.disabled=false;return}
+  const tk=vkTaken(v);if(btn)btn.disabled=!!tk;
+  if(tk){box.innerHTML='<div class="rt" style="margin-top:14px"><span class="pill r">Vehicle already used today</span><div class="sub" style="margin-top:6px">'+esc(tk.driver||'Another driver')+' already logged '+esc(tk.veh||v)+' today ('+fmtn(tk.km)+' km at '+hm(tk.at)+'). Only the first driver can log a vehicle each day. Choose another vehicle or contact the office.</div></div>';return}
   const t=kmDay(TODAY,v);
   if(t){box.innerHTML='<div class="rt" style="margin-top:14px"><span class="pill g">Today’s reading recorded</span><div class="sub" style="margin-top:6px">'+fmtn(t.km)+' km at '+hm(t.at)+'. You only enter the meter once a day for each vehicle.</div></div>';return}
   const pv=kmPrev(v,TODAY);
   box.innerHTML='<label>Meter reading now (km) *</label><input id="s_k" inputmode="numeric" maxlength="7" autocomplete="off" placeholder="e.g. 128450"><div class="sub">Type the total number shown on the vehicle meter. Do not type the distance driven.</div>'+(pv?'<div class="sub">Last reading: '+fmtn(pv.km)+' km on '+fdt(pv.d)+'</div>':'');
+  if(old&&$('#s_k'))$('#s_k').value=old;
 }
 async function saveStart(){
   const E=m=>{$('#s_e').textContent=m},v=$('#s_v').value.trim(),s=SCHD.find(x=>x.id==(ST&&ST.id));E('');
   if(!s)return;if(!v)return E('Enter the vehicle number.');if(v.length>40)return E('Vehicle number is too long.');
+  await loadVk(v);const tk=vkTaken(v);if(tk)return E((tk.driver||'Another driver')+' already logged this vehicle today. Only the first driver can log a vehicle each day.');
   let km,have=kmDay(TODAY,v);
   if(have)km=+have.km;
   else{const raw=(($('#s_k')||{}).value||'').trim();if(!/^\d{1,7}$/.test(raw))return E('Enter the meter reading using digits only.');km=+raw;if(km>2000000)return E('That reading looks too high. Check the meter.');
@@ -403,7 +412,7 @@ async function saveStart(){
     if(!have)await saveKm(v,km);
     const u={status:'started',startAt:Date.now(),sKm:km};if(s.veh!==v)u.veh=v;
     await db.collection('schedule').doc(s.id).update(u);$('#dlg').classList.add('hide');paint();
-  }catch(e){E(e.code=='permission-denied'?'Not allowed. The office must publish the latest Firestore rules.':'Could not save. Check your connection.');$('#s_s').disabled=false}
+  }catch(e){E(e.code=='veh-taken'?(e.by+' already logged this vehicle today. Only the first driver can log a vehicle each day.'):e.code=='permission-denied'?'Not allowed. The office must publish the latest Firestore rules (vehkm).':'Could not save. Check your connection.');$('#s_s').disabled=false}
 }
 
 /* ---------- driver: complete a trip ---------- */
